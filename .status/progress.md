@@ -61,6 +61,48 @@
 
 ### Estado ao final da sessão 2
 
-- Branch `feat/design-system` em andamento (não mergeada ainda)
+- Branch `feat/design-system` mergeada em `dev` (merge commit)
 - Fase 1 **100% concluída** (19/19 tarefas)
-- Próxima branch: `feat/auth-flow` (Fase 2 — WelcomeScreen, LoginScreen, RegisterScreen, ProfileSetupScreen, AuthContext, AuthNavigator)
+
+---
+
+## Sessão 3 — 2026-05-20
+
+### Fase 2 — Fluxo de entrada do usuário (tarefas 2.1 a 2.8 concluídas)
+
+| # | Tarefa | Observação |
+|---|--------|------------|
+| 2.1 | Criar `AuthNavigator` | Stack nativa: Welcome (sem header) → Login / Register (header transparente) → ProfileSetup |
+| 2.2 | Criar `WelcomeScreen` | Tela dividida: topo verde (logo + slogan), fundo branco (botões Entrar / Criar conta) |
+| 2.3 | Criar `LoginScreen` | Email + senha com validação inline; login mockado com delay de 600ms |
+| 2.4 | Criar `RegisterScreen` | Nome, email, senha, data de nascimento; navega para ProfileSetup após sucesso |
+| 2.5 | Criar `ProfileSetupScreen` | Seleção multi-esporte (toggle chips), nível (radio), localização; foto visual com Alert |
+| 2.6 | Criar `AuthContext` | `login`, `register`, `completeProfile`, `logout`; `AuthProvider` + `useAuth` hook |
+| 2.7 | Navegação condicional | `RootNavigator` com `NavigationContainer`: autenticado → `AppNavigator`; não autenticado → `AuthNavigator` |
+| 2.8 | Testes `LoginScreen` | 9 testes: renderização, validação (e-mail inválido, senha curta, campos vazios), chamada de `login`, navegação para Register |
+
+### Arquivos criados
+
+- `src/navigation/types.ts` — `AuthStackParamList`, `AppTabParamList`
+- `src/contexts/AuthContext.tsx` — `AuthProvider` + `useAuth`
+- `src/navigation/AuthNavigator.tsx`
+- `src/navigation/AppNavigator.tsx` — placeholder com HomeScreen
+- `src/navigation/RootNavigator.tsx`
+- `src/screens/WelcomeScreen.tsx`
+- `src/screens/LoginScreen.tsx`
+- `src/screens/RegisterScreen.tsx`
+- `src/screens/ProfileSetupScreen.tsx`
+- `src/screens/HomeScreen.tsx` — placeholder para Fase 4
+- `src/screens/__tests__/LoginScreen.test.tsx`
+- `App.tsx` atualizado — `SafeAreaProvider` + `AuthProvider` + `RootNavigator`
+
+### Resultado dos testes
+
+- **52 testes, 9 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅
+
+### Estado ao final da sessão 3
+
+- Branch `feat/auth-flow` pronta para merge em `dev`
+- Fase 2 **100% concluída** (8/8 tarefas)
+- Próxima branch: `feat/main-navigator` (Fase 4 — AppNavigator completo, HomeScreen, SearchScreen, FiltersScreen, MatchCard, useMatchFilters)

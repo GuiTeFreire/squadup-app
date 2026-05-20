@@ -40,16 +40,47 @@ npm install
 ```
 src/
 ├── components/   # Componentes reutilizáveis (Button, Input, Card…)
-├── contexts/     # Context API (AuthContext, MatchContext…)
+├── contexts/     # Context API (AuthContext)
 ├── hooks/        # Hooks customizados
 ├── mocks/        # Dados mockados (users, matches, ratings)
-├── navigation/   # Navigators (AuthNavigator, AppNavigator)
+├── navigation/   # Navigators (AuthNavigator, AppNavigator, RootNavigator)
 ├── screens/      # Telas da aplicação
 ├── types/        # Tipos TypeScript globais
 └── utils/        # Funções utilitárias
 ```
 
+## Fluxo de navegação atual
+
+```
+App
+└── RootNavigator
+    ├── AuthNavigator  (não autenticado)
+    │   ├── WelcomeScreen
+    │   ├── LoginScreen
+    │   ├── RegisterScreen
+    │   └── ProfileSetupScreen
+    └── AppNavigator   (autenticado)
+        └── HomeScreen  ← placeholder, será expandido na Fase 4
+```
+
+## Autenticação (mock)
+
+Não há backend. O `AuthContext` simula:
+
+- **Login** — qualquer e-mail válido + senha ≥ 6 chars autentica como `Carlos Mendes`
+- **Cadastro** → `RegisterScreen` → `ProfileSetupScreen` → cria novo perfil em memória
+- **Logout** — disponível na `HomeScreen`
+
 ## Status do projeto
 
-Fase 1 em andamento — setup concluído, componentes base pendentes.
-Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico.
+| Fase | Descrição | Status |
+| --- | --- | --- |
+| 1 | Estrutura e design system | ✅ Concluída |
+| 2 | Fluxo de autenticação | ✅ Concluída |
+| 3 | Perfil do usuário | ⚪ A fazer |
+| 4 | Listagem e busca de partidas | ⚪ **Próxima** |
+| 5–12 | Demais fases | ⚪ A fazer |
+
+**52 testes passando · lint zerado · 27/70 tarefas concluídas**
+
+Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.
