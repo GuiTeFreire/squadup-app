@@ -12,14 +12,14 @@
 
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
-| 1.1 | Inicializar projeto com Expo + TypeScript | ⚪ | `npx create-expo-app@latest --template` (blank TypeScript) |
-| 1.2 | Instalar e configurar NativeWind v4 | ⚪ | Tailwind CSS syntax para React Native |
-| 1.3 | Instalar React Navigation v6 (Stack + Bottom Tabs) | ⚪ | + dependências nativas do Expo |
-| 1.4 | Definir estrutura de pastas | ⚪ | `src/screens`, `src/components`, `src/hooks`, `src/mocks`, `src/types`, `src/utils`, `src/contexts`, `src/navigation` |
-| 1.5 | Definir tokens de design (cores, tipografia, espaçamentos) | ⚪ | Identidade esportiva/jovem — ver vision §10; configurar no `tailwind.config.js` |
-| 1.6 | Configurar Jest + React Native Testing Library | ⚪ | Base para testes unitários |
-| 1.7 | Configurar ESLint + Prettier | ⚪ | Regras padrão para React Native + TypeScript |
-| 1.8 | Criar componente `Button` | ⚪ | Variantes: primary, secondary, ghost; usando NativeWind |
+| 1.1 | Inicializar projeto com Expo + TypeScript | 🟢 | `expo@54`, `react-native@0.81.5` |
+| 1.2 | Instalar e configurar NativeWind v4 | 🟢 | `tailwind.config.js`, `babel.config.js`, `metro.config.js` |
+| 1.3 | Instalar React Navigation v6 (Stack + Bottom Tabs) | 🟢 | + dependências nativas do Expo |
+| 1.4 | Definir estrutura de pastas | 🟢 | `src/{screens,components,hooks,mocks,types,utils,contexts,navigation}` |
+| 1.5 | Definir tokens de design (cores, tipografia, espaçamentos) | 🟢 | Paleta no `tailwind.config.js` |
+| 1.6 | Configurar Jest + React Native Testing Library | 🟢 | `jest-expo@54`, `npm run test` ok |
+| 1.7 | Configurar ESLint + Prettier | 🟢 | ESLint 9 flat config, `npm run lint` zero erros |
+| 1.8 | Criar componente `Button` | ⚪ | Variantes: primary, secondary, ghost; usando NativeWind — **próxima tarefa** |
 | 1.9 | Criar componente `Input` | ⚪ | Com suporte a label e mensagem de erro |
 | 1.10 | Criar componente `Card` | ⚪ | Container genérico com sombra/elevação |
 | 1.11 | Criar componente `Avatar` | ⚪ | Com imagem e fallback de iniciais |
@@ -27,8 +27,8 @@
 | 1.13 | Criar componente `Header` | ⚪ | Título + botão voltar opcional |
 | 1.14 | Criar componente `EmptyState` | ⚪ | Ícone + mensagem para listas vazias |
 | 1.15 | Criar componente `RatingStars` | ⚪ | Exibição de nota média com estrelas |
-| 1.16 | Criar dados mockados — Usuários (`mocks/users.ts`) | ⚪ | 5+ usuários com foto, nível, esportes, nota — ver vision §12 |
-| 1.17 | Criar dados mockados — Partidas (`mocks/matches.ts`) | ⚪ | 10+ partidas com todos os campos — ver vision §12 |
+| 1.16 | Criar dados mockados — Usuários (`mocks/users.ts`) | ⚪ | 5+ usuários com foto, nível, esportes, nota |
+| 1.17 | Criar dados mockados — Partidas (`mocks/matches.ts`) | ⚪ | 10+ partidas com todos os campos |
 | 1.18 | Criar dados mockados — Avaliações (`mocks/ratings.ts`) | ⚪ | Avaliações vinculadas a usuários e partidas |
 | 1.19 | Criar arquivo de tipos TypeScript (`types/index.ts`) | ⚪ | `User`, `Match`, `Rating`, `Report`, `Sport`, `MatchStatus` |
 
@@ -176,17 +176,27 @@
 
 ---
 
+## Dívidas técnicas
+
+| # | Item | Prioridade | Descrição |
+|---|------|-----------|-----------|
+| D1 | jest versão | Média | `jest@30` instalado; `jest-expo@54` foi projetado para `jest@29`. Validar ao criar primeiros testes reais. |
+| D2 | react-test-renderer | Baixa | Fixado em `19.1.0`; atualizar junto com `react` quando necessário. |
+| D3 | react-native-screens | Baixa | Pinado em `~4.16.0` (SDK 54); verificar ao fazer upgrade de Expo SDK. |
+
+---
+
 ## Bloqueadores e observações
 
-- O projeto ainda não foi inicializado — começar pela Fase 1.
-- Nenhuma integração real com backend está prevista nesta fase (ver vision §14).
-- Usar Expo Go para desenvolvimento local — sem necessidade de emulador nativo.
+- Fase 1 parcialmente concluída (1.1–1.7 ✅ / 1.8–1.19 pendentes).
+- Próxima sessão: criar branch `feat/design-system` e implementar componentes base (1.8–1.15) + tipos e mocks (1.16–1.19).
+- Nenhuma integração real com backend prevista nesta fase.
 
 ---
 
 ## Progresso geral
 
-**Total de tarefas:** 70  
-**Concluídas:** 0  
-**Em andamento:** 0  
-**A fazer:** 70
+**Total de tarefas:** 70
+**Concluídas:** 7
+**Em andamento:** 0
+**A fazer:** 63

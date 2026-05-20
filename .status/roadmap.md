@@ -1,5 +1,26 @@
 # SquadUp — Roadmap Inicial do Front-end
 
+## Status de execução (atualizado em 2026-05-19)
+
+| Fase | Descrição | Status |
+|------|-----------|--------|
+| Fase 1 | Estrutura inicial do projeto | 🟡 Em andamento (7/19 tarefas — setup concluído, componentes pendentes) |
+| Fase 2 | Fluxo de entrada do usuário | ⚪ A fazer |
+| Fase 3 | Perfil do usuário | ⚪ A fazer |
+| Fase 4 | Listagem e busca de partidas | ⚪ A fazer |
+| Fase 5 | Detalhes da partida | ⚪ A fazer |
+| Fase 6 | Criação de partida | ⚪ A fazer |
+| Fase 7 | Participação em partida | ⚪ A fazer |
+| Fase 8 | Chat da partida | ⚪ A fazer |
+| Fase 9 | Avaliação pós-partida | ⚪ A fazer |
+| Fase 10 | Denúncia e segurança | ⚪ A fazer |
+| Fase 11 | Moderação (opcional) | ⚪ A fazer |
+| Fase 12 | Revisão e polimento final | ⚪ A fazer |
+
+Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6
+
+---
+
 ## 1. Objetivo do roadmap
 
 Este roadmap organiza a construção inicial do front-end do SquadUp em uma ordem lógica de desenvolvimento. A prioridade é criar um protótipo navegável que represente os principais casos de uso do sistema e demonstre a proposta do produto.
