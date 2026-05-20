@@ -27,3 +27,40 @@
 | Jest versão | `jest@30` instalado mas `jest-expo@54` foi projetado para `jest@29`. Testar se há incompatibilidade ao rodar suítes reais. |
 | react-test-renderer | Fixado em `19.1.0` para coincidir com `react@19.1.0`; atualizar junto quando react for atualizado. |
 | react-native-screens | Pinado em `~4.16.0` (SDK 54 compatível, requer RN ≥ 0.81). Verificar ao fazer upgrade de Expo. |
+
+---
+
+## Sessão 2 — 2026-05-20
+
+### Fase 1 — Design system e mocks (tarefas 1.8 a 1.19 concluídas)
+
+| # | Tarefa | Observação |
+|---|--------|------------|
+| 1.8 | Criar componente `Button` | Variantes primary/secondary/ghost, tamanhos sm/md/lg, estados loading/disabled, fullWidth |
+| 1.9 | Criar componente `Input` | Label, erro, borda colorida por estado (focus/erro/default) |
+| 1.10 | Criar componente `Card` | Container pressable ou estático; prop `padded` |
+| 1.11 | Criar componente `Avatar` | Tamanhos xs–xl; fallback de iniciais quando sem foto ou erro de load |
+| 1.12 | Criar componente `Badge` | Variantes: sport (com emoji), level, status, custom |
+| 1.13 | Criar componente `Header` | Título centralizado; botão voltar; slot rightElement |
+| 1.14 | Criar componente `EmptyState` | Ícone emoji + título + descrição + slot action |
+| 1.15 | Criar componente `RatingStars` | Estrelas cheias/meia/vazia; valor numérico; tamanhos sm/md/lg |
+| 1.16 | Criar dados mockados — Usuários | 6 usuários com todos os campos: foto, bio, nível, nota, esportes |
+| 1.17 | Criar dados mockados — Partidas | 11 partidas cobrindo todos os sports, níveis e status |
+| 1.18 | Criar dados mockados — Avaliações | 7 avaliações com critérios e comentários |
+| 1.19 | Criar tipos TypeScript | `User`, `Match`, `Rating`, `Report`, `Sport`, `MatchStatus`, `Participant`, `RatingCriteria` |
+
+### Correções de infraestrutura
+
+- **D1 — Jest versão:** Downgrade `jest@30 → @29`; `babel-preset-expo` instalado como devDep direto.
+- **jest.setup.js:** Removido import de `extend-expect` (não existe em RNTL v13; matchers são automáticos).
+
+### Resultado dos testes
+
+- **42 testes, 8 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅
+
+### Estado ao final da sessão 2
+
+- Branch `feat/design-system` em andamento (não mergeada ainda)
+- Fase 1 **100% concluída** (19/19 tarefas)
+- Próxima branch: `feat/auth-flow` (Fase 2 — WelcomeScreen, LoginScreen, RegisterScreen, ProfileSetupScreen, AuthContext, AuthNavigator)
