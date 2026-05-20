@@ -1,12 +1,17 @@
 import "./global.css";
 import { StatusBar } from "expo-status-bar";
-import { Text, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
+import { AuthProvider } from "./src/contexts/AuthContext";
+import RootNavigator from "./src/navigation/RootNavigator";
 
 export default function App() {
   return (
-    <View className="flex-1 bg-white items-center justify-center">
-      <Text className="text-base">Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <StatusBar style="auto" />
+        <RootNavigator />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

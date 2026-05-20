@@ -8,44 +8,12 @@
 
 ---
 
-## FASE 1 — Estrutura inicial do projeto
+## Fases concluídas (arquivadas em progress.md)
 
-| # | Tarefa | Status | Observação |
-|---|--------|--------|------------|
-| 1.1 | Inicializar projeto com Expo + TypeScript | 🟢 | `expo@54`, `react-native@0.81.5` |
-| 1.2 | Instalar e configurar NativeWind v4 | 🟢 | `tailwind.config.js`, `babel.config.js`, `metro.config.js` |
-| 1.3 | Instalar React Navigation v6 (Stack + Bottom Tabs) | 🟢 | + dependências nativas do Expo |
-| 1.4 | Definir estrutura de pastas | 🟢 | `src/{screens,components,hooks,mocks,types,utils,contexts,navigation}` |
-| 1.5 | Definir tokens de design (cores, tipografia, espaçamentos) | 🟢 | Paleta no `tailwind.config.js` |
-| 1.6 | Configurar Jest + React Native Testing Library | 🟢 | `jest-expo@54`, `npm run test` ok |
-| 1.7 | Configurar ESLint + Prettier | 🟢 | ESLint 9 flat config, `npm run lint` zero erros |
-| 1.8 | Criar componente `Button` | 🟢 | Variantes: primary, secondary, ghost; NativeWind; 7 testes |
-| 1.9 | Criar componente `Input` | 🟢 | Label + mensagem de erro; 6 testes |
-| 1.10 | Criar componente `Card` | 🟢 | Pressable opcional; 3 testes |
-| 1.11 | Criar componente `Avatar` | 🟢 | Imagem + fallback iniciais; 4 testes |
-| 1.12 | Criar componente `Badge` | 🟢 | Esporte (com emoji), nível, status; 6 testes |
-| 1.13 | Criar componente `Header` | 🟢 | Título + botão voltar opcional; 4 testes |
-| 1.14 | Criar componente `EmptyState` | 🟢 | Ícone + título + descrição + action slot; 6 testes |
-| 1.15 | Criar componente `RatingStars` | 🟢 | Estrelas cheias/meia/vazia + valor numérico; 6 testes |
-| 1.16 | Criar dados mockados — Usuários (`mocks/users.ts`) | 🟢 | 6 usuários com foto, nível, esportes, nota |
-| 1.17 | Criar dados mockados — Partidas (`mocks/matches.ts`) | 🟢 | 11 partidas com todos os campos + estados variados |
-| 1.18 | Criar dados mockados — Avaliações (`mocks/ratings.ts`) | 🟢 | 7 avaliações vinculadas a usuários e partidas |
-| 1.19 | Criar arquivo de tipos TypeScript (`types/index.ts`) | 🟢 | `User`, `Match`, `Rating`, `Report`, `Sport`, `MatchStatus`, etc. |
-
----
-
-## FASE 2 — Fluxo de entrada do usuário
-
-| # | Tarefa | Status | Observação |
-|---|--------|--------|------------|
-| 2.1 | Criar navigator de autenticação (`AuthNavigator`) | ⚪ | Stack: Welcome → Login / Register → ProfileSetup |
-| 2.2 | Criar tela `WelcomeScreen` (Boas-vindas) | ⚪ | Logo, slogan, botões Login e Cadastro |
-| 2.3 | Criar tela `LoginScreen` | ⚪ | Email + senha, link para Cadastro, login mockado |
-| 2.4 | Criar tela `RegisterScreen` (Cadastro) | ⚪ | Nome, email, senha, data de nascimento |
-| 2.5 | Criar tela `ProfileSetupScreen` (Config. inicial) | ⚪ | Foto (visual), esportes favoritos, nível, localização aproximada |
-| 2.6 | Criar `AuthContext` com estado global | ⚪ | Usuário logado, login/logout mockados |
-| 2.7 | Implementar lógica de navegação condicional | ⚪ | Autenticado → AppNavigator; não autenticado → AuthNavigator |
-| 2.8 | Escrever testes para `LoginScreen` | ⚪ | Renderização, validação de campos |
+| Fase | Tarefas | Branch mergeada |
+|------|---------|-----------------|
+| Fase 1 — Estrutura inicial | 19/19 ✅ | `feat/project-setup` + `feat/design-system` → `dev` |
+| Fase 2 — Fluxo de entrada | 8/8 ✅ | `feat/auth-flow` (pronta para merge) |
 
 ---
 
@@ -62,12 +30,12 @@
 
 ---
 
-## FASE 4 — Listagem e busca de partidas
+## FASE 4 — Listagem e busca de partidas ← próxima sessão
 
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
-| 4.1 | Criar navigator principal com Bottom Tabs | ⚪ | Abas: Home, Busca, Criar Partida, Perfil |
-| 4.2 | Criar tela `HomeScreen` com lista de partidas | ⚪ | FlatList com MatchCards usando dados mock |
+| 4.1 | Expandir `AppNavigator` com Bottom Tabs completo | ⚪ | Abas: Home, Busca, Criar Partida, Perfil |
+| 4.2 | Criar tela `HomeScreen` com lista de partidas | ⚪ | FlatList com MatchCards usando dados mock (substitui placeholder) |
 | 4.3 | Criar componente `MatchCard` | ⚪ | Esporte, título, local, data, vagas, nível, organizador |
 | 4.4 | Criar tela `SearchScreen` (Busca) | ⚪ | Input de busca por texto em tempo real |
 | 4.5 | Criar tela/modal `FiltersScreen` (Filtros) | ⚪ | Esporte, data, nível, vagas disponíveis |
@@ -180,16 +148,20 @@
 
 | # | Item | Prioridade | Descrição |
 |---|------|-----------|-----------|
-| D1 | jest versão | ~~Média~~ **Resolvida** | Downgrade para `jest@29` + instalação direta de `babel-preset-expo` como devDep. 42 testes passando. |
+| D1 | jest versão | ~~Média~~ **Resolvida** | Downgrade para `jest@29` + instalação direta de `babel-preset-expo`. 52 testes passando. |
 | D2 | react-test-renderer | Baixa | Fixado em `19.1.0`; atualizar junto com `react` quando necessário. |
 | D3 | react-native-screens | Baixa | Pinado em `~4.16.0` (SDK 54); verificar ao fazer upgrade de Expo SDK. |
+| D4 | Line endings CRLF | Baixa | Windows gera CRLF; Prettier exige LF. Solução atual: `npm run lint:fix` ao final de cada sessão. Solução definitiva: adicionar `.editorconfig` com `end_of_line = lf`. |
+| D5 | HomeScreen placeholder | Média | `src/screens/HomeScreen.tsx` é um stub — substituir na Fase 4 (tarefa 4.2). |
+| D6 | AppNavigator incompleto | Média | Atualmente tem apenas a aba Home. Expandir para 4 abas na Fase 4 (tarefa 4.1). |
 
 ---
 
 ## Bloqueadores e observações
 
-- Fase 1 **concluída** (1.1–1.19 ✅). Branch `feat/design-system` em andamento.
-- Próxima sessão: criar branch `feat/auth-flow` e implementar Fase 2 (AuthNavigator + WelcomeScreen + LoginScreen + RegisterScreen + ProfileSetupScreen + AuthContext).
+- Branch `feat/auth-flow` pronta para merge em `dev` (merge commit no-ff recomendado).
+- Próxima sessão: branch `feat/home-matches` implementando Fase 4 completa.
+- Ordem sugerida para Fase 4: AppNavigator → HomeScreen → MatchCard → SearchScreen → FiltersScreen → useMatchFilters → testes.
 - Nenhuma integração real com backend prevista nesta fase.
 
 ---
@@ -197,6 +169,6 @@
 ## Progresso geral
 
 **Total de tarefas:** 70
-**Concluídas:** 19
+**Concluídas:** 27
 **Em andamento:** 0
-**A fazer:** 51
+**A fazer:** 43
