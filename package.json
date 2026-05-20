@@ -8,7 +8,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest --watchAll=false --passWithNoTests",
-    "test:watch": "jest --watchAll"
+    "test:watch": "jest --watchAll",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" \"App.tsx\" --no-error-on-unmatched-pattern",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" \"App.tsx\" --fix --no-error-on-unmatched-pattern"
   },
   "jest": {
     "preset": "jest-expo",
@@ -29,10 +31,20 @@
     "react-native-screens": "~4.16.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@testing-library/react-native": "^13.3.3",
     "@types/react": "~19.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.4",
+    "@typescript-eslint/parser": "^8.59.4",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-native": "^5.0.0",
     "jest": "^30.4.2",
     "jest-expo": "~54.0.0",
+    "prettier": "^3.8.3",
     "react-test-renderer": "^19.1.0",
     "tailwindcss": "^3.4.19",
     "typescript": "~5.9.2"
