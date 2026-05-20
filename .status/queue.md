@@ -19,18 +19,18 @@
 | 1.5 | Definir tokens de design (cores, tipografia, espaçamentos) | 🟢 | Paleta no `tailwind.config.js` |
 | 1.6 | Configurar Jest + React Native Testing Library | 🟢 | `jest-expo@54`, `npm run test` ok |
 | 1.7 | Configurar ESLint + Prettier | 🟢 | ESLint 9 flat config, `npm run lint` zero erros |
-| 1.8 | Criar componente `Button` | ⚪ | Variantes: primary, secondary, ghost; usando NativeWind — **próxima tarefa** |
-| 1.9 | Criar componente `Input` | ⚪ | Com suporte a label e mensagem de erro |
-| 1.10 | Criar componente `Card` | ⚪ | Container genérico com sombra/elevação |
-| 1.11 | Criar componente `Avatar` | ⚪ | Com imagem e fallback de iniciais |
-| 1.12 | Criar componente `Badge` | ⚪ | Esporte, nível, status de partida |
-| 1.13 | Criar componente `Header` | ⚪ | Título + botão voltar opcional |
-| 1.14 | Criar componente `EmptyState` | ⚪ | Ícone + mensagem para listas vazias |
-| 1.15 | Criar componente `RatingStars` | ⚪ | Exibição de nota média com estrelas |
-| 1.16 | Criar dados mockados — Usuários (`mocks/users.ts`) | ⚪ | 5+ usuários com foto, nível, esportes, nota |
-| 1.17 | Criar dados mockados — Partidas (`mocks/matches.ts`) | ⚪ | 10+ partidas com todos os campos |
-| 1.18 | Criar dados mockados — Avaliações (`mocks/ratings.ts`) | ⚪ | Avaliações vinculadas a usuários e partidas |
-| 1.19 | Criar arquivo de tipos TypeScript (`types/index.ts`) | ⚪ | `User`, `Match`, `Rating`, `Report`, `Sport`, `MatchStatus` |
+| 1.8 | Criar componente `Button` | 🟢 | Variantes: primary, secondary, ghost; NativeWind; 7 testes |
+| 1.9 | Criar componente `Input` | 🟢 | Label + mensagem de erro; 6 testes |
+| 1.10 | Criar componente `Card` | 🟢 | Pressable opcional; 3 testes |
+| 1.11 | Criar componente `Avatar` | 🟢 | Imagem + fallback iniciais; 4 testes |
+| 1.12 | Criar componente `Badge` | 🟢 | Esporte (com emoji), nível, status; 6 testes |
+| 1.13 | Criar componente `Header` | 🟢 | Título + botão voltar opcional; 4 testes |
+| 1.14 | Criar componente `EmptyState` | 🟢 | Ícone + título + descrição + action slot; 6 testes |
+| 1.15 | Criar componente `RatingStars` | 🟢 | Estrelas cheias/meia/vazia + valor numérico; 6 testes |
+| 1.16 | Criar dados mockados — Usuários (`mocks/users.ts`) | 🟢 | 6 usuários com foto, nível, esportes, nota |
+| 1.17 | Criar dados mockados — Partidas (`mocks/matches.ts`) | 🟢 | 11 partidas com todos os campos + estados variados |
+| 1.18 | Criar dados mockados — Avaliações (`mocks/ratings.ts`) | 🟢 | 7 avaliações vinculadas a usuários e partidas |
+| 1.19 | Criar arquivo de tipos TypeScript (`types/index.ts`) | 🟢 | `User`, `Match`, `Rating`, `Report`, `Sport`, `MatchStatus`, etc. |
 
 ---
 
@@ -180,7 +180,7 @@
 
 | # | Item | Prioridade | Descrição |
 |---|------|-----------|-----------|
-| D1 | jest versão | Média | `jest@30` instalado; `jest-expo@54` foi projetado para `jest@29`. Validar ao criar primeiros testes reais. |
+| D1 | jest versão | ~~Média~~ **Resolvida** | Downgrade para `jest@29` + instalação direta de `babel-preset-expo` como devDep. 42 testes passando. |
 | D2 | react-test-renderer | Baixa | Fixado em `19.1.0`; atualizar junto com `react` quando necessário. |
 | D3 | react-native-screens | Baixa | Pinado em `~4.16.0` (SDK 54); verificar ao fazer upgrade de Expo SDK. |
 
@@ -188,8 +188,8 @@
 
 ## Bloqueadores e observações
 
-- Fase 1 parcialmente concluída (1.1–1.7 ✅ / 1.8–1.19 pendentes).
-- Próxima sessão: criar branch `feat/design-system` e implementar componentes base (1.8–1.15) + tipos e mocks (1.16–1.19).
+- Fase 1 **concluída** (1.1–1.19 ✅). Branch `feat/design-system` em andamento.
+- Próxima sessão: criar branch `feat/auth-flow` e implementar Fase 2 (AuthNavigator + WelcomeScreen + LoginScreen + RegisterScreen + ProfileSetupScreen + AuthContext).
 - Nenhuma integração real com backend prevista nesta fase.
 
 ---
@@ -197,6 +197,6 @@
 ## Progresso geral
 
 **Total de tarefas:** 70
-**Concluídas:** 7
+**Concluídas:** 19
 **Em andamento:** 0
-**A fazer:** 63
+**A fazer:** 51
