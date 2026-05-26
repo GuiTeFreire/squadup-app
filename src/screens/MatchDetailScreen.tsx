@@ -2,18 +2,17 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import React, { useMemo } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 import Avatar from "../components/Avatar";
 import Badge from "../components/Badge";
 import Button from "../components/Button";
 import ParticipantList from "../components/ParticipantList";
 import RatingStars from "../components/RatingStars";
-import { useMatchesContext } from "../contexts/MatchesContext";
+import { useMatchParticipation } from "../hooks/useMatchParticipation";
 import { CURRENT_USER } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
-import type { ParticipationStatus } from "../types";
 import { formatMatchDate } from "../utils/date";
 
 type Nav = NativeStackNavigationProp<AppRootStackParamList>;
@@ -70,17 +69,12 @@ export default function MatchDetailScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const { matchId } = route.params;
-  const { matches } = useMatchesContext();
+  const { match, userStatus, join, cancel } = useMatchParticipation(matchId, CURRENT_USER);
 
-  const match = useMemo(() => matches.find((m) => m.id === matchId) ?? null, [matches, matchId]);
-
-  const initialStatus = useMemo((): ParticipationStatus | null => {
-    if (!match) return null;
-    const found = match.participants.find((p) => p.user.id === CURRENT_USER.id);
-    return found?.status ?? null;
-  }, [match]);
-
-  const [userStatus, setUserStatus] = useState<ParticipationStatus | null>(initialStatus);
+  const confirmedCount = useMemo(
+    () => (match ? match.participants.filter((p) => p.status === "confirmed").length : 0),
+    [match]
+  );
 
   if (!match) {
     return (
@@ -90,21 +84,8 @@ export default function MatchDetailScreen() {
     );
   }
 
-  const confirmedCount = match.participants.filter((p) => p.status === "confirmed").length;
   const isMatchOver = match.status === "closed" || match.status === "cancelled";
   const isMatchFull = match.status === "full" && userStatus !== "confirmed";
-
-  function handleJoin() {
-    const next: ParticipationStatus = match!.requiresApproval ? "pending" : "confirmed";
-    setUserStatus(next);
-  }
-
-  function handleCancel() {
-    Alert.alert("Cancelar participação", "Tem certeza que deseja cancelar?", [
-      { text: "Não", style: "cancel" },
-      { text: "Sim, cancelar", style: "destructive", onPress: () => setUserStatus(null) },
-    ]);
-  }
 
   const nonOpenStatus = match.status !== "open" ? statusLabel[match.status] : null;
 
@@ -233,12 +214,7 @@ export default function MatchDetailScreen() {
               <MaterialCommunityIcons name="check-circle-outline" size={18} color="#22C55E" />
               <Text className="text-sm font-semibold text-success">Você está confirmado</Text>
             </View>
-            <Button
-              label="Cancelar participação"
-              onPress={handleCancel}
-              variant="ghost"
-              fullWidth
-            />
+            <Button label="Cancelar participação" onPress={cancel} variant="ghost" fullWidth />
           </View>
         ) : userStatus === "pending" ? (
           <View className="gap-3">
@@ -246,12 +222,12 @@ export default function MatchDetailScreen() {
               <MaterialCommunityIcons name="clock-outline" size={18} color="#F97316" />
               <Text className="text-sm font-semibold text-accent-600">Aguardando aprovação</Text>
             </View>
-            <Button label="Cancelar solicitação" onPress={handleCancel} variant="ghost" fullWidth />
+            <Button label="Cancelar solicitação" onPress={cancel} variant="ghost" fullWidth />
           </View>
         ) : isMatchFull ? (
           <Button label="Partida lotada" onPress={() => {}} disabled fullWidth />
         ) : (
-          <Button label="Participar" onPress={handleJoin} fullWidth />
+          <Button label="Participar" onPress={join} fullWidth />
         )}
       </View>
     </View>

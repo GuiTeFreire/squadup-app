@@ -11,7 +11,7 @@
 | Fase 5 | Detalhes da partida | 🟢 Concluída (6/6 tarefas — sessão 6) |
 | Fase 3 | Perfil do usuário | 🟢 Concluída (6/6 tarefas — sessão 7) |
 | Fase 6 | Criação de partida | 🟢 Concluída (5/5 tarefas — sessão 8) |
-| Fase 7 | Participação em partida | 🟡 Próxima |
+| Fase 7 | Participação em partida | 🟢 Concluída (5/5 tarefas — sessão 9) |
 | Fase 8 | Chat da partida | ⚪ A fazer |
 | Fase 9 | Avaliação pós-partida | ⚪ A fazer |
 | Fase 10 | Denúncia e segurança | ⚪ A fazer |

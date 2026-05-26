@@ -19,6 +19,7 @@
 | Fase 5 — Detalhes da partida | 6/6 ✅ | `feat/match-detail` → `dev` (sessão 6 — 2026-05-26) |
 | Fase 3 — Perfil do usuário | 6/6 ✅ | `feat/user-profile` → `dev` (sessão 7 — 2026-05-26) |
 | Fase 6 — Criação de partida | 5/5 ✅ | `feat/create-match` (sessão 8 — 2026-05-26) |
+| Fase 7 — Participação em partida | 5/5 ✅ | `feat/match-participation` (sessão 9 — 2026-05-26) |
 
 ---
 
@@ -75,15 +76,15 @@
 
 ---
 
-## FASE 7 — Participação em partida
+## FASE 7 — Participação em partida ✅ Concluída — sessão 9 (2026-05-26)
 
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
-| 7.1 | Implementar ação "Participar de partida" | ⚪ | Atualiza estado mock, exibe feedback visual |
-| 7.2 | Implementar ação "Cancelar participação" | ⚪ | Remove usuário da lista mock |
-| 7.3 | Implementar estado "Aguardando aprovação" | ⚪ | Quando organizador exige aprovação |
-| 7.4 | Criar hook `useMatchParticipation` | ⚪ | Encapsula lógica de participação |
-| 7.5 | Escrever testes para fluxo de participação | ⚪ | Ações e mudança de estado |
+| 7.1 | Implementar ação "Participar de partida" | 🟢 | `updateParticipation` no `MatchesContext`; `join()` no hook |
+| 7.2 | Implementar ação "Cancelar participação" | 🟢 | `cancel()` com Alert de confirmação; status → "cancelled" |
+| 7.3 | Implementar estado "Aguardando aprovação" | 🟢 | `join()` detecta `requiresApproval` e define "pending" |
+| 7.4 | Criar hook `useMatchParticipation` | 🟢 | Encapsula match, userStatus, join, cancel; normaliza "cancelled" → null |
+| 7.5 | Escrever testes para fluxo de participação | 🟢 | 11 testes: leitura de status (5), join (4), cancel (2) |
 
 ---
 
@@ -166,17 +167,16 @@
 
 ## Bloqueadores e observações
 
-- Fase 6 concluída. Próxima sessão: branch `feat/match-participation` (Fase 7).
-- Ponto exato de retomada: `src/screens/MatchDetailScreen.tsx` — funções `handleJoin` (linha ~96) e `handleCancel` (~101) usam `useState` local; Fase 7 migra para `MatchesContext` via hook `useMatchParticipation`.
-- `MatchesContext` (`src/contexts/MatchesContext.tsx`) expõe `matches` + `addMatch` — consultar para Fase 7 (adicionar `updateParticipation`).
-- `CURRENT_USER` (Guilherme Freire, user-1) é o usuário logado; `match.participants.find(p => p.user.id === CURRENT_USER.id)` deriva o status inicial.
-- Testes de `MatchDetailScreen` envolvem renders com `<MatchesProvider>` (provider real, usa `MOCK_MATCHES`).
+- Fase 7 concluída. Próxima sessão: branch `feat/match-chat` (Fase 8).
+- Ponto exato de retomada: criar `src/screens/MatchChatScreen.tsx` (tarefa 8.1) — acessível a partir de `MatchDetailScreen` via botão "Chat" a ser adicionado.
+- `MatchesContext` agora expõe `matches`, `addMatch` e `updateParticipation`.
+- `useMatchParticipation` (`src/hooks/useMatchParticipation.ts`) encapsula toda a lógica de participação; status "cancelled" é normalizado para `null` no retorno.
 
 ---
 
 ## Progresso geral
 
 **Total de tarefas:** 70
-**Concluídas:** 46 (fases numeradas) + refinamento visual transversal
+**Concluídas:** 51 (fases numeradas) + refinamento visual transversal
 **Em andamento:** 0
-**A fazer:** 24
+**A fazer:** 19
