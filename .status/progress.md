@@ -486,3 +486,40 @@ Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
 - Fase 9 **100% concluída** (5/5 tarefas)
 - Próxima branch: `feat/report-user` (Fase 10)
 - Ponto exato de retomada: `src/screens/ReportUserScreen.tsx` — substituir placeholder com formulário completo (tarefa 10.1)
+
+---
+
+## Sessão 12 — 2026-05-26
+
+### Fase 10 — Denúncia e segurança (tarefas 10.1 a 10.5 concluídas)
+
+| # | Tarefa | Observação |
+|---|--------|------------|
+| 10.1 | Criar tela `ReportUserScreen` | Card do usuário denunciado + 7 chips de motivo (single-select) + partida relacionada (opcional) + descrição 500 chars + aviso sobre denúncias falsas |
+| 10.2 | Implementar select de motivos de denúncia | 7 motivos predefinidos como chips: comportamento inadequado, violência, não compareceu, discurso de ódio, spam, informações falsas, outro |
+| 10.3 | Implementar feedback de denúncia enviada | `Alert.alert` com nome do usuário + mensagem de 48h; goBack no "OK" |
+| 10.4 | Adicionar botão "Denunciar" no `PublicProfileScreen` | Já existia desde sessão 7 — ícone `flag-outline` no header + botão ghost no rodapé |
+| 10.5 | Escrever testes para o formulário de denúncia | 14 testes em 6 grupos: renderização, validação, submissão, navegação, partida relacionada, userId inválido |
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/screens/__tests__/ReportUserScreen.test.tsx` | 14 testes cobrindo todos os fluxos |
+
+### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/screens/ReportUserScreen.tsx` | Substituiu placeholder — formulário completo de denúncia |
+
+### Resultado dos testes
+
+- **165 testes, 18 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅
+
+### Estado ao final da sessão 12
+
+- Branch `feat/report-user` — pronta para commit e merge em `dev`
+- Fase 10 **100% concluída** (5/5 tarefas)
+- Próxima sessão: decidir entre Fase 11 (moderação admin, opcional) e Fase 12 (revisão e polimento final)
