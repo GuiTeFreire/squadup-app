@@ -2,7 +2,9 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React from "react";
-import { Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
+
+import logoSource from "../../assets/squadup_logo.png";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Button from "../components/Button";
@@ -30,12 +32,23 @@ export default function WelcomeScreen() {
         className="flex-1 items-center justify-center px-8"
         style={{ paddingTop: insets.top + 24 }}
       >
-        {/* Logo mark */}
-        <View className="w-20 h-20 rounded-2xl bg-primary-500 items-center justify-center mb-6">
-          <MaterialCommunityIcons name="lightning-bolt" size={42} color="#ffffff" />
+        {/* Logo em container branco sobre fundo escuro */}
+        <View
+          style={{
+            backgroundColor: "white",
+            borderRadius: 20,
+            paddingHorizontal: 24,
+            paddingVertical: 14,
+            marginBottom: 28,
+          }}
+        >
+          <Image
+            source={logoSource}
+            style={{ width: 180, height: 54 }}
+            resizeMode="contain"
+            accessibilityLabel="SquadUp"
+          />
         </View>
-
-        <Text className="text-5xl font-bold text-white mb-2 tracking-tight">SquadUp</Text>
 
         <Text className="text-lg font-semibold text-primary-400 mb-4">
           Conecte-se. Jogue. Repita.
