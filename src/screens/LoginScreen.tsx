@@ -1,9 +1,9 @@
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useState } from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
-import logoSource from "../../assets/squadup_logo.png";
+import SquadUpLogo from "../../assets/squadup_logo.svg";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import { useAuth } from "../contexts/AuthContext";
@@ -59,12 +59,7 @@ export default function LoginScreen() {
     >
       {/* Brand header */}
       <View className="items-center mb-8">
-        <Image
-          source={logoSource}
-          style={{ width: 180, height: 54 }}
-          resizeMode="contain"
-          accessibilityLabel="SquadUp"
-        />
+        <SquadUpLogo width={180} height={54} />
         <Text className="mt-5 text-3xl font-bold text-secondary-900">Bem-vindo de volta</Text>
         <Text className="mt-1 text-base text-neutral-500 text-center">
           Entre com sua conta para continuar

@@ -2,9 +2,9 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React from "react";
-import { Image, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
-import logoSource from "../../assets/squadup_logo.png";
+import SquadUpLogo from "../../assets/squadup_logo_dark.svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Button from "../components/Button";
@@ -32,23 +32,7 @@ export default function WelcomeScreen() {
         className="flex-1 items-center justify-center px-8"
         style={{ paddingTop: insets.top + 24 }}
       >
-        {/* Logo em container branco sobre fundo escuro */}
-        <View
-          style={{
-            backgroundColor: "white",
-            borderRadius: 20,
-            paddingHorizontal: 24,
-            paddingVertical: 14,
-            marginBottom: 28,
-          }}
-        >
-          <Image
-            source={logoSource}
-            style={{ width: 180, height: 54 }}
-            resizeMode="contain"
-            accessibilityLabel="SquadUp"
-          />
-        </View>
+        <SquadUpLogo width={200} height={64} style={{ marginBottom: 28 }} />
 
         <Text className="text-lg font-semibold text-primary-400 mb-4">
           Conecte-se. Jogue. Repita.
