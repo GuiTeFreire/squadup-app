@@ -7,8 +7,8 @@ import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import EmptyState from "../components/EmptyState";
 import MatchCard from "../components/MatchCard";
 import { useMatchFiltersContext } from "../contexts/MatchFiltersContext";
+import { useMatchesContext } from "../contexts/MatchesContext";
 import { useMatchFilters } from "../hooks/useMatchFilters";
-import { MOCK_MATCHES } from "../mocks/matches";
 import type { AppRootStackParamList } from "../navigation/types";
 
 type Nav = NativeStackNavigationProp<AppRootStackParamList>;
@@ -17,7 +17,8 @@ export default function SearchScreen() {
   const navigation = useNavigation<Nav>();
   const [searchText, setSearchText] = useState("");
   const { activeFilterCount } = useMatchFiltersContext();
-  const filteredMatches = useMatchFilters(MOCK_MATCHES, searchText);
+  const { matches } = useMatchesContext();
+  const filteredMatches = useMatchFilters(matches, searchText);
   const inputRef = useRef<TextInput>(null);
 
   return (
@@ -71,7 +72,7 @@ export default function SearchScreen() {
       {searchText.length > 0 && (
         <View className="px-4 py-2 bg-white border-b border-neutral-100">
           <Text className="text-sm text-neutral-500">
-            {filteredMatches.length} resultado{filteredMatches.length !== 1 ? "s" : ""}
+            {filteredMatches.length} resultado{filteredMatches.length === 1 ? "" : "s"}
           </Text>
         </View>
       )}

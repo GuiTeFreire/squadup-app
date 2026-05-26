@@ -10,7 +10,7 @@ import Badge from "../components/Badge";
 import Button from "../components/Button";
 import ParticipantList from "../components/ParticipantList";
 import RatingStars from "../components/RatingStars";
-import { MOCK_MATCHES } from "../mocks/matches";
+import { useMatchesContext } from "../contexts/MatchesContext";
 import { CURRENT_USER } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
 import type { ParticipationStatus } from "../types";
@@ -70,8 +70,9 @@ export default function MatchDetailScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const { matchId } = route.params;
+  const { matches } = useMatchesContext();
 
-  const match = useMemo(() => MOCK_MATCHES.find((m) => m.id === matchId) ?? null, [matchId]);
+  const match = useMemo(() => matches.find((m) => m.id === matchId) ?? null, [matches, matchId]);
 
   const initialStatus = useMemo((): ParticipationStatus | null => {
     if (!match) return null;

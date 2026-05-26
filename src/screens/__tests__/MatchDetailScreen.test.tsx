@@ -1,7 +1,16 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import React from "react";
 
+import { MatchesProvider } from "../../contexts/MatchesContext";
 import MatchDetailScreen from "../MatchDetailScreen";
+
+function renderWithContext() {
+  return render(
+    <MatchesProvider>
+      <MatchDetailScreen />
+    </MatchesProvider>
+  );
+}
 
 const mockGoBack = jest.fn();
 const mockUseRoute = jest.fn();
@@ -22,12 +31,12 @@ describe("MatchDetailScreen — estado: aberta / não participa", () => {
   });
 
   it('exibe o botão "Participar"', () => {
-    render(<MatchDetailScreen />);
+    renderWithContext();
     expect(screen.getByText("Participar")).toBeTruthy();
   });
 
   it('ao pressionar "Participar" sem aprovação obrigatória, exibe confirmação', () => {
-    render(<MatchDetailScreen />);
+    renderWithContext();
     fireEvent.press(screen.getByText("Participar"));
     expect(screen.getByText("Você está confirmado")).toBeTruthy();
   });
@@ -40,7 +49,7 @@ describe("MatchDetailScreen — estado: participante confirmado", () => {
   });
 
   it('exibe "Você está confirmado" e opção de cancelar', () => {
-    render(<MatchDetailScreen />);
+    renderWithContext();
     expect(screen.getByText("Você está confirmado")).toBeTruthy();
     expect(screen.getByText("Cancelar participação")).toBeTruthy();
   });
@@ -53,7 +62,7 @@ describe("MatchDetailScreen — estado: aguardando aprovação (pending)", () =>
   });
 
   it('exibe "Aguardando aprovação" e opção de cancelar solicitação', () => {
-    render(<MatchDetailScreen />);
+    renderWithContext();
     // "Aguardando aprovação" aparece no banner e na ParticipantList
     expect(screen.getAllByText("Aguardando aprovação").length).toBeGreaterThan(0);
     expect(screen.getByText("Cancelar solicitação")).toBeTruthy();
@@ -67,7 +76,7 @@ describe("MatchDetailScreen — estado: partida lotada (usuário fora)", () => {
   });
 
   it('exibe o botão desabilitado "Partida lotada"', () => {
-    render(<MatchDetailScreen />);
+    renderWithContext();
     expect(screen.getByText("Partida lotada")).toBeTruthy();
   });
 });
@@ -79,7 +88,7 @@ describe("MatchDetailScreen — estado: encerrada / cancelada", () => {
   });
 
   it('exibe o botão desabilitado "Partida encerrada"', () => {
-    render(<MatchDetailScreen />);
+    renderWithContext();
     expect(screen.getByText("Partida encerrada")).toBeTruthy();
   });
 });
@@ -90,35 +99,35 @@ describe("MatchDetailScreen — renderização geral", () => {
   });
 
   it("exibe o título da partida", () => {
-    render(<MatchDetailScreen />);
+    renderWithContext();
     expect(screen.getByText("Pelada de domingo na arena")).toBeTruthy();
   });
 
   it("exibe o nome do organizador", () => {
-    render(<MatchDetailScreen />);
+    renderWithContext();
     // Guilherme aparece como organizador e como participante confirmado
     expect(screen.getAllByText("Guilherme Freire").length).toBeGreaterThan(0);
   });
 
   it("exibe o local da partida", () => {
-    render(<MatchDetailScreen />);
+    renderWithContext();
     expect(screen.getByText("Arena Pinheiros — Rua Teodoro Sampaio, 1400")).toBeTruthy();
   });
 
   it("exibe o botão Voltar acessível", () => {
-    render(<MatchDetailScreen />);
+    renderWithContext();
     expect(screen.getByLabelText("Voltar")).toBeTruthy();
   });
 
   it("pressionar Voltar chama goBack", () => {
-    render(<MatchDetailScreen />);
+    renderWithContext();
     fireEvent.press(screen.getByLabelText("Voltar"));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it("exibe mensagem de erro para matchId inexistente", () => {
     mockUseRoute.mockReturnValue({ params: { matchId: "match-nao-existe" } });
-    render(<MatchDetailScreen />);
+    renderWithContext();
     expect(screen.getByText("Partida não encontrada.")).toBeTruthy();
   });
 });
