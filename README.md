@@ -48,14 +48,14 @@ npm install
 
 ```
 src/
-├── components/   # Componentes reutilizáveis (Button, Input, Card, Avatar…)
-├── contexts/     # Context API (AuthContext)
-├── hooks/        # Hooks customizados
+├── components/   # Componentes reutilizáveis (Button, Input, Card, Avatar, MatchCard…)
+├── contexts/     # Context API (AuthContext, MatchFiltersContext)
+├── hooks/        # Hooks customizados (useMatchFilters)
 ├── mocks/        # Dados mockados (users, matches, ratings)
 ├── navigation/   # Navigators (AuthNavigator, AppNavigator, RootNavigator)
 ├── screens/      # Telas da aplicação
 ├── types/        # Tipos TypeScript globais
-└── utils/        # Funções utilitárias
+└── utils/        # Funções utilitárias (date)
 __mocks__/        # Mocks Jest (expo-vector-icons)
 ```
 
@@ -65,12 +65,17 @@ __mocks__/        # Mocks Jest (expo-vector-icons)
 App
 └── RootNavigator
     ├── AuthNavigator  (não autenticado)
-    │   ├── WelcomeScreen       ← dark slate + ícones vetoriais
+    │   ├── WelcomeScreen
     │   ├── LoginScreen
     │   ├── RegisterScreen
     │   └── ProfileSetupScreen
     └── AppNavigator   (autenticado)
-        └── HomeScreen  ← placeholder, será expandido na Fase 4
+        ├── AppTabs (Bottom Tabs)
+        │   ├── HomeScreen       ← lista de partidas + busca inline
+        │   ├── SearchScreen     ← busca dedicada com filtros
+        │   ├── CreateMatchScreen ← placeholder (Fase 6)
+        │   └── MyProfileScreen  ← placeholder (Fase 3)
+        └── FiltersScreen (modal) ← esporte · nível · vagas disponíveis
 ```
 
 ## Autenticação (mock)
@@ -89,9 +94,10 @@ Não há backend. O `AuthContext` simula:
 | 2 | Fluxo de autenticação | ✅ Concluída |
 | — | Refinamento visual (Electric Blue + Dark Slate) | ✅ Concluído |
 | 3 | Perfil do usuário | ⚪ A fazer |
-| 4 | Listagem e busca de partidas | ⚪ **Próxima** |
-| 5–12 | Demais fases | ⚪ A fazer |
+| 4 | Listagem e busca de partidas | ✅ Concluída |
+| 5 | Detalhes da partida | ⚪ **Próxima** |
+| 6–12 | Demais fases | ⚪ A fazer |
 
-**52 testes passando · lint zerado · 27/70 tarefas concluídas**
+75 testes passando · lint zerado · 35/70 tarefas concluídas (50%)
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

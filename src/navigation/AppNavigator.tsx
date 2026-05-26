@@ -1,13 +1,33 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 
+import CreateMatchScreen from "../screens/CreateMatchScreen";
+import FiltersScreen from "../screens/FiltersScreen";
 import HomeScreen from "../screens/HomeScreen";
-import type { AppTabParamList } from "./types";
+import MyProfileScreen from "../screens/MyProfileScreen";
+import SearchScreen from "../screens/SearchScreen";
+import type { AppRootStackParamList, AppTabParamList } from "./types";
 
 const Tab = createBottomTabNavigator<AppTabParamList>();
+const RootStack = createNativeStackNavigator<AppRootStackParamList>();
 
-export default function AppNavigator() {
+type IconProps = { color: string };
+const HomeIcon = ({ color }: IconProps) => (
+  <MaterialCommunityIcons name="home-variant" size={24} color={color} />
+);
+const SearchIcon = ({ color }: IconProps) => (
+  <MaterialCommunityIcons name="magnify" size={24} color={color} />
+);
+const CreateIcon = ({ color }: IconProps) => (
+  <MaterialCommunityIcons name="plus-circle-outline" size={24} color={color} />
+);
+const ProfileIcon = ({ color }: IconProps) => (
+  <MaterialCommunityIcons name="account-outline" size={24} color={color} />
+);
+
+function AppTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -29,13 +49,40 @@ export default function AppNavigator() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{
-          tabBarLabel: "Início",
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="home-variant" size={24} color={color} />
-          ),
-        }}
+        options={{ tabBarLabel: "Início", tabBarIcon: HomeIcon }}
+      />
+      <Tab.Screen
+        name="Search"
+        component={SearchScreen}
+        options={{ tabBarLabel: "Busca", tabBarIcon: SearchIcon }}
+      />
+      <Tab.Screen
+        name="CreateMatch"
+        component={CreateMatchScreen}
+        options={{ tabBarLabel: "Criar", tabBarIcon: CreateIcon }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={MyProfileScreen}
+        options={{ tabBarLabel: "Perfil", tabBarIcon: ProfileIcon }}
       />
     </Tab.Navigator>
+  );
+}
+
+export default function AppNavigator() {
+  return (
+    <RootStack.Navigator>
+      <RootStack.Screen name="AppTabs" component={AppTabs} options={{ headerShown: false }} />
+      <RootStack.Screen
+        name="Filters"
+        component={FiltersScreen}
+        options={{
+          presentation: "modal",
+          headerShown: false,
+          contentStyle: { borderTopLeftRadius: 20, borderTopRightRadius: 20 },
+        }}
+      />
+    </RootStack.Navigator>
   );
 }
