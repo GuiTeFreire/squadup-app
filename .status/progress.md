@@ -261,3 +261,49 @@ Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
 - Fase 5 **100% concluída** (6/6 tarefas)
 - Próxima branch sugerida: `feat/user-profile` (Fase 3)
 - Ponto exato de retomada: criar `src/screens/MyProfileScreen.tsx` (substituir placeholder) — tarefa 3.1
+
+---
+
+## Sessão 7 — 2026-05-26
+
+### Fase 3 — Perfil do usuário (tarefas 3.1 a 3.6 concluídas)
+
+| # | Tarefa | Observação |
+|---|--------|------------|
+| 3.1 | Criar tela `MyProfileScreen` | Hero dark (avatar XL + nome + localização + rating) · stats row · bio · esportes · nível · reviews |
+| 3.2 | Criar tela `EditProfileScreen` | Formulário: nome, bio, localização, esportes (chips), nível (radio) · Alert de sucesso + goBack |
+| 3.3 | Criar tela `PublicProfileScreen` | Visão de outro usuário via `userId` · hero idêntico ao MyProfile · reviews recebidas · botão Denunciar |
+| 3.4 | Criar componente `TrustBadges` | 3 selos: Verificado (primary), partidas (secondary), nota (amber) — memo |
+| 3.5 | Criar componente `ReviewCard` | Avatar + nome + data + RatingStars overall + critério destaque + comentário — memo |
+| 3.6 | Escrever testes para `PublicProfileScreen` | 13 testes: dados do usuário, verificação, bio, localização, esportes, nível, reviews, ausência de reviews, navegação, userId inválido |
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/components/TrustBadges.tsx` | Selos de confiança reutilizáveis |
+| `src/components/ReviewCard.tsx` | Card de avaliação recebida |
+| `src/screens/EditProfileScreen.tsx` | Formulário de edição de perfil |
+| `src/screens/PublicProfileScreen.tsx` | Perfil público de outro usuário |
+| `src/screens/ReportUserScreen.tsx` | Placeholder para Fase 10 (rota registrada) |
+| `src/screens/__tests__/PublicProfileScreen.test.tsx` | 13 testes |
+
+### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/screens/MyProfileScreen.tsx` | Substituiu placeholder — tela completa com todos os dados do usuário logado |
+| `src/navigation/types.ts` | `PublicProfile`, `EditProfile`, `ReportUser` adicionados ao `AppRootStackParamList` |
+| `src/navigation/AppNavigator.tsx` | 3 novas rotas registradas no `RootStack` |
+
+### Resultado dos testes
+
+- **100 testes, 13 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅
+
+### Estado ao final da sessão 7
+
+- Branch `feat/user-profile` pronta para merge em `dev`
+- Fase 3 **100% concluída** (6/6 tarefas)
+- Próxima branch sugerida: `feat/create-match` (Fase 6)
+- Ponto exato de retomada: `src/screens/CreateMatchScreen.tsx` — substituir placeholder (tarefa 6.1)

@@ -4,10 +4,13 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 
 import CreateMatchScreen from "../screens/CreateMatchScreen";
+import EditProfileScreen from "../screens/EditProfileScreen";
 import FiltersScreen from "../screens/FiltersScreen";
 import HomeScreen from "../screens/HomeScreen";
 import MatchDetailScreen from "../screens/MatchDetailScreen";
 import MyProfileScreen from "../screens/MyProfileScreen";
+import PublicProfileScreen from "../screens/PublicProfileScreen";
+import ReportUserScreen from "../screens/ReportUserScreen";
 import SearchScreen from "../screens/SearchScreen";
 import type { AppRootStackParamList, AppTabParamList } from "./types";
 
@@ -87,6 +90,21 @@ export default function AppNavigator() {
       <RootStack.Screen
         name="MatchDetail"
         component={MatchDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="PublicProfile"
+        component={PublicProfileScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="ReportUser"
+        component={ReportUserScreen}
         options={{ headerShown: false }}
       />
     </RootStack.Navigator>

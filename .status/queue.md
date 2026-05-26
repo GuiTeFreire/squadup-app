@@ -17,19 +17,20 @@
 | Refinamento visual | transversal ✅ | direto em `dev` (sessão 4 — 2026-05-25) |
 | Fase 4 — Listagem e busca | 8/8 ✅ | `feat/home-matches` → `dev` (sessão 5 — 2026-05-25) |
 | Fase 5 — Detalhes da partida | 6/6 ✅ | `feat/match-detail` → `dev` (sessão 6 — 2026-05-26) |
+| Fase 3 — Perfil do usuário | 6/6 ✅ | `feat/user-profile` → `dev` (sessão 7 — 2026-05-26) |
 
 ---
 
-## FASE 3 — Perfil do usuário
+## FASE 3 — Perfil do usuário ✅ Concluída — sessão 7 (2026-05-26)
 
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
-| 3.1 | Criar tela `MyProfileScreen` (Meu perfil) | ⚪ | Foto, nome, bio, esportes, nível, nota, partidas, selos |
-| 3.2 | Criar tela `EditProfileScreen` (Editar perfil) | ⚪ | Formulário editável + feedback de sucesso |
-| 3.3 | Criar tela `PublicProfileScreen` (Perfil público) | ⚪ | Visão de outro usuário + avaliações recebidas + botão Denunciar |
-| 3.4 | Criar componente `TrustBadges` | ⚪ | Selos: verificado, partidas concluídas, nota média |
-| 3.5 | Criar componente `ReviewCard` | ⚪ | Avaliação recebida com nota, critério e comentário |
-| 3.6 | Escrever testes para `PublicProfileScreen` | ⚪ | Renderização dos dados do usuário mock |
+| 3.1 | Criar tela `MyProfileScreen` (Meu perfil) | 🟢 | Hero dark + stats + bio + esportes + nível + reviews |
+| 3.2 | Criar tela `EditProfileScreen` (Editar perfil) | 🟢 | Formulário com nome/bio/local/esportes/nível + Alert de sucesso |
+| 3.3 | Criar tela `PublicProfileScreen` (Perfil público) | 🟢 | Visão de outro usuário + avaliações + botão Denunciar |
+| 3.4 | Criar componente `TrustBadges` | 🟢 | Selos: verificado, partidas concluídas, nota média |
+| 3.5 | Criar componente `ReviewCard` | 🟢 | Avaliação recebida com nota, critério destaque e comentário |
+| 3.6 | Escrever testes para `PublicProfileScreen` | 🟢 | 13 testes — dados, verificação, reviews, navegação, userId inválido |
 
 ---
 
