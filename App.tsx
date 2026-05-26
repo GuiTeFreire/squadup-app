@@ -6,6 +6,7 @@ import { AuthProvider } from "./src/contexts/AuthContext";
 import { MatchesProvider } from "./src/contexts/MatchesContext";
 import { MatchFiltersProvider } from "./src/contexts/MatchFiltersContext";
 import { MessagesProvider } from "./src/contexts/MessagesContext";
+import { RatingsProvider } from "./src/contexts/RatingsContext";
 import RootNavigator from "./src/navigation/RootNavigator";
 
 export default function App() {
@@ -13,12 +14,14 @@ export default function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <MatchesProvider>
-          <MessagesProvider>
-            <MatchFiltersProvider>
-              <StatusBar style="auto" />
-              <RootNavigator />
-            </MatchFiltersProvider>
-          </MessagesProvider>
+          <RatingsProvider>
+            <MessagesProvider>
+              <MatchFiltersProvider>
+                <StatusBar style="auto" />
+                <RootNavigator />
+              </MatchFiltersProvider>
+            </MessagesProvider>
+          </RatingsProvider>
         </MatchesProvider>
       </AuthProvider>
     </SafeAreaProvider>

@@ -440,3 +440,49 @@ Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
 - Fase 8 **100% concluída** (6/6 tarefas)
 - Próxima branch: `feat/post-match-rating` (Fase 9)
 - Ponto exato de retomada: criar `src/screens/PostMatchRatingScreen.tsx` (tarefa 9.1) — lista participantes de uma partida passada para avaliação
+
+---
+
+## Sessão 11 — 2026-05-26
+
+### Fase 9 — Avaliação pós-partida (tarefas 9.1 a 9.5 concluídas)
+
+| # | Tarefa | Observação |
+|---|--------|------------|
+| 9.1 | Criar tela `PostMatchRatingScreen` | FlatList de confirmados excluindo current user; badge "Avaliado" após submit; banner "Todos avaliados!" quando completo |
+| 9.2 | Criar tela `RateUserScreen` | Card do usuário + 5 `StarRatingInput` (pontualidade, respeito, comportamento, presença, exp. geral) + `TextInput` comentário (280 chars) + validação inline |
+| 9.3 | Criar componente `StarRatingInput` | `Pressable` por estrela; `accessibilityLabel` com singular/plural; tamanhos sm/md/lg via `fontSize` |
+| 9.4 | Implementar feedback de avaliação enviada | `Alert.alert` com nome do usuário avaliado; `navigation.goBack()` no callback "OK"; `RatingsContext` persiste estado na sessão |
+| 9.5 | Escrever testes para `StarRatingInput` | 7 testes: renderização (label, sem label, 5 botões) + interação (onChange para estrelas 1, 3, 5 e re-seleção) |
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/components/StarRatingInput.tsx` | Input interativo de estrelas — memo, 3 tamanhos |
+| `src/contexts/RatingsContext.tsx` | `RatingsProvider` + `useRatingsContext` + `submitRating` + `hasRated` |
+| `src/screens/PostMatchRatingScreen.tsx` | Lista de participantes para avaliar |
+| `src/screens/RateUserScreen.tsx` | Formulário de avaliação com 5 critérios |
+| `src/components/__tests__/StarRatingInput.test.tsx` | 7 testes |
+
+### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/mocks/matches.ts` | `match-13` adicionado (futebol encerrado, guilherme + 4 participantes) |
+| `src/navigation/types.ts` | `PostMatchRating` e `RateUser` adicionados ao `AppRootStackParamList` |
+| `src/navigation/AppNavigator.tsx` | `PostMatchRatingScreen` e `RateUserScreen` registrados no `RootStack` |
+| `src/screens/MatchDetailScreen.tsx` | Botão "Avaliar participantes" no estado `isMatchOver` quando `match.status === "closed"` e `userStatus === "confirmed"` |
+| `App.tsx` | `RatingsProvider` adicionado na árvore de contextos |
+
+### Resultado dos testes
+
+- **151 testes, 17 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅
+
+### Estado ao final da sessão 11
+
+- Branch `feat/post-match-rating` — pronta para commit e merge em `dev`
+- Fase 9 **100% concluída** (5/5 tarefas)
+- Próxima branch: `feat/report-user` (Fase 10)
+- Ponto exato de retomada: `src/screens/ReportUserScreen.tsx` — substituir placeholder com formulário completo (tarefa 10.1)
