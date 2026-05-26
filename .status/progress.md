@@ -151,7 +151,7 @@ Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
 
 #### Bug fix
 
-- `src/components/__tests__/Avatar.test.tsx` — Iniciais esperadas `"CM"` / `"C"` não batiam com os nomes `"Guilherme Mendes"` / `"Guilherme"`. Corrigido para `"GM"` / `"G"`.
+- `src/components/__tests__/Avatar.test.tsx` — Iniciais esperadas `"CM"` / `"C"` não batiam com os nomes `"Guilherme Freire"` / `"Guilherme"`. Corrigido para `"GF"` / `"G"`.
 
 #### Resultado dos testes
 
@@ -216,3 +216,48 @@ Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
 - Fase 4 **100% concluída** (8/8 tarefas)
 - Próxima branch sugerida: `feat/match-detail` (Fase 5) — `MatchCard.onPress` já está preparado para navegar para `MatchDetailScreen`
 - Ponto exato de retomada: `src/screens/HomeScreen.tsx` linha 73 — `renderItem` do `FlatList` recebe `onPress={() => navigation.navigate('MatchDetail', { matchId: item.id })}` quando `MatchDetailScreen` for criada em Fase 5
+
+---
+
+## Sessão 6 — 2026-05-26
+
+### Fase 5 — Detalhes da partida (tarefas 5.1 a 5.6 concluídas)
+
+| # | Tarefa | Observação |
+|---|--------|------------|
+| 5.1 | Criar tela `MatchDetailScreen` | Header dark + ScrollView + info block (local/data/hora) + badges + descrição + organizador |
+| 5.2 | Seção de participantes confirmados | Contador "X de Y" + `ParticipantList` abaixo |
+| 5.3 | Criar componente `ParticipantList` | Confirmados com avatar, nome, selo verificado, nota e nº de partidas; pendentes com badge laranja |
+| 5.4 | Implementar os 5 estados da tela | `isMatchOver` (closed/cancelled) · `confirmed` · `pending` · `isMatchFull` (full + fora) · aberta (padrão) |
+| 5.5 | Botão contextual de participação | Bottom bar absoluta; texto e estilo mudam por estado; `handleJoin` / `handleCancel` com Alert de confirmação |
+| 5.6 | Escrever testes para estados da tela | 11 testes: 5 estados + join sem aprovação + renderização geral + goBack + matchId inválido |
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/components/ParticipantList.tsx` | Lista confirmados + pendentes com avatar e rating |
+| `src/screens/MatchDetailScreen.tsx` | Tela de detalhes com `useRoute` + 5 estados de participação |
+| `src/screens/__tests__/MatchDetailScreen.test.tsx` | 11 testes cobrindo todos os estados |
+
+### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/navigation/types.ts` | `MatchDetail: { matchId: string }` adicionado ao `AppRootStackParamList` |
+| `src/navigation/AppNavigator.tsx` | `MatchDetailScreen` registrado no `RootStack` |
+| `src/screens/HomeScreen.tsx` | `MatchCard.onPress` → `navigation.navigate("MatchDetail", { matchId: item.id })` |
+| `src/screens/SearchScreen.tsx` | Mesmo wiring de `onPress` |
+| `src/mocks/matches.ts` | `match-12` adicionado (basquete avançado · full · sem CURRENT_USER) para cobrir estado "lotada" nos testes |
+
+### Resultado dos testes
+
+- **87 testes, 12 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅
+
+### Estado ao final da sessão 6
+
+- Branch `feat/match-detail` pronta para merge em `dev`
+- Fase 5 **100% concluída** (6/6 tarefas)
+- Próxima branch sugerida: `feat/user-profile` (Fase 3)
+- Ponto exato de retomada: criar `src/screens/MyProfileScreen.tsx` (substituir placeholder) — tarefa 3.1

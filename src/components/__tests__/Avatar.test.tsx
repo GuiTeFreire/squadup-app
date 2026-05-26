@@ -5,8 +5,8 @@ import Avatar from "../Avatar";
 
 describe("Avatar", () => {
   it("renders initials when no photoUrl is provided", () => {
-    render(<Avatar name="Guilherme Mendes" />);
-    expect(screen.getByText("GM")).toBeTruthy();
+    render(<Avatar name="Guilherme Freire" />);
+    expect(screen.getByText("GF")).toBeTruthy();
   });
 
   it("renders single initial for one-word name", () => {

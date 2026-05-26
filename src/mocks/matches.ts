@@ -227,4 +227,23 @@ export const MOCK_MATCHES: Match[] = [
     allowBeginners: false,
     requiresApproval: false,
   },
+  {
+    id: "match-12",
+    sport: "basketball",
+    title: "Basquete avançado — vagas esgotadas",
+    location: "Clube Paulistano — Quadra 1",
+    date: "2026-06-05",
+    time: "07:00",
+    maxParticipants: 2,
+    level: "advanced",
+    description: "Partida fechada. Todas as vagas já foram preenchidas.",
+    organizer: rafael,
+    participants: [
+      { user: rafael, status: "confirmed" },
+      { user: beatriz, status: "confirmed" },
+    ],
+    status: "full",
+    allowBeginners: false,
+    requiresApproval: false,
+  },
 ];

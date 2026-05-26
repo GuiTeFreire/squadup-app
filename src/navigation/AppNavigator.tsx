@@ -6,6 +6,7 @@ import React from "react";
 import CreateMatchScreen from "../screens/CreateMatchScreen";
 import FiltersScreen from "../screens/FiltersScreen";
 import HomeScreen from "../screens/HomeScreen";
+import MatchDetailScreen from "../screens/MatchDetailScreen";
 import MyProfileScreen from "../screens/MyProfileScreen";
 import SearchScreen from "../screens/SearchScreen";
 import type { AppRootStackParamList, AppTabParamList } from "./types";
@@ -82,6 +83,11 @@ export default function AppNavigator() {
           headerShown: false,
           contentStyle: { borderTopLeftRadius: 20, borderTopRightRadius: 20 },
         }}
+      />
+      <RootStack.Screen
+        name="MatchDetail"
+        component={MatchDetailScreen}
+        options={{ headerShown: false }}
       />
     </RootStack.Navigator>
   );

@@ -71,18 +71,19 @@ App
     │   └── ProfileSetupScreen
     └── AppNavigator   (autenticado)
         ├── AppTabs (Bottom Tabs)
-        │   ├── HomeScreen       ← lista de partidas + busca inline
-        │   ├── SearchScreen     ← busca dedicada com filtros
+        │   ├── HomeScreen        ← lista de partidas + busca inline
+        │   ├── SearchScreen      ← busca dedicada com filtros
         │   ├── CreateMatchScreen ← placeholder (Fase 6)
-        │   └── MyProfileScreen  ← placeholder (Fase 3)
-        └── FiltersScreen (modal) ← esporte · nível · vagas disponíveis
+        │   └── MyProfileScreen   ← placeholder (Fase 3)
+        ├── FiltersScreen (modal) ← esporte · nível · vagas disponíveis
+        └── MatchDetailScreen     ← detalhes + 5 estados de participação
 ```
 
 ## Autenticação (mock)
 
 Não há backend. O `AuthContext` simula:
 
-- **Login** — qualquer e-mail válido + senha ≥ 6 chars autentica como `Guilherme Mendes`
+- **Login** — qualquer e-mail válido + senha ≥ 6 chars autentica como `Guilherme Freire`
 - **Cadastro** → `RegisterScreen` → `ProfileSetupScreen` → cria novo perfil em memória
 - **Logout** — disponível na `HomeScreen`
 
@@ -93,11 +94,11 @@ Não há backend. O `AuthContext` simula:
 | 1 | Estrutura e design system | ✅ Concluída |
 | 2 | Fluxo de autenticação | ✅ Concluída |
 | — | Refinamento visual (Electric Blue + Dark Slate) | ✅ Concluído |
-| 3 | Perfil do usuário | ⚪ A fazer |
 | 4 | Listagem e busca de partidas | ✅ Concluída |
-| 5 | Detalhes da partida | ⚪ **Próxima** |
+| 5 | Detalhes da partida | ✅ Concluída |
+| 3 | Perfil do usuário | ⚪ **Próxima** |
 | 6–12 | Demais fases | ⚪ A fazer |
 
-75 testes passando · lint zerado · 35/70 tarefas concluídas (50%)
+87 testes passando · lint zerado · 41/70 tarefas concluídas (59%)
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.
