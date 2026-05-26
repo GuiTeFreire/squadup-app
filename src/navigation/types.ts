@@ -8,6 +8,7 @@ export type AuthStackParamList = {
 export type AppRootStackParamList = {
   AppTabs: undefined;
   Filters: undefined;
+  MatchDetail: { matchId: string };
 };
 
 export type AppTabParamList = {

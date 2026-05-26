@@ -16,6 +16,7 @@
 | Fase 2 — Fluxo de entrada | 8/8 ✅ | `feat/auth-flow` → `dev` |
 | Refinamento visual | transversal ✅ | direto em `dev` (sessão 4 — 2026-05-25) |
 | Fase 4 — Listagem e busca | 8/8 ✅ | `feat/home-matches` → `dev` (sessão 5 — 2026-05-25) |
+| Fase 5 — Detalhes da partida | 6/6 ✅ | `feat/match-detail` → `dev` (sessão 6 — 2026-05-26) |
 
 ---
 
@@ -47,16 +48,16 @@
 
 ---
 
-## FASE 5 — Detalhes da partida
+## FASE 5 — Detalhes da partida ✅ Concluída — sessão 6 (2026-05-26)
 
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
-| 5.1 | Criar tela `MatchDetailScreen` (Detalhes) | ⚪ | Todos os campos: esporte, local, data, hora, vagas, nível, organizador |
-| 5.2 | Criar seção de participantes confirmados | ⚪ | Linha de avatares + contador |
-| 5.3 | Criar componente `ParticipantList` | ⚪ | Lista de participantes com link para perfil público |
-| 5.4 | Implementar os 5 estados da tela | ⚪ | Não participa / participa / lotada / pendente / encerrada |
-| 5.5 | Criar botão contextual de participação | ⚪ | Texto e estilo mudam conforme estado |
-| 5.6 | Escrever testes para estados da tela | ⚪ | Cada estado renderiza o botão correto |
+| 5.1 | Criar tela `MatchDetailScreen` (Detalhes) | 🟢 | Header dark + ScrollView + info block + badges + organizador |
+| 5.2 | Criar seção de participantes confirmados | 🟢 | Contador "X de Y" + `ParticipantList` |
+| 5.3 | Criar componente `ParticipantList` | 🟢 | Confirmados com avatar/rating; pendentes com badge laranja |
+| 5.4 | Implementar os 5 estados da tela | 🟢 | isMatchOver · confirmed · pending · isMatchFull · padrão |
+| 5.5 | Criar botão contextual de participação | 🟢 | Bottom bar absoluta; handleJoin / handleCancel com Alert |
+| 5.6 | Escrever testes para estados da tela | 🟢 | 11 testes — 5 estados + join + renderização + goBack + invalid id |
 
 ---
 
@@ -162,17 +163,17 @@
 
 ## Bloqueadores e observações
 
-- Fase 4 concluída. Próxima sessão: branch `feat/match-detail` (Fase 5) OU `feat/user-profile` (Fase 3).
-- `MatchFiltersContext` criado em `src/contexts/MatchFiltersContext.tsx` — provedor adicionado no `App.tsx`.
-- Navegação: `AppNavigator` agora é um `RootStack` com `AppTabs` + modal `Filters`.
-- Placeholders criados: `CreateMatchScreen.tsx` (Fase 6) e `MyProfileScreen.tsx` (Fase 3).
-- `src/utils/date.ts` criado com `formatMatchDate` (formato: "Dom, 25 mai").
+- Fase 5 concluída. Próxima sessão: branch `feat/user-profile` (Fase 3).
+- Ponto exato de retomada: `src/screens/MyProfileScreen.tsx` — substituir placeholder (tarefa 3.1).
+- `MatchDetailScreen` usa `useRoute<RouteProp<AppRootStackParamList, "MatchDetail">>()` para receber `matchId`.
+- `CURRENT_USER` (Guilherme Mendes, user-1) é usado como usuário logado — derivar status inicial via `match.participants.find(p => p.user.id === CURRENT_USER.id)`.
+- `match-12` adicionado aos mocks (basquete avançado · full · Rafael + Beatriz) para cobrir o estado "lotada" em testes.
 
 ---
 
 ## Progresso geral
 
 **Total de tarefas:** 70
-**Concluídas:** 35 (fases numeradas) + refinamento visual transversal
+**Concluídas:** 41 (fases numeradas) + refinamento visual transversal
 **Em andamento:** 0
-**A fazer:** 35
+**A fazer:** 29

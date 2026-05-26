@@ -9,7 +9,8 @@
 | — | Refinamento visual (Electric Blue + Dark Slate) | 🟢 Concluído (transversal — sessão 4) |
 | Fase 3 | Perfil do usuário | ⚪ A fazer |
 | Fase 4 | Listagem e busca de partidas | 🟢 Concluída (8/8 tarefas — sessão 5) |
-| Fase 5 | Detalhes da partida | ⚪ A fazer — **próxima** |
+| Fase 5 | Detalhes da partida | 🟢 Concluída (6/6 tarefas — sessão 6) |
+| Fase 3 | Perfil do usuário | ⚪ A fazer — **próxima** |
 | Fase 6 | Criação de partida | ⚪ A fazer |
 | Fase 7 | Participação em partida | ⚪ A fazer |
 | Fase 8 | Chat da partida | ⚪ A fazer |

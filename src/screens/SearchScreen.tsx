@@ -79,7 +79,12 @@ export default function SearchScreen() {
       <FlatList
         data={filteredMatches}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <MatchCard match={item} />}
+        renderItem={({ item }) => (
+          <MatchCard
+            match={item}
+            onPress={() => navigation.navigate("MatchDetail", { matchId: item.id })}
+          />
+        )}
         contentContainerStyle={{ padding: 16, gap: 12 }}
         ListEmptyComponent={
           searchText.length === 0 ? (
