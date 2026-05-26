@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React from "react";
+import React, { useMemo } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 import Avatar from "../components/Avatar";
@@ -11,10 +12,11 @@ import ReviewCard from "../components/ReviewCard";
 import RatingStars from "../components/RatingStars";
 import TrustBadges from "../components/TrustBadges";
 import { MOCK_RATINGS } from "../mocks/ratings";
-import { CURRENT_USER } from "../mocks/users";
+import { MOCK_USERS } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
 
 type Nav = NativeStackNavigationProp<AppRootStackParamList>;
+type Route = RouteProp<AppRootStackParamList, "PublicProfile">;
 
 const sportLabel: Record<string, string> = {
   football: "Futebol",
@@ -31,25 +33,47 @@ const levelLabel: Record<string, string> = {
   advanced: "Avançado",
 };
 
-export default function MyProfileScreen() {
+export default function PublicProfileScreen() {
   const navigation = useNavigation<Nav>();
-  const user = CURRENT_USER;
+  const route = useRoute<Route>();
+  const { userId } = route.params;
 
-  const myReviews = MOCK_RATINGS.filter((r) => r.ratedUser.id === user.id);
+  const user = useMemo(() => MOCK_USERS.find((u) => u.id === userId) ?? null, [userId]);
+  const userReviews = useMemo(
+    () => MOCK_RATINGS.filter((r) => r.ratedUser.id === userId),
+    [userId]
+  );
+
+  if (!user) {
+    return (
+      <View className="flex-1 items-center justify-center bg-neutral-50">
+        <Text className="text-neutral-500">Usuário não encontrado.</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-neutral-50">
       {/* Header */}
       <View className="bg-secondary-900 pt-14 pb-4 px-4 flex-row items-center">
-        <View className="w-9" />
-        <Text className="flex-1 text-white text-lg font-bold text-center">Meu Perfil</Text>
         <Pressable
-          onPress={() => navigation.navigate("EditProfile")}
+          onPress={() => navigation.goBack()}
           className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Editar perfil"
+          accessibilityLabel="Voltar"
           accessibilityRole="button"
         >
-          <MaterialCommunityIcons name="pencil-outline" size={22} color="#fff" />
+          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
+        </Pressable>
+        <Text className="flex-1 text-white text-lg font-bold text-center mx-2" numberOfLines={1}>
+          {user.name}
+        </Text>
+        <Pressable
+          onPress={() => navigation.navigate("ReportUser", { userId: user.id })}
+          className="w-9 h-9 items-center justify-center"
+          accessibilityLabel="Denunciar usuário"
+          accessibilityRole="button"
+        >
+          <MaterialCommunityIcons name="flag-outline" size={22} color="#94A3B8" />
         </Pressable>
       </View>
 
@@ -98,7 +122,7 @@ export default function MyProfileScreen() {
               <Text className="text-xs text-neutral-500 mt-1">Avaliação</Text>
             </View>
             <View className="flex-1 bg-white rounded-2xl p-4 items-center">
-              <Text className="text-2xl font-bold text-secondary-900">{myReviews.length}</Text>
+              <Text className="text-2xl font-bold text-secondary-900">{userReviews.length}</Text>
               <Text className="text-xs text-neutral-500 mt-1">Avaliações</Text>
             </View>
           </View>
@@ -106,7 +130,7 @@ export default function MyProfileScreen() {
           {/* Bio */}
           {user.bio ? (
             <View className="bg-white rounded-2xl p-4">
-              <Text className="text-sm font-semibold text-secondary-900 mb-2">Sobre mim</Text>
+              <Text className="text-sm font-semibold text-secondary-900 mb-2">Sobre</Text>
               <Text className="text-sm text-neutral-600 leading-5">{user.bio}</Text>
             </View>
           ) : null}
@@ -130,22 +154,26 @@ export default function MyProfileScreen() {
           </View>
 
           {/* Reviews */}
-          {myReviews.length > 0 && (
+          {userReviews.length > 0 ? (
             <View className="gap-3">
               <Text className="text-sm font-semibold text-secondary-900">
-                Avaliações recebidas ({myReviews.length})
+                Avaliações recebidas ({userReviews.length})
               </Text>
-              {myReviews.map((r) => (
+              {userReviews.map((r) => (
                 <ReviewCard key={r.id} rating={r} />
               ))}
             </View>
+          ) : (
+            <View className="bg-white rounded-2xl p-4 items-center">
+              <Text className="text-sm text-neutral-400">Nenhuma avaliação ainda.</Text>
+            </View>
           )}
 
-          {/* Edit button at bottom */}
+          {/* Report button */}
           <Button
-            label="Editar perfil"
-            onPress={() => navigation.navigate("EditProfile")}
-            variant="secondary"
+            label="Denunciar usuário"
+            onPress={() => navigation.navigate("ReportUser", { userId: user.id })}
+            variant="ghost"
             fullWidth
           />
         </View>
