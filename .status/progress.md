@@ -352,3 +352,43 @@ Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
 - Fase 6 **100% concluída** (5/5 tarefas)
 - Próxima branch: `feat/match-participation` (Fase 7)
 - Ponto exato de retomada: `src/screens/MatchDetailScreen.tsx` — `handleJoin` e `handleCancel` hoje só alteram `useState` local; Fase 7 eleva esse estado para `MatchesContext` via hook `useMatchParticipation`
+
+---
+
+## Sessão 9 — 2026-05-26
+
+### Fase 7 — Participação em partida (tarefas 7.1 a 7.5 concluídas)
+
+| # | Tarefa | Observação |
+|---|--------|------------|
+| 7.1 | Implementar ação "Participar de partida" | `updateParticipation` adicionado ao `MatchesContext`; insere ou atualiza participante na lista |
+| 7.2 | Implementar ação "Cancelar participação" | `cancel()` abre Alert de confirmação; define status "cancelled" no contexto |
+| 7.3 | Implementar estado "Aguardando aprovação" | `join()` detecta `match.requiresApproval` e aplica "pending" ou "confirmed" |
+| 7.4 | Criar hook `useMatchParticipation` | Retorna `{ match, userStatus, join, cancel }`; normaliza "cancelled" para `null` |
+| 7.5 | Escrever testes para fluxo de participação | 11 testes: leitura de status (5), join (4), cancel (2) |
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/hooks/useMatchParticipation.ts` | Hook que encapsula toda a lógica de participação |
+| `src/hooks/__tests__/useMatchParticipation.test.ts` | 11 testes com mock controlado de `MOCK_MATCHES` |
+
+### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/contexts/MatchesContext.tsx` | `updateParticipation` adicionado + `applyParticipationUpdate` como função pura externa |
+| `src/screens/MatchDetailScreen.tsx` | `useState`/`handleJoin`/`handleCancel` removidos; substituídos por `useMatchParticipation` |
+
+### Resultado dos testes
+
+- **135 testes, 15 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅
+
+### Estado ao final da sessão 9
+
+- Branch `feat/match-participation` — pronta para commit e merge em `dev`
+- Fase 7 **100% concluída** (5/5 tarefas)
+- Próxima branch: `feat/match-chat` (Fase 8)
+- Ponto exato de retomada: criar `src/screens/MatchChatScreen.tsx` (tarefa 8.1) e adicionar botão "Chat" em `MatchDetailScreen`
