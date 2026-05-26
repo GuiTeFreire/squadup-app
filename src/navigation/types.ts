@@ -13,6 +13,8 @@ export type AppRootStackParamList = {
   PublicProfile: { userId: string };
   EditProfile: undefined;
   ReportUser: { userId: string };
+  PostMatchRating: { matchId: string };
+  RateUser: { matchId: string; userId: string };
 };
 
 export type AppTabParamList = {

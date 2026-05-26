@@ -21,6 +21,7 @@
 | Fase 6 — Criação de partida | 5/5 ✅ | `feat/create-match` (sessão 8 — 2026-05-26) |
 | Fase 7 — Participação em partida | 5/5 ✅ | `feat/match-participation` (sessão 9 — 2026-05-26) |
 | Fase 8 — Chat da partida | 6/6 ✅ | `feat/match-chat` (sessão 10 — 2026-05-26) |
+| Fase 9 — Avaliação pós-partida | 5/5 ✅ | `feat/post-match-rating` (sessão 11 — 2026-05-26) |
 
 ---
 
@@ -102,15 +103,15 @@
 
 ---
 
-## FASE 9 — Avaliação pós-partida
+## FASE 9 — Avaliação pós-partida ✅ Concluída — sessão 11 (2026-05-26)
 
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
-| 9.1 | Criar tela `PostMatchRatingScreen` (Lista para avaliar) | ⚪ | Participantes da partida passada |
-| 9.2 | Criar tela `RateUserScreen` (Formulário de avaliação) | ⚪ | Critérios: pontualidade, respeito, comportamento, presença, exp. geral |
-| 9.3 | Criar componente `StarRatingInput` | ⚪ | Input interativo de 1–5 estrelas por critério |
-| 9.4 | Implementar feedback de avaliação enviada | ⚪ | Toast ou tela de confirmação |
-| 9.5 | Escrever testes para `StarRatingInput` | ⚪ | Seleção de nota e callback |
+| 9.1 | Criar tela `PostMatchRatingScreen` (Lista para avaliar) | 🟢 | FlatList de confirmados (excluindo current user) + badge "Avaliado" após submit |
+| 9.2 | Criar tela `RateUserScreen` (Formulário de avaliação) | 🟢 | Card do usuário + 5 `StarRatingInput` + comentário opcional + validação |
+| 9.3 | Criar componente `StarRatingInput` | 🟢 | Input interativo de 1–5 estrelas por critério; Pressable com accessibilityLabel |
+| 9.4 | Implementar feedback de avaliação enviada | 🟢 | `Alert.alert` com nome do usuário + `navigation.goBack()` no callback "OK" |
+| 9.5 | Escrever testes para `StarRatingInput` | 🟢 | 7 testes: label, 5 botões, 4 interações de onChange |
 
 ---
 
@@ -168,16 +169,17 @@
 
 ## Bloqueadores e observações
 
-- Fase 8 concluída. Próxima sessão: branch `feat/post-match-rating` (Fase 9).
-- Ponto exato de retomada: criar `src/screens/PostMatchRatingScreen.tsx` (tarefa 9.1) — tela lista participantes da partida para avaliar.
-- `MessagesContext` expõe `getMessages(matchId)` e `sendMessage(matchId, text)`; mocks inicializados para match-1 e match-3.
-- Botão "Chat da partida" aparece em `MatchDetailScreen` apenas quando `userStatus === "confirmed"`.
+- Fase 9 concluída. Próxima sessão: branch `feat/report-user` (Fase 10).
+- Ponto exato de retomada: implementar `src/screens/ReportUserScreen.tsx` (tarefa 10.1) — substituir placeholder existente.
+- `RatingsContext` expõe `submitRating(matchId, userId, criteria, comment?)` e `hasRated(matchId, userId)`; estado em memória para a sessão.
+- Botão "Avaliar participantes" aparece em `MatchDetailScreen` quando `match.status === "closed"` e `userStatus === "confirmed"`.
+- match-13 adicionado ao mock: futebol encerrado com guilherme + 4 participantes — serve como fixture de teste para o fluxo de avaliação.
 
 ---
 
 ## Progresso geral
 
 **Total de tarefas:** 70
-**Concluídas:** 51 (fases numeradas) + refinamento visual transversal
+**Concluídas:** 56 (fases numeradas) + refinamento visual transversal
 **Em andamento:** 0
-**A fazer:** 19
+**A fazer:** 14

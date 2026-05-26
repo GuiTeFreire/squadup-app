@@ -207,7 +207,17 @@ export default function MatchDetailScreen() {
       {/* Bottom action area */}
       <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-neutral-100 px-4 pt-4 pb-8">
         {isMatchOver ? (
-          <Button label="Partida encerrada" onPress={() => {}} disabled fullWidth />
+          <View className="gap-3">
+            <Button label="Partida encerrada" onPress={() => {}} disabled fullWidth />
+            {match.status === "closed" && userStatus === "confirmed" && (
+              <Button
+                label="Avaliar participantes"
+                onPress={() => navigation.navigate("PostMatchRating", { matchId: match.id })}
+                variant="ghost"
+                fullWidth
+              />
+            )}
+          </View>
         ) : userStatus === "confirmed" ? (
           <View className="gap-3">
             <View className="flex-row items-center justify-center gap-2 bg-success/10 rounded-xl py-3">

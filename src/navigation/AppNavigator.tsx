@@ -10,7 +10,9 @@ import HomeScreen from "../screens/HomeScreen";
 import MatchChatScreen from "../screens/MatchChatScreen";
 import MatchDetailScreen from "../screens/MatchDetailScreen";
 import MyProfileScreen from "../screens/MyProfileScreen";
+import PostMatchRatingScreen from "../screens/PostMatchRatingScreen";
 import PublicProfileScreen from "../screens/PublicProfileScreen";
+import RateUserScreen from "../screens/RateUserScreen";
 import ReportUserScreen from "../screens/ReportUserScreen";
 import SearchScreen from "../screens/SearchScreen";
 import type { AppRootStackParamList, AppTabParamList } from "./types";
@@ -111,6 +113,16 @@ export default function AppNavigator() {
       <RootStack.Screen
         name="ReportUser"
         component={ReportUserScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="PostMatchRating"
+        component={PostMatchRatingScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="RateUser"
+        component={RateUserScreen}
         options={{ headerShown: false }}
       />
     </RootStack.Navigator>
