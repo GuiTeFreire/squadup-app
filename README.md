@@ -9,6 +9,7 @@ Protótipo navegável com dados mockados para apresentação acadêmica.
 - **TypeScript** 5.9
 - **NativeWind** v4 (Tailwind CSS para React Native)
 - **React Navigation** v6 (Stack + Bottom Tabs)
+- **@expo/vector-icons** — MaterialCommunityIcons para ícones vetoriais
 - **Jest** + React Native Testing Library
 - **ESLint** 9 (flat config) + **Prettier**
 
@@ -35,11 +36,19 @@ npm install
 | `npm run lint` | Verifica erros de lint |
 | `npm run lint:fix` | Corrige erros de lint automaticamente |
 
+## Paleta de cores
+
+| Token | Cor | Uso |
+| --- | --- | --- |
+| `primary` | `#2563EB` Electric Blue | CTAs, links, foco, elementos ativos |
+| `secondary` | `#0F172A` Dark Slate | Header, tab bar, fundos escuros |
+| `accent` | `#F97316` Orange | Badges de energia, destaques |
+
 ## Estrutura de pastas
 
 ```
 src/
-├── components/   # Componentes reutilizáveis (Button, Input, Card…)
+├── components/   # Componentes reutilizáveis (Button, Input, Card, Avatar…)
 ├── contexts/     # Context API (AuthContext)
 ├── hooks/        # Hooks customizados
 ├── mocks/        # Dados mockados (users, matches, ratings)
@@ -47,6 +56,7 @@ src/
 ├── screens/      # Telas da aplicação
 ├── types/        # Tipos TypeScript globais
 └── utils/        # Funções utilitárias
+__mocks__/        # Mocks Jest (expo-vector-icons)
 ```
 
 ## Fluxo de navegação atual
@@ -55,7 +65,7 @@ src/
 App
 └── RootNavigator
     ├── AuthNavigator  (não autenticado)
-    │   ├── WelcomeScreen
+    │   ├── WelcomeScreen       ← dark slate + ícones vetoriais
     │   ├── LoginScreen
     │   ├── RegisterScreen
     │   └── ProfileSetupScreen
@@ -67,7 +77,7 @@ App
 
 Não há backend. O `AuthContext` simula:
 
-- **Login** — qualquer e-mail válido + senha ≥ 6 chars autentica como `Carlos Mendes`
+- **Login** — qualquer e-mail válido + senha ≥ 6 chars autentica como `Guilherme Mendes`
 - **Cadastro** → `RegisterScreen` → `ProfileSetupScreen` → cria novo perfil em memória
 - **Logout** — disponível na `HomeScreen`
 
@@ -77,6 +87,7 @@ Não há backend. O `AuthContext` simula:
 | --- | --- | --- |
 | 1 | Estrutura e design system | ✅ Concluída |
 | 2 | Fluxo de autenticação | ✅ Concluída |
+| — | Refinamento visual (Electric Blue + Dark Slate) | ✅ Concluído |
 | 3 | Perfil do usuário | ⚪ A fazer |
 | 4 | Listagem e busca de partidas | ⚪ **Próxima** |
 | 5–12 | Demais fases | ⚪ A fazer |

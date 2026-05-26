@@ -1,11 +1,12 @@
 # SquadUp — Roadmap Inicial do Front-end
 
-## Status de execução (atualizado em 2026-05-20)
+## Status de execução (atualizado em 2026-05-25)
 
 | Fase | Descrição | Status |
 |------|-----------|--------|
 | Fase 1 | Estrutura inicial do projeto | 🟢 Concluída (19/19 tarefas) |
 | Fase 2 | Fluxo de entrada do usuário | 🟢 Concluída (8/8 tarefas) |
+| — | Refinamento visual (Electric Blue + Dark Slate) | 🟢 Concluído (transversal — sessão 4) |
 | Fase 3 | Perfil do usuário | ⚪ A fazer |
 | Fase 4 | Listagem e busca de partidas | ⚪ A fazer — **próxima** |
 | Fase 5 | Detalhes da partida | ⚪ A fazer |
@@ -19,7 +20,7 @@
 
 **Progresso geral:** 27/70 tarefas concluídas (39%) · 52 testes passando · lint zerado
 
-Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6
+Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons)
 
 ---
 

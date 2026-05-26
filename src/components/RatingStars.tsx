@@ -29,12 +29,12 @@ function RatingStars({ rating, max = 5, showValue = true, size = "md" }: RatingS
   return (
     <View className="flex-row items-center gap-0.5">
       {Array.from({ length: fullStars }).map((_, i) => (
-        <Text key={`full-${i}`} className={starSize[size]}>
+        <Text key={`full-${i}`} className={`${starSize[size]} text-amber-400`}>
           ★
         </Text>
       ))}
       {hasHalf ? (
-        <Text key="half" className={`${starSize[size]} text-neutral-300`}>
+        <Text key="half" className={`${starSize[size]} text-amber-300`}>
           ★
         </Text>
       ) : null}
@@ -44,7 +44,7 @@ function RatingStars({ rating, max = 5, showValue = true, size = "md" }: RatingS
         </Text>
       ))}
       {showValue ? (
-        <Text className={`ml-1 ${labelSize[size]} text-neutral-600`}>{clamped.toFixed(1)}</Text>
+        <Text className={`ml-1 ${labelSize[size]} text-neutral-500`}>{clamped.toFixed(1)}</Text>
       ) : null}
     </View>
   );

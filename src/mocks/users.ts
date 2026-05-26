@@ -3,7 +3,7 @@ import type { User } from "../types";
 export const MOCK_USERS: User[] = [
   {
     id: "user-1",
-    name: "Carlos Mendes",
+    name: "Guilherme Mendes",
     photoUrl: "https://i.pravatar.cc/150?img=11",
     age: 28,
     location: "Pinheiros, São Paulo",

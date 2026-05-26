@@ -1,7 +1,7 @@
 import type { Match } from "../types";
 import { MOCK_USERS } from "./users";
 
-const [carlos, ana, rafael, juliana, thiago, beatriz] = MOCK_USERS;
+const [guilherme, ana, rafael, juliana, thiago, beatriz] = MOCK_USERS;
 
 export const MOCK_MATCHES: Match[] = [
   {
@@ -14,9 +14,9 @@ export const MOCK_MATCHES: Match[] = [
     maxParticipants: 14,
     level: "intermediate",
     description: "Jogo de campo gramado. Trazer chuteira e água. Colete fornecido.",
-    organizer: carlos,
+    organizer: guilherme,
     participants: [
-      { user: carlos, status: "confirmed" },
+      { user: guilherme, status: "confirmed" },
       { user: thiago, status: "confirmed" },
       { user: rafael, status: "confirmed" },
       { user: beatriz, status: "confirmed" },
@@ -39,7 +39,7 @@ export const MOCK_MATCHES: Match[] = [
     participants: [
       { user: ana, status: "confirmed" },
       { user: juliana, status: "confirmed" },
-      { user: carlos, status: "pending" },
+      { user: guilherme, status: "pending" },
     ],
     status: "open",
     allowBeginners: true,
@@ -61,7 +61,7 @@ export const MOCK_MATCHES: Match[] = [
       { user: ana, status: "confirmed" },
       { user: juliana, status: "confirmed" },
       { user: thiago, status: "confirmed" },
-      { user: carlos, status: "confirmed" },
+      { user: guilherme, status: "confirmed" },
       { user: rafael, status: "confirmed" },
     ],
     status: "full",
@@ -81,7 +81,7 @@ export const MOCK_MATCHES: Match[] = [
     organizer: thiago,
     participants: [
       { user: thiago, status: "confirmed" },
-      { user: carlos, status: "confirmed" },
+      { user: guilherme, status: "confirmed" },
     ],
     status: "open",
     allowBeginners: true,
@@ -100,7 +100,7 @@ export const MOCK_MATCHES: Match[] = [
     organizer: rafael,
     participants: [
       { user: rafael, status: "confirmed" },
-      { user: carlos, status: "confirmed" },
+      { user: guilherme, status: "confirmed" },
       { user: thiago, status: "confirmed" },
     ],
     status: "open",
@@ -176,9 +176,9 @@ export const MOCK_MATCHES: Match[] = [
     maxParticipants: 14,
     level: "beginner",
     description: "Jogo comemorativo, todo mundo pode entrar. Churrasco depois!",
-    organizer: carlos,
+    organizer: guilherme,
     participants: [
-      { user: carlos, status: "confirmed" },
+      { user: guilherme, status: "confirmed" },
       { user: ana, status: "confirmed" },
       { user: rafael, status: "confirmed" },
       { user: juliana, status: "confirmed" },
@@ -202,7 +202,7 @@ export const MOCK_MATCHES: Match[] = [
     organizer: rafael,
     participants: [
       { user: rafael, status: "cancelled" },
-      { user: carlos, status: "cancelled" },
+      { user: guilherme, status: "cancelled" },
     ],
     status: "cancelled",
     allowBeginners: false,
@@ -221,7 +221,7 @@ export const MOCK_MATCHES: Match[] = [
     organizer: ana,
     participants: [
       { user: ana, status: "confirmed" },
-      { user: carlos, status: "confirmed" },
+      { user: guilherme, status: "confirmed" },
     ],
     status: "open",
     allowBeginners: false,

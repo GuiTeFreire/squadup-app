@@ -3,6 +3,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
+import SquadUpLogo from "../../assets/squadup_logo.svg";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import { useAuth } from "../contexts/AuthContext";
@@ -53,12 +54,16 @@ export default function LoginScreen() {
   return (
     <ScrollView
       className="flex-1 bg-white"
-      contentContainerStyle={{ flexGrow: 1, padding: 24 }}
+      contentContainerStyle={{ flexGrow: 1, padding: 24, paddingTop: 100 }}
       keyboardShouldPersistTaps="handled"
     >
-      <View className="mb-8">
-        <Text className="text-3xl font-bold text-neutral-900">Bem-vindo de volta</Text>
-        <Text className="mt-2 text-base text-neutral-500">Entre com sua conta para continuar</Text>
+      {/* Brand header */}
+      <View className="items-center mb-8">
+        <SquadUpLogo width={180} height={54} />
+        <Text className="mt-5 text-3xl font-bold text-secondary-900">Bem-vindo de volta</Text>
+        <Text className="mt-1 text-base text-neutral-500 text-center">
+          Entre com sua conta para continuar
+        </Text>
       </View>
 
       <View className="gap-4">
