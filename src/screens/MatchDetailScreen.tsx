@@ -214,6 +214,11 @@ export default function MatchDetailScreen() {
               <MaterialCommunityIcons name="check-circle-outline" size={18} color="#22C55E" />
               <Text className="text-sm font-semibold text-success">Você está confirmado</Text>
             </View>
+            <Button
+              label="Chat da partida"
+              onPress={() => navigation.navigate("MatchChat", { matchId: match.id })}
+              fullWidth
+            />
             <Button label="Cancelar participação" onPress={cancel} variant="ghost" fullWidth />
           </View>
         ) : userStatus === "pending" ? (
