@@ -15,6 +15,7 @@
 | Fase 1 — Estrutura inicial | 19/19 ✅ | `feat/project-setup` + `feat/design-system` → `dev` |
 | Fase 2 — Fluxo de entrada | 8/8 ✅ | `feat/auth-flow` → `dev` |
 | Refinamento visual | transversal ✅ | direto em `dev` (sessão 4 — 2026-05-25) |
+| Fase 4 — Listagem e busca | 8/8 ✅ | `feat/home-matches` → `dev` (sessão 5 — 2026-05-25) |
 
 ---
 
@@ -31,18 +32,18 @@
 
 ---
 
-## FASE 4 — Listagem e busca de partidas ← próxima sessão
+## FASE 4 — Listagem e busca de partidas ✅ Concluída — sessão 5 (2026-05-25)
 
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
-| 4.1 | Expandir `AppNavigator` com Bottom Tabs completo | ⚪ | Abas: Home, Busca, Criar Partida, Perfil |
-| 4.2 | Criar tela `HomeScreen` com lista de partidas | ⚪ | FlatList com MatchCards usando dados mock (substitui placeholder) |
-| 4.3 | Criar componente `MatchCard` | ⚪ | Esporte, título, local, data, vagas, nível, organizador |
-| 4.4 | Criar tela `SearchScreen` (Busca) | ⚪ | Input de busca por texto em tempo real |
-| 4.5 | Criar tela/modal `FiltersScreen` (Filtros) | ⚪ | Esporte, data, nível, vagas disponíveis |
-| 4.6 | Criar hook `useMatchFilters` | ⚪ | Lógica de filtragem sobre dados mock |
-| 4.7 | Adicionar indicador visual de vagas | ⚪ | Barra de progresso ou badge (cheio / disponível) |
-| 4.8 | Escrever testes para `MatchCard` e `useMatchFilters` | ⚪ | Renderização e lógica de filtro |
+| 4.1 | Expandir `AppNavigator` com Bottom Tabs completo | 🟢 | RootStack (tabs + modal Filters) · 4 abas com `MaterialCommunityIcons` |
+| 4.2 | Criar tela `HomeScreen` com lista de partidas | 🟢 | FlatList + busca inline + botão de filtros com badge de contagem |
+| 4.3 | Criar componente `MatchCard` | 🟢 | Badges sport/level/status, local, data, barra de vagas, organizador |
+| 4.4 | Criar tela `SearchScreen` (Busca) | 🟢 | Campo dedicado + contador de resultados + EmptyState contextual |
+| 4.5 | Criar tela/modal `FiltersScreen` (Filtros) | 🟢 | Modal nativo (presentation: modal) · chips sport/level + toggle vagas |
+| 4.6 | Criar hook `useMatchFilters` | 🟢 | `applyFilters` puro + hook com `MatchFiltersContext` |
+| 4.7 | Adicionar indicador visual de vagas | 🟢 | Barra colorida (verde/laranja/vermelho) + texto "X vagas disponíveis" |
+| 4.8 | Escrever testes para `MatchCard` e `useMatchFilters` | 🟢 | 12 testes MatchCard + 11 testes applyFilters · 75 total passando |
 
 ---
 
@@ -161,16 +162,17 @@
 
 ## Bloqueadores e observações
 
-- Próxima sessão: branch `feat/home-matches` implementando Fase 4 completa.
-- Ordem sugerida para Fase 4: AppNavigator (4 abas com `MaterialCommunityIcons`) → HomeScreen → MatchCard → SearchScreen → FiltersScreen → useMatchFilters → testes.
-- `@expo/vector-icons` já instalado — usar `MaterialCommunityIcons` para todos os ícones de tab bar e cards de partida.
-- Nenhuma integração real com backend prevista nesta fase.
+- Fase 4 concluída. Próxima sessão: branch `feat/match-detail` (Fase 5) OU `feat/user-profile` (Fase 3).
+- `MatchFiltersContext` criado em `src/contexts/MatchFiltersContext.tsx` — provedor adicionado no `App.tsx`.
+- Navegação: `AppNavigator` agora é um `RootStack` com `AppTabs` + modal `Filters`.
+- Placeholders criados: `CreateMatchScreen.tsx` (Fase 6) e `MyProfileScreen.tsx` (Fase 3).
+- `src/utils/date.ts` criado com `formatMatchDate` (formato: "Dom, 25 mai").
 
 ---
 
 ## Progresso geral
 
 **Total de tarefas:** 70
-**Concluídas:** 27 (fases numeradas) + refinamento visual transversal
+**Concluídas:** 35 (fases numeradas) + refinamento visual transversal
 **Em andamento:** 0
-**A fazer:** 43
+**A fazer:** 35

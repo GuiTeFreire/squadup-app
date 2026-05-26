@@ -5,6 +5,14 @@ export type AuthStackParamList = {
   ProfileSetup: undefined;
 };
 
+export type AppRootStackParamList = {
+  AppTabs: undefined;
+  Filters: undefined;
+};
+
 export type AppTabParamList = {
   Home: undefined;
+  Search: undefined;
+  CreateMatch: undefined;
+  Profile: undefined;
 };

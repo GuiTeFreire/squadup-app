@@ -163,3 +163,56 @@ Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
 - Branch `dev` com todas as mudanças visuais (sem branch separada — overhaul visual não é feature)
 - Design system 100% refatorado; todos os componentes e telas de auth usam a nova paleta
 - Próxima branch a criar: `feat/home-matches` (Fase 4 completa)
+
+---
+
+## Sessão 5 — 2026-05-25
+
+### Fase 4 — Listagem e busca de partidas (tarefas 4.1 a 4.8 concluídas)
+
+| # | Tarefa | Observação |
+|---|--------|------------|
+| 4.1 | Expandir `AppNavigator` com 4 Bottom Tabs | `RootStack` wrapping `AppTabs` (Home/Busca/Criar/Perfil) + `FiltersScreen` como modal nativo |
+| 4.2 | Criar `HomeScreen` com lista de partidas | `FlatList` + campo de busca inline + botão filtros com badge de contagem ativa |
+| 4.3 | Criar componente `MatchCard` | Badges sport/level/status, local + data com ícones vetoriais, barra de vagas, organizador |
+| 4.4 | Criar `SearchScreen` | Campo de busca dedicado com autoFocus, contador de resultados, EmptyState contextual |
+| 4.5 | Criar `FiltersScreen` (modal) | `presentation: 'modal'` · chips de esporte e nível + toggle de vagas · estado local antes de aplicar |
+| 4.6 | Criar hook `useMatchFilters` | `applyFilters` (função pura testável) + `useMatchFilters` (hook que lê `MatchFiltersContext`) |
+| 4.7 | Indicador visual de vagas | Barra colorida: verde (disponível) · laranja (≥80% ocupado) · vermelho (lotado) + texto pluralizado |
+| 4.8 | Testes `MatchCard` e `useMatchFilters` | 12 testes de renderização + 11 testes de lógica de filtro (puro, sem mock de contexto) |
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/utils/date.ts` | `formatMatchDate("YYYY-MM-DD")` → `"Dom, 25 mai"` |
+| `src/contexts/MatchFiltersContext.tsx` | Estado compartilhado de filtros (sport, level, onlyAvailable) · `MatchFiltersProvider` |
+| `src/hooks/useMatchFilters.ts` | `applyFilters` puro + hook `useMatchFilters` |
+| `src/components/MatchCard.tsx` | Card de partida completo (memo) |
+| `src/screens/HomeScreen.tsx` | Substituiu placeholder — FlatList real |
+| `src/screens/SearchScreen.tsx` | Tela de busca dedicada |
+| `src/screens/FiltersScreen.tsx` | Modal de filtros |
+| `src/screens/CreateMatchScreen.tsx` | Placeholder — Fase 6 |
+| `src/screens/MyProfileScreen.tsx` | Placeholder — Fase 3 |
+| `src/components/__tests__/MatchCard.test.tsx` | 12 testes |
+| `src/hooks/__tests__/useMatchFilters.test.ts` | 11 testes |
+
+### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/navigation/AppNavigator.tsx` | `RootStack` com 4 tabs + modal Filters · ícones extraídos para módulo (S6478) |
+| `src/navigation/types.ts` | `AppRootStackParamList` + 4 rotas em `AppTabParamList` |
+| `App.tsx` | `MatchFiltersProvider` adicionado dentro de `AuthProvider` |
+
+### Resultado dos testes
+
+- **75 testes, 11 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅
+
+### Estado ao final da sessão 5
+
+- Branch `feat/home-matches` pronta para merge em `dev`
+- Fase 4 **100% concluída** (8/8 tarefas)
+- Próxima branch sugerida: `feat/match-detail` (Fase 5) — `MatchCard.onPress` já está preparado para navegar para `MatchDetailScreen`
+- Ponto exato de retomada: `src/screens/HomeScreen.tsx` linha 73 — `renderItem` do `FlatList` recebe `onPress={() => navigation.navigate('MatchDetail', { matchId: item.id })}` quando `MatchDetailScreen` for criada em Fase 5
