@@ -106,3 +106,60 @@
 - Branch `feat/auth-flow` pronta para merge em `dev`
 - Fase 2 **100% concluída** (8/8 tarefas)
 - Próxima branch: `feat/main-navigator` (Fase 4 — AppNavigator completo, HomeScreen, SearchScreen, FiltersScreen, MatchCard, useMatchFilters)
+
+---
+
+## Sessão 4 — 2026-05-25
+
+### Refinamento visual — Design System (tarefa transversal, fora das fases numeradas)
+
+Esta sessão foi dedicada a um overhaul completo da identidade visual do app, substituindo a paleta verde genérica por um sistema Electric Blue + Dark Slate moderno e profissional.
+
+#### Paleta de cores (novo sistema)
+
+| Token | Valor principal | Uso |
+|-------|----------------|-----|
+| `primary` | `#2563EB` (Electric Blue) | CTAs, links, elementos ativos, foco |
+| `secondary` | `#0F172A–#F8FAFC` (Dark Slate) | Header, tab bar, fundos estruturais |
+| `accent` | `#F97316` (Orange) | Badges de energia, destaques (azul+laranja = clássico esportivo) |
+
+Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
+
+#### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `tailwind.config.js` | primary → Electric Blue · secondary → Dark Slate · semantic colors atualizados |
+| `src/components/Button.tsx` | Novo variant `outline` (borda branca/texto branco para fundos escuros) · `rounded-xl` |
+| `src/components/Header.tsx` | Fundo `secondary-900` + texto branco (maior impacto visual) |
+| `src/components/RatingStars.tsx` | Estrelas cheias `text-amber-400` · meia `amber-300` · vazias `neutral-300` |
+| `src/components/Badge.tsx` | Nível Avançado → `bg-primary-900 text-white` (hierarquia: suave → laranja → azul profundo) |
+| `src/navigation/AuthNavigator.tsx` | `headerTintColor` `#16a34a` → `#2563EB` |
+| `src/navigation/AppNavigator.tsx` | Tab bar dark (`#0F172A`) · active `#2563EB` · ícone vetorial `home-variant` |
+| `src/screens/WelcomeScreen.tsx` | Redesign completo: fundo dark slate · logo vetorial · chips com `MaterialCommunityIcons` · stats row |
+| `src/screens/LoginScreen.tsx` | Marca `lightning-bolt` vetorial no topo · `paddingTop: 100` para header transparente |
+| `src/screens/RegisterScreen.tsx` | Mesma marca vetorial do Login |
+| `src/screens/ProfileSetupScreen.tsx` | Títulos de seção em `secondary-800/900` |
+
+#### Infraestrutura adicionada
+
+| Item | Detalhe |
+|------|---------|
+| `@expo/vector-icons@^15.1.1` | Instalado — `MaterialCommunityIcons` para soccer, basketball, volleyball, tennis, lightning-bolt, home-variant |
+| `__mocks__/expo-vector-icons.js` | Mock Jest criado (expo-font → expo-asset não instalado em dev) |
+| `package.json` `moduleNameMapper` | Aponta `@expo/vector-icons` para o mock no ambiente de teste |
+
+#### Bug fix
+
+- `src/components/__tests__/Avatar.test.tsx` — Iniciais esperadas `"CM"` / `"C"` não batiam com os nomes `"Guilherme Mendes"` / `"Guilherme"`. Corrigido para `"GM"` / `"G"`.
+
+#### Resultado dos testes
+
+- **52 testes, 9 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅
+
+### Estado ao final da sessão 4
+
+- Branch `dev` com todas as mudanças visuais (sem branch separada — overhaul visual não é feature)
+- Design system 100% refatorado; todos os componentes e telas de auth usam a nova paleta
+- Próxima branch a criar: `feat/home-matches` (Fase 4 completa)

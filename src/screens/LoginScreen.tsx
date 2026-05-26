@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useState } from "react";
@@ -53,12 +54,18 @@ export default function LoginScreen() {
   return (
     <ScrollView
       className="flex-1 bg-white"
-      contentContainerStyle={{ flexGrow: 1, padding: 24 }}
+      contentContainerStyle={{ flexGrow: 1, padding: 24, paddingTop: 100 }}
       keyboardShouldPersistTaps="handled"
     >
-      <View className="mb-8">
-        <Text className="text-3xl font-bold text-neutral-900">Bem-vindo de volta</Text>
-        <Text className="mt-2 text-base text-neutral-500">Entre com sua conta para continuar</Text>
+      {/* Brand header */}
+      <View className="items-center mb-8">
+        <View className="w-14 h-14 rounded-2xl bg-primary-500 items-center justify-center mb-4">
+          <MaterialCommunityIcons name="lightning-bolt" size={28} color="#ffffff" />
+        </View>
+        <Text className="text-3xl font-bold text-secondary-900">Bem-vindo de volta</Text>
+        <Text className="mt-1 text-base text-neutral-500 text-center">
+          Entre com sua conta para continuar
+        </Text>
       </View>
 
       <View className="gap-4">

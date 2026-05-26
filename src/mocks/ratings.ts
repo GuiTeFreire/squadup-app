@@ -2,22 +2,23 @@ import type { Rating } from "../types";
 import { MOCK_MATCHES } from "./matches";
 import { MOCK_USERS } from "./users";
 
-const [carlos, ana, rafael, , thiago, beatriz] = MOCK_USERS;
+const [guilherme, ana, rafael, , thiago, beatriz] = MOCK_USERS;
 const [match1, match2, match3] = MOCK_MATCHES;
 
 export const MOCK_RATINGS: Rating[] = [
   {
     id: "rating-1",
-    ratedUser: carlos,
+    ratedUser: guilherme,
     raterUser: thiago,
     match: match1,
     criteria: { punctuality: 5, respect: 5, behavior: 5, presence: 4, overall: 5 },
-    comment: "Carlos é pontual demais, sempre aparece antes de todo mundo. Ótimo de jogar junto!",
+    comment:
+      "Guilherme é pontual demais, sempre aparece antes de todo mundo. Ótimo de jogar junto!",
     createdAt: "2026-05-19T11:00:00Z",
   },
   {
     id: "rating-2",
-    ratedUser: carlos,
+    ratedUser: guilherme,
     raterUser: beatriz,
     match: match1,
     criteria: { punctuality: 4, respect: 5, behavior: 5, presence: 5, overall: 5 },
@@ -27,7 +28,7 @@ export const MOCK_RATINGS: Rating[] = [
   {
     id: "rating-3",
     ratedUser: ana,
-    raterUser: carlos,
+    raterUser: guilherme,
     match: match2,
     criteria: { punctuality: 5, respect: 5, behavior: 5, presence: 5, overall: 5 },
     comment: "Ana organiza tudo com muita competência. Pelada fluiu muito bem.",
@@ -44,7 +45,7 @@ export const MOCK_RATINGS: Rating[] = [
   {
     id: "rating-5",
     ratedUser: rafael,
-    raterUser: carlos,
+    raterUser: guilherme,
     match: match1,
     criteria: { punctuality: 4, respect: 4, behavior: 5, presence: 4, overall: 4 },
     comment: "Bom jogador, mas às vezes chega no limite do horário. No geral, ótimo companheiro.",

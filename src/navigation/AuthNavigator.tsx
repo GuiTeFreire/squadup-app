@@ -20,7 +20,7 @@ export default function AuthNavigator() {
           headerShown: true,
           title: "",
           headerTransparent: true,
-          headerTintColor: "#16a34a",
+          headerTintColor: "#2563EB",
         }}
       />
       <Stack.Screen
@@ -30,7 +30,7 @@ export default function AuthNavigator() {
           headerShown: true,
           title: "",
           headerTransparent: true,
-          headerTintColor: "#16a34a",
+          headerTintColor: "#2563EB",
         }}
       />
       <Stack.Screen
@@ -39,7 +39,7 @@ export default function AuthNavigator() {
         options={{
           headerShown: true,
           title: "Configurar perfil",
-          headerTintColor: "#16a34a",
+          headerTintColor: "#2563EB",
           gestureEnabled: false,
         }}
       />

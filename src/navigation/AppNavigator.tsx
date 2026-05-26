@@ -1,6 +1,6 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
-import { Text } from "react-native";
 
 import HomeScreen from "../screens/HomeScreen";
 import type { AppTabParamList } from "./types";
@@ -12,8 +12,18 @@ export default function AppNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#16a34a",
-        tabBarInactiveTintColor: "#9ca3af",
+        tabBarActiveTintColor: "#2563EB",
+        tabBarInactiveTintColor: "#64748B",
+        tabBarStyle: {
+          backgroundColor: "#0F172A",
+          borderTopColor: "#1E293B",
+          height: 60,
+          paddingBottom: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "600",
+        },
       }}
     >
       <Tab.Screen
@@ -21,7 +31,9 @@ export default function AppNavigator() {
         component={HomeScreen}
         options={{
           tabBarLabel: "Início",
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏠</Text>,
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="home-variant" size={24} color={color} />
+          ),
         }}
       />
     </Tab.Navigator>

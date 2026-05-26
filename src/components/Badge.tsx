@@ -25,7 +25,7 @@ const sportEmoji: Record<Sport, string> = {
 const levelStyle: Record<ExperienceLevel, string> = {
   beginner: "bg-primary-100 text-primary-700",
   intermediate: "bg-accent-100 text-accent-700",
-  advanced: "bg-secondary-100 text-secondary-700",
+  advanced: "bg-primary-900 text-white",
 };
 
 const statusStyle: Record<MatchStatus, string> = {
@@ -37,7 +37,7 @@ const statusStyle: Record<MatchStatus, string> = {
 };
 
 function Badge({ label, variant = "custom", sport, level, status }: BadgeProps) {
-  let colorClass = "bg-neutral-100 text-neutral-700";
+  let colorClass = "bg-secondary-100 text-secondary-700";
   let prefix = "";
 
   if (variant === "sport" && sport) {

@@ -5,63 +5,63 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Primary — energetic green (sport/action)
+        // Primary — Electric Blue (brand, CTAs, interactive elements)
         primary: {
-          50:  "#e8faf0",
-          100: "#c6f2d9",
-          200: "#90e6b3",
-          300: "#52d68a",
-          400: "#22c468",
-          500: "#16a34a", // main brand
-          600: "#15803d",
-          700: "#166534",
-          800: "#14532d",
-          900: "#052e16",
+          50:  "#EFF6FF",
+          100: "#DBEAFE",
+          200: "#BFDBFE",
+          300: "#93C5FD",
+          400: "#60A5FA",
+          500: "#2563EB", // main brand
+          600: "#1D4ED8", // active/pressed
+          700: "#1E40AF",
+          800: "#1E3A8A",
+          900: "#1E2D5A",
         },
-        // Secondary — deep navy (trust/reliability)
+        // Secondary — Dark Slate (surfaces, headers, navigation — 30% rule)
         secondary: {
-          50:  "#eff6ff",
-          100: "#dbeafe",
-          200: "#bfdbfe",
-          300: "#93c5fd",
-          400: "#60a5fa",
-          500: "#1d4ed8", // main
-          600: "#1e40af",
-          700: "#1e3a8a",
-          800: "#1e3066",
-          900: "#172554",
+          50:  "#F8FAFC",
+          100: "#F1F5F9",
+          200: "#E2E8F0",
+          300: "#CBD5E1",
+          400: "#94A3B8",
+          500: "#64748B",
+          600: "#475569",
+          700: "#334155",
+          800: "#1E293B",
+          900: "#0F172A",
         },
-        // Accent — vibrant orange (energy/highlights)
+        // Accent — Energetic Orange (highlights, energy badges — blue+orange is a classic sports combo)
         accent: {
-          50:  "#fff7ed",
-          100: "#ffedd5",
-          200: "#fed7aa",
-          300: "#fdba74",
-          400: "#fb923c",
-          500: "#f97316", // main
-          600: "#ea580c",
-          700: "#c2410c",
-          800: "#9a3412",
-          900: "#7c2d12",
+          50:  "#FFF7ED",
+          100: "#FFEDD5",
+          200: "#FED7AA",
+          300: "#FDBA74",
+          400: "#FB923C",
+          500: "#F97316", // main
+          600: "#EA580C",
+          700: "#C2410C",
+          800: "#9A3412",
+          900: "#7C2D12",
         },
         // Neutrals
         neutral: {
-          50:  "#f9fafb",
-          100: "#f3f4f6",
-          200: "#e5e7eb",
-          300: "#d1d5db",
-          400: "#9ca3af",
-          500: "#6b7280",
-          600: "#4b5563",
+          50:  "#F9FAFB",
+          100: "#F3F4F6",
+          200: "#E5E7EB",
+          300: "#D1D5DB",
+          400: "#9CA3AF",
+          500: "#6B7280",
+          600: "#4B5563",
           700: "#374151",
-          800: "#1f2937",
+          800: "#1F2937",
           900: "#111827",
         },
         // Semantic
-        success: "#16a34a",
-        warning: "#f59e0b",
-        error:   "#dc2626",
-        info:    "#0284c7",
+        success: "#22C55E",
+        warning: "#F59E0B",
+        error:   "#EF4444",
+        info:    "#2563EB",
       },
       fontFamily: {
         sans:   ["System"],
@@ -78,7 +78,6 @@ module.exports = {
         "4xl":["36px", { lineHeight: "40px" }],
       },
       spacing: {
-        // 4pt grid base
         px: "1px",
         0:  "0px",
         1:  "4px",

@@ -13,7 +13,8 @@
 | Fase | Tarefas | Branch mergeada |
 |------|---------|-----------------|
 | Fase 1 — Estrutura inicial | 19/19 ✅ | `feat/project-setup` + `feat/design-system` → `dev` |
-| Fase 2 — Fluxo de entrada | 8/8 ✅ | `feat/auth-flow` (pronta para merge) |
+| Fase 2 — Fluxo de entrada | 8/8 ✅ | `feat/auth-flow` → `dev` |
+| Refinamento visual | transversal ✅ | direto em `dev` (sessão 4 — 2026-05-25) |
 
 ---
 
@@ -153,15 +154,16 @@
 | D3 | react-native-screens | Baixa | Pinado em `~4.16.0` (SDK 54); verificar ao fazer upgrade de Expo SDK. |
 | D4 | Line endings CRLF | Baixa | Windows gera CRLF; Prettier exige LF. Solução atual: `npm run lint:fix` ao final de cada sessão. Solução definitiva: adicionar `.editorconfig` com `end_of_line = lf`. |
 | D5 | HomeScreen placeholder | Média | `src/screens/HomeScreen.tsx` é um stub — substituir na Fase 4 (tarefa 4.2). |
-| D6 | AppNavigator incompleto | Média | Atualmente tem apenas a aba Home. Expandir para 4 abas na Fase 4 (tarefa 4.1). |
+| D6 | AppNavigator incompleto | Média | Tem apenas a aba Home com dark styling. Expandir para 4 abas com ícones vetoriais na Fase 4 (tarefa 4.1). |
+| D7 | expo-asset não instalado | Baixa | `@expo/vector-icons` depende de `expo-asset` em runtime, mas no Jest é mockado via `moduleNameMapper`. Se adicionar novos pacotes Expo que também dependam de `expo-asset`, instalar: `npx expo install expo-asset`. |
 
 ---
 
 ## Bloqueadores e observações
 
-- Branch `feat/auth-flow` pronta para merge em `dev` (merge commit no-ff recomendado).
 - Próxima sessão: branch `feat/home-matches` implementando Fase 4 completa.
-- Ordem sugerida para Fase 4: AppNavigator → HomeScreen → MatchCard → SearchScreen → FiltersScreen → useMatchFilters → testes.
+- Ordem sugerida para Fase 4: AppNavigator (4 abas com `MaterialCommunityIcons`) → HomeScreen → MatchCard → SearchScreen → FiltersScreen → useMatchFilters → testes.
+- `@expo/vector-icons` já instalado — usar `MaterialCommunityIcons` para todos os ícones de tab bar e cards de partida.
 - Nenhuma integração real com backend prevista nesta fase.
 
 ---
@@ -169,6 +171,6 @@
 ## Progresso geral
 
 **Total de tarefas:** 70
-**Concluídas:** 27
+**Concluídas:** 27 (fases numeradas) + refinamento visual transversal
 **Em andamento:** 0
 **A fazer:** 43

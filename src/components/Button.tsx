@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { ActivityIndicator, Pressable, Text } from "react-native";
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "secondary" | "ghost" | "outline";
 type Size = "sm" | "md" | "lg";
 
 interface ButtonProps {
@@ -14,18 +14,20 @@ interface ButtonProps {
   fullWidth?: boolean;
 }
 
-const containerBase = "flex-row items-center justify-center rounded-lg";
+const containerBase = "flex-row items-center justify-center rounded-xl";
 
 const containerVariant: Record<Variant, string> = {
   primary: "bg-primary-500 active:bg-primary-600",
-  secondary: "bg-secondary-500 active:bg-secondary-600",
+  secondary: "bg-secondary-800 active:bg-secondary-700",
   ghost: "bg-transparent border border-neutral-300 active:bg-neutral-100",
+  outline: "bg-transparent border border-white active:bg-secondary-800",
 };
 
 const containerDisabled: Record<Variant, string> = {
-  primary: "bg-primary-200",
-  secondary: "bg-secondary-200",
+  primary: "bg-primary-300",
+  secondary: "bg-secondary-400",
   ghost: "border-neutral-200",
+  outline: "border-secondary-600",
 };
 
 const containerSize: Record<Size, string> = {
@@ -37,13 +39,15 @@ const containerSize: Record<Size, string> = {
 const textVariant: Record<Variant, string> = {
   primary: "text-white font-semibold",
   secondary: "text-white font-semibold",
-  ghost: "text-neutral-700 font-semibold",
+  ghost: "text-secondary-700 font-semibold",
+  outline: "text-white font-semibold",
 };
 
 const textDisabled: Record<Variant, string> = {
   primary: "text-white",
   secondary: "text-white",
   ghost: "text-neutral-400",
+  outline: "text-secondary-500",
 };
 
 const textSize: Record<Size, string> = {
@@ -55,7 +59,8 @@ const textSize: Record<Size, string> = {
 const spinnerColor: Record<Variant, string> = {
   primary: "#ffffff",
   secondary: "#ffffff",
-  ghost: "#374151",
+  ghost: "#334155",
+  outline: "#ffffff",
 };
 
 function Button({
