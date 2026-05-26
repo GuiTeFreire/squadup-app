@@ -7,6 +7,7 @@ import CreateMatchScreen from "../screens/CreateMatchScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
 import FiltersScreen from "../screens/FiltersScreen";
 import HomeScreen from "../screens/HomeScreen";
+import MatchChatScreen from "../screens/MatchChatScreen";
 import MatchDetailScreen from "../screens/MatchDetailScreen";
 import MyProfileScreen from "../screens/MyProfileScreen";
 import PublicProfileScreen from "../screens/PublicProfileScreen";
@@ -90,6 +91,11 @@ export default function AppNavigator() {
       <RootStack.Screen
         name="MatchDetail"
         component={MatchDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="MatchChat"
+        component={MatchChatScreen}
         options={{ headerShown: false }}
       />
       <RootStack.Screen

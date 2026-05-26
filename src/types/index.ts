@@ -71,3 +71,16 @@ export interface Report {
   description: string;
   createdAt: string;
 }
+
+export type MessageType = "message" | "system";
+
+export interface Message {
+  id: string;
+  matchId: string;
+  senderId: string;
+  senderName: string;
+  senderPhotoUrl?: string;
+  text: string;
+  createdAt: string;
+  type: MessageType;
+}

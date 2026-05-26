@@ -20,6 +20,7 @@
 | Fase 3 — Perfil do usuário | 6/6 ✅ | `feat/user-profile` → `dev` (sessão 7 — 2026-05-26) |
 | Fase 6 — Criação de partida | 5/5 ✅ | `feat/create-match` (sessão 8 — 2026-05-26) |
 | Fase 7 — Participação em partida | 5/5 ✅ | `feat/match-participation` (sessão 9 — 2026-05-26) |
+| Fase 8 — Chat da partida | 6/6 ✅ | `feat/match-chat` (sessão 10 — 2026-05-26) |
 
 ---
 
@@ -88,16 +89,16 @@
 
 ---
 
-## FASE 8 — Chat da partida
+## FASE 8 — Chat da partida ✅ Concluída — sessão 10 (2026-05-26)
 
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
-| 8.1 | Criar tela `MatchChatScreen` | ⚪ | FlatList de mensagens simuladas, invertida |
-| 8.2 | Criar componente `MessageBubble` | ⚪ | Diferencia mensagem própria vs. outros participantes |
-| 8.3 | Criar componente `ChatInput` | ⚪ | TextInput + botão enviar |
-| 8.4 | Simular envio de mensagem no estado local | ⚪ | Mensagem aparece na lista sem backend |
-| 8.5 | Adicionar mensagens de sistema (ex: "Partida amanhã!") | ⚪ | Visual diferenciado das mensagens normais |
-| 8.6 | Escrever testes para `MessageBubble` | ⚪ | Renderização por tipo de mensagem |
+| 8.1 | Criar tela `MatchChatScreen` | 🟢 | FlatList invertida + KeyboardAvoidingView + header com título e contagem de participantes |
+| 8.2 | Criar componente `MessageBubble` | 🟢 | 3 variantes: própria (azul, direita), outro (branca, esquerda + avatar), sistema (pill cinza, centrado) |
+| 8.3 | Criar componente `ChatInput` | 🟢 | TextInput multiline + botão send (desabilitado quando vazio) |
+| 8.4 | Simular envio de mensagem no estado local | 🟢 | `MessagesContext` com `sendMessage` — prepend no array para FlatList invertida |
+| 8.5 | Adicionar mensagens de sistema (ex: "Partida amanhã!") | 🟢 | Mocks para match-1 e match-3; tipo `"system"` com visual diferenciado |
+| 8.6 | Escrever testes para `MessageBubble` | 🟢 | 9 testes: mensagem de outro, própria, sistema |
 
 ---
 
@@ -167,10 +168,10 @@
 
 ## Bloqueadores e observações
 
-- Fase 7 concluída. Próxima sessão: branch `feat/match-chat` (Fase 8).
-- Ponto exato de retomada: criar `src/screens/MatchChatScreen.tsx` (tarefa 8.1) — acessível a partir de `MatchDetailScreen` via botão "Chat" a ser adicionado.
-- `MatchesContext` agora expõe `matches`, `addMatch` e `updateParticipation`.
-- `useMatchParticipation` (`src/hooks/useMatchParticipation.ts`) encapsula toda a lógica de participação; status "cancelled" é normalizado para `null` no retorno.
+- Fase 8 concluída. Próxima sessão: branch `feat/post-match-rating` (Fase 9).
+- Ponto exato de retomada: criar `src/screens/PostMatchRatingScreen.tsx` (tarefa 9.1) — tela lista participantes da partida para avaliar.
+- `MessagesContext` expõe `getMessages(matchId)` e `sendMessage(matchId, text)`; mocks inicializados para match-1 e match-3.
+- Botão "Chat da partida" aparece em `MatchDetailScreen` apenas quando `userStatus === "confirmed"`.
 
 ---
 

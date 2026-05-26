@@ -392,3 +392,51 @@ Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
 - Fase 7 **100% concluída** (5/5 tarefas)
 - Próxima branch: `feat/match-chat` (Fase 8)
 - Ponto exato de retomada: criar `src/screens/MatchChatScreen.tsx` (tarefa 8.1) e adicionar botão "Chat" em `MatchDetailScreen`
+
+---
+
+## Sessão 10 — 2026-05-26
+
+### Fase 8 — Chat da partida (tarefas 8.1 a 8.6 concluídas)
+
+| # | Tarefa | Observação |
+|---|--------|------------|
+| 8.1 | Criar tela `MatchChatScreen` | `FlatList` invertida + `KeyboardAvoidingView`; header com título da partida e contagem de confirmados |
+| 8.2 | Criar componente `MessageBubble` | 3 variantes: própria (azul, alinhada à direita), outro usuário (branca, esquerda + avatar + nome), sistema (pill cinza centralizada) |
+| 8.3 | Criar componente `ChatInput` | `TextInput` multiline + botão send com `MaterialCommunityIcons`; botão desabilitado com texto vazio |
+| 8.4 | Simular envio de mensagem no estado local | `MessagesContext` com `sendMessage` (prepend no array); `getMessages(matchId)` para leitura |
+| 8.5 | Adicionar mensagens de sistema | Mocks com `type: "system"` para match-1 (7 msgs) e match-3 (8 msgs); visual diferenciado no `MessageBubble` |
+| 8.6 | Escrever testes para `MessageBubble` | 9 testes em 3 grupos: mensagem de outro usuário (3), própria (3), sistema (3) |
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/types/index.ts` | `MessageType` + `Message` adicionados |
+| `src/mocks/messages.ts` | 15 mensagens mockadas para match-1 e match-3 (newest-first) |
+| `src/contexts/MessagesContext.tsx` | `MessagesProvider` + `useMessagesContext` + `sendMessage` |
+| `src/components/MessageBubble.tsx` | Componente memo com 3 variantes visuais |
+| `src/components/ChatInput.tsx` | Componente memo com TextInput + botão send |
+| `src/screens/MatchChatScreen.tsx` | Tela de chat com FlatList invertida |
+| `src/components/__tests__/MessageBubble.test.tsx` | 9 testes |
+
+### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/navigation/types.ts` | `MatchChat: { matchId: string }` adicionado ao `AppRootStackParamList` |
+| `src/navigation/AppNavigator.tsx` | `MatchChatScreen` registrado no `RootStack` |
+| `src/screens/MatchDetailScreen.tsx` | Botão "Chat da partida" adicionado no estado `confirmed` |
+| `App.tsx` | `MessagesProvider` adicionado na árvore de contextos |
+
+### Resultado dos testes
+
+- **144 testes, 16 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅
+
+### Estado ao final da sessão 10
+
+- Branch `feat/match-chat` — pronta para commit e merge em `dev`
+- Fase 8 **100% concluída** (6/6 tarefas)
+- Próxima branch: `feat/post-match-rating` (Fase 9)
+- Ponto exato de retomada: criar `src/screens/PostMatchRatingScreen.tsx` (tarefa 9.1) — lista participantes de uma partida passada para avaliação
