@@ -7,7 +7,7 @@ import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import MatchCard from "../components/MatchCard";
 import EmptyState from "../components/EmptyState";
 import { useMatchFiltersContext } from "../contexts/MatchFiltersContext";
-import { MOCK_MATCHES } from "../mocks/matches";
+import { useMatchesContext } from "../contexts/MatchesContext";
 import type { AppRootStackParamList } from "../navigation/types";
 import { useMatchFilters } from "../hooks/useMatchFilters";
 
@@ -17,7 +17,8 @@ export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
   const [searchText, setSearchText] = useState("");
   const { activeFilterCount } = useMatchFiltersContext();
-  const filteredMatches = useMatchFilters(MOCK_MATCHES, searchText);
+  const { matches } = useMatchesContext();
+  const filteredMatches = useMatchFilters(matches, searchText);
 
   return (
     <View className="flex-1 bg-neutral-50">

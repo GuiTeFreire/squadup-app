@@ -307,3 +307,48 @@ Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
 - Fase 3 **100% concluída** (6/6 tarefas)
 - Próxima branch sugerida: `feat/create-match` (Fase 6)
 - Ponto exato de retomada: `src/screens/CreateMatchScreen.tsx` — substituir placeholder (tarefa 6.1)
+
+---
+
+## Sessão 8 — 2026-05-26
+
+### Fase 6 — Criação de partida (tarefas 6.1 a 6.5 concluídas)
+
+| # | Tarefa | Observação |
+|---|--------|------------|
+| 6.1 | Criar tela `CreateMatchScreen` | Formulário completo: chips de esporte, título, local, data (DD/MM/AAAA), horário (HH:MM), vagas, nível (radio), descrição, toggles iniciantes/aprovação |
+| 6.2 | Implementar validação do formulário | 6 campos validados com mensagens inline; regex para data e hora; `Number.parseInt`/`Number.isNaN` |
+| 6.3 | Implementar feedback de sucesso | `Alert.alert` com título, esporte, data e hora; ação "Ver partidas" navega para aba `Home` |
+| 6.4 | Adicionar partida criada ao estado mock local | `MatchesContext` criado com `matches` + `addMatch`; HomeScreen, SearchScreen e MatchDetailScreen migrados do import direto para o contexto |
+| 6.5 | Escrever testes para o formulário de criação | 24 testes em 4 grupos: renderização (7), validação (8), submissão válida (4), interações (5) |
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/contexts/MatchesContext.tsx` | Contexto de partidas: `MatchesProvider` + `useMatchesContext` + `addMatch` |
+| `src/screens/CreateMatchScreen.tsx` | Substituiu placeholder — formulário completo com `BottomTabNavigationProp` |
+| `src/screens/__tests__/CreateMatchScreen.test.tsx` | 24 testes (contexto mockado via `jest.mock`) |
+
+### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `App.tsx` | `MatchesProvider` adicionado entre `AuthProvider` e `MatchFiltersProvider` |
+| `src/screens/HomeScreen.tsx` | `MOCK_MATCHES` → `useMatchesContext().matches` |
+| `src/screens/SearchScreen.tsx` | `MOCK_MATCHES` → `useMatchesContext().matches`; correção S7735 (condição negada) |
+| `src/screens/MatchDetailScreen.tsx` | `MOCK_MATCHES` → `useMatchesContext().matches` (novas partidas ficam acessíveis via deep link) |
+| `src/screens/__tests__/MatchDetailScreen.test.tsx` | Renders envolvidos com `<MatchesProvider>` (provider real, usa MOCK_MATCHES) |
+
+### Resultado dos testes
+
+- **124 testes, 14 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅
+- `npx tsc --noEmit` zero erros ✅
+
+### Estado ao final da sessão 8
+
+- Branch `feat/create-match` — commit realizado, merge pendente em `dev`
+- Fase 6 **100% concluída** (5/5 tarefas)
+- Próxima branch: `feat/match-participation` (Fase 7)
+- Ponto exato de retomada: `src/screens/MatchDetailScreen.tsx` — `handleJoin` e `handleCancel` hoje só alteram `useState` local; Fase 7 eleva esse estado para `MatchesContext` via hook `useMatchParticipation`

@@ -18,6 +18,7 @@
 | Fase 4 — Listagem e busca | 8/8 ✅ | `feat/home-matches` → `dev` (sessão 5 — 2026-05-25) |
 | Fase 5 — Detalhes da partida | 6/6 ✅ | `feat/match-detail` → `dev` (sessão 6 — 2026-05-26) |
 | Fase 3 — Perfil do usuário | 6/6 ✅ | `feat/user-profile` → `dev` (sessão 7 — 2026-05-26) |
+| Fase 6 — Criação de partida | 5/5 ✅ | `feat/create-match` (sessão 8 — 2026-05-26) |
 
 ---
 
@@ -62,15 +63,15 @@
 
 ---
 
-## FASE 6 — Criação de partida
+## FASE 6 — Criação de partida ✅ Concluída — sessão 8 (2026-05-26)
 
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
-| 6.1 | Criar tela `CreateMatchScreen` (Criar partida) | ⚪ | Formulário com todos os campos do roadmap §8 |
-| 6.2 | Implementar validação do formulário | ⚪ | Campos obrigatórios, formato de data/hora |
-| 6.3 | Implementar feedback de sucesso | ⚪ | Toast ou tela de confirmação com resumo |
-| 6.4 | Adicionar partida criada ao estado mock local | ⚪ | Via contexto ou estado global |
-| 6.5 | Escrever testes para o formulário de criação | ⚪ | Validação e submissão |
+| 6.1 | Criar tela `CreateMatchScreen` (Criar partida) | 🟢 | Formulário completo: esporte (chips), título, local, data DD/MM/AAAA, hora HH:MM, vagas, nível (radio), descrição, toggles |
+| 6.2 | Implementar validação do formulário | 🟢 | Todos os campos obrigatórios validados com mensagens de erro; regex para data e hora |
+| 6.3 | Implementar feedback de sucesso | 🟢 | Alert.alert com resumo: título, esporte, data e hora; navega para Home ao confirmar |
+| 6.4 | Adicionar partida criada ao estado mock local | 🟢 | `MatchesContext` criado; `addMatch` insere no topo da lista; HomeScreen/SearchScreen/MatchDetailScreen migrados |
+| 6.5 | Escrever testes para o formulário de criação | 🟢 | 24 testes: renderização, validação (6 erros), submissão (4 casos), interações (5 casos) |
 
 ---
 
@@ -156,25 +157,26 @@
 | D2 | react-test-renderer | Baixa | Fixado em `19.1.0`; atualizar junto com `react` quando necessário. |
 | D3 | react-native-screens | Baixa | Pinado em `~4.16.0` (SDK 54); verificar ao fazer upgrade de Expo SDK. |
 | D4 | Line endings CRLF | Baixa | Windows gera CRLF; Prettier exige LF. Solução atual: `npm run lint:fix` ao final de cada sessão. Solução definitiva: adicionar `.editorconfig` com `end_of_line = lf`. |
-| D5 | HomeScreen placeholder | Média | `src/screens/HomeScreen.tsx` é um stub — substituir na Fase 4 (tarefa 4.2). |
-| D6 | AppNavigator incompleto | Média | Tem apenas a aba Home com dark styling. Expandir para 4 abas com ícones vetoriais na Fase 4 (tarefa 4.1). |
+| D5 | HomeScreen placeholder | ~~Média~~ **Resolvida** | Substituído na Fase 4 (sessão 5). |
+| D6 | AppNavigator incompleto | ~~Média~~ **Resolvida** | 4 abas com ícones vetoriais criadas na Fase 4 (sessão 5). |
 | D7 | expo-asset não instalado | Baixa | `@expo/vector-icons` depende de `expo-asset` em runtime, mas no Jest é mockado via `moduleNameMapper`. Se adicionar novos pacotes Expo que também dependam de `expo-asset`, instalar: `npx expo install expo-asset`. |
+| D8 | Participação em partida local apenas | Média | `MatchDetailScreen.handleJoin` / `handleCancel` alteram só `useState` interno — mudança não persiste ao navegar. Fase 7 eleva para `MatchesContext` via `useMatchParticipation`. |
 
 ---
 
 ## Bloqueadores e observações
 
-- Fase 5 concluída. Próxima sessão: branch `feat/user-profile` (Fase 3).
-- Ponto exato de retomada: `src/screens/MyProfileScreen.tsx` — substituir placeholder (tarefa 3.1).
-- `MatchDetailScreen` usa `useRoute<RouteProp<AppRootStackParamList, "MatchDetail">>()` para receber `matchId`.
-- `CURRENT_USER` (Guilherme Freire, user-1) é usado como usuário logado — derivar status inicial via `match.participants.find(p => p.user.id === CURRENT_USER.id)`.
-- `match-12` adicionado aos mocks (basquete avançado · full · Rafael + Beatriz) para cobrir o estado "lotada" em testes.
+- Fase 6 concluída. Próxima sessão: branch `feat/match-participation` (Fase 7).
+- Ponto exato de retomada: `src/screens/MatchDetailScreen.tsx` — funções `handleJoin` (linha ~96) e `handleCancel` (~101) usam `useState` local; Fase 7 migra para `MatchesContext` via hook `useMatchParticipation`.
+- `MatchesContext` (`src/contexts/MatchesContext.tsx`) expõe `matches` + `addMatch` — consultar para Fase 7 (adicionar `updateParticipation`).
+- `CURRENT_USER` (Guilherme Freire, user-1) é o usuário logado; `match.participants.find(p => p.user.id === CURRENT_USER.id)` deriva o status inicial.
+- Testes de `MatchDetailScreen` envolvem renders com `<MatchesProvider>` (provider real, usa `MOCK_MATCHES`).
 
 ---
 
 ## Progresso geral
 
 **Total de tarefas:** 70
-**Concluídas:** 41 (fases numeradas) + refinamento visual transversal
+**Concluídas:** 46 (fases numeradas) + refinamento visual transversal
 **Em andamento:** 0
-**A fazer:** 29
+**A fazer:** 24
