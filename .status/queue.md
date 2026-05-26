@@ -22,6 +22,7 @@
 | Fase 7 — Participação em partida | 5/5 ✅ | `feat/match-participation` (sessão 9 — 2026-05-26) |
 | Fase 8 — Chat da partida | 6/6 ✅ | `feat/match-chat` (sessão 10 — 2026-05-26) |
 | Fase 9 — Avaliação pós-partida | 5/5 ✅ | `feat/post-match-rating` (sessão 11 — 2026-05-26) |
+| Fase 10 — Denúncia e segurança | 5/5 ✅ | `feat/report-user` (sessão 12 — 2026-05-26) |
 
 ---
 
@@ -115,15 +116,15 @@
 
 ---
 
-## FASE 10 — Denúncia e segurança
+## FASE 10 — Denúncia e segurança ✅ Concluída — sessão 12 (2026-05-26)
 
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
-| 10.1 | Criar tela `ReportUserScreen` (Denúncia) | ⚪ | Campos: motivo, descrição, partida relacionada |
-| 10.2 | Implementar select de motivos de denúncia | ⚪ | Lista predefinida: comportamento, violência, spam, etc. |
-| 10.3 | Implementar feedback de denúncia enviada | ⚪ | Confirmação visual com mensagem de suporte |
-| 10.4 | Adicionar botão "Denunciar" no `PublicProfileScreen` | ⚪ | Navega para `ReportUserScreen` |
-| 10.5 | Escrever testes para o formulário de denúncia | ⚪ | Validação e submissão |
+| 10.1 | Criar tela `ReportUserScreen` (Denúncia) | 🟢 | 7 motivos predefinidos + descrição 500 chars + partida relacionada |
+| 10.2 | Implementar select de motivos de denúncia | 🟢 | Chips single-select: comportamento, violência, não compareceu, ódio, spam, fake info, outro |
+| 10.3 | Implementar feedback de denúncia enviada | 🟢 | Alert.alert com nome do usuário + goBack no "OK" + aviso sobre denúncias falsas |
+| 10.4 | Adicionar botão "Denunciar" no `PublicProfileScreen` | 🟢 | Já existia desde sessão 7 — ícone no header + botão ghost no rodapé |
+| 10.5 | Escrever testes para o formulário de denúncia | 🟢 | 14 testes: renderização (6), validação (2), submissão (2), navegação (1), partida (2), userId inválido (1) |
 
 ---
 
@@ -169,17 +170,16 @@
 
 ## Bloqueadores e observações
 
-- Fase 9 concluída. Próxima sessão: branch `feat/report-user` (Fase 10).
-- Ponto exato de retomada: implementar `src/screens/ReportUserScreen.tsx` (tarefa 10.1) — substituir placeholder existente.
-- `RatingsContext` expõe `submitRating(matchId, userId, criteria, comment?)` e `hasRated(matchId, userId)`; estado em memória para a sessão.
-- Botão "Avaliar participantes" aparece em `MatchDetailScreen` quando `match.status === "closed"` e `userStatus === "confirmed"`.
-- match-13 adicionado ao mock: futebol encerrado com guilherme + 4 participantes — serve como fixture de teste para o fluxo de avaliação.
+- Fase 10 concluída. Próxima sessão: branch `feat/moderation` (Fase 11, opcional) ou direto para Fase 12 (revisão final).
+- Ponto exato de retomada: decidir se Fase 11 (moderação admin) será implementada ou pular para Fase 12 (polimento e build de apresentação).
+- `ReportUserScreen` recebe `{ userId: string }` via rota, filtra partidas do usuário via `useMatchesContext`, e envia Alert com goBack no OK.
+- 7 motivos predefinidos como chips single-select; partida relacionada (opcional) com chips das partidas em que o usuário participou.
 
 ---
 
 ## Progresso geral
 
 **Total de tarefas:** 70
-**Concluídas:** 56 (fases numeradas) + refinamento visual transversal
+**Concluídas:** 61 (fases numeradas) + refinamento visual transversal
 **Em andamento:** 0
-**A fazer:** 14
+**A fazer:** 9
