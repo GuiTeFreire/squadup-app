@@ -97,7 +97,7 @@ describe("MatchDetailScreen — renderização geral", () => {
   it("exibe o nome do organizador", () => {
     render(<MatchDetailScreen />);
     // Guilherme aparece como organizador e como participante confirmado
-    expect(screen.getAllByText("Guilherme Mendes").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Guilherme Freire").length).toBeGreaterThan(0);
   });
 
   it("exibe o local da partida", () => {

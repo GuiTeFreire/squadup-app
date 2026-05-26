@@ -151,7 +151,7 @@ Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
 
 #### Bug fix
 
-- `src/components/__tests__/Avatar.test.tsx` — Iniciais esperadas `"CM"` / `"C"` não batiam com os nomes `"Guilherme Mendes"` / `"Guilherme"`. Corrigido para `"GM"` / `"G"`.
+- `src/components/__tests__/Avatar.test.tsx` — Iniciais esperadas `"CM"` / `"C"` não batiam com os nomes `"Guilherme Freire"` / `"Guilherme"`. Corrigido para `"GF"` / `"G"`.
 
 #### Resultado dos testes
 

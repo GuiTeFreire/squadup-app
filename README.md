@@ -83,7 +83,7 @@ App
 
 Não há backend. O `AuthContext` simula:
 
-- **Login** — qualquer e-mail válido + senha ≥ 6 chars autentica como `Guilherme Mendes`
+- **Login** — qualquer e-mail válido + senha ≥ 6 chars autentica como `Guilherme Freire`
 - **Cadastro** → `RegisterScreen` → `ProfileSetupScreen` → cria novo perfil em memória
 - **Logout** — disponível na `HomeScreen`
 

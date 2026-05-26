@@ -166,7 +166,7 @@
 - Fase 5 concluída. Próxima sessão: branch `feat/user-profile` (Fase 3).
 - Ponto exato de retomada: `src/screens/MyProfileScreen.tsx` — substituir placeholder (tarefa 3.1).
 - `MatchDetailScreen` usa `useRoute<RouteProp<AppRootStackParamList, "MatchDetail">>()` para receber `matchId`.
-- `CURRENT_USER` (Guilherme Mendes, user-1) é usado como usuário logado — derivar status inicial via `match.participants.find(p => p.user.id === CURRENT_USER.id)`.
+- `CURRENT_USER` (Guilherme Freire, user-1) é usado como usuário logado — derivar status inicial via `match.participants.find(p => p.user.id === CURRENT_USER.id)`.
 - `match-12` adicionado aos mocks (basquete avançado · full · Rafael + Beatriz) para cobrir o estado "lotada" em testes.
 
 ---
