@@ -8,7 +8,7 @@ const BASE_ORGANIZER = {
   id: "u1",
   name: "Ana Souza",
   age: 28,
-  location: "São Paulo",
+  location: "Rio de Janeiro",
   favoriteSports: ["volleyball" as const],
   level: "intermediate" as const,
   averageRating: 4.5,
@@ -20,7 +20,7 @@ const BASE_MATCH: Match = {
   id: "m1",
   sport: "football",
   title: "Pelada de domingo",
-  location: "Arena Pinheiros",
+  location: "Arena Botafogo",
   date: "2026-05-25",
   time: "09:00",
   maxParticipants: 10,
@@ -43,7 +43,7 @@ describe("MatchCard", () => {
 
   it("renderiza o local da partida", () => {
     render(<MatchCard match={BASE_MATCH} />);
-    expect(screen.getByText("Arena Pinheiros")).toBeTruthy();
+    expect(screen.getByText("Arena Botafogo")).toBeTruthy();
   });
 
   it("renderiza o horário", () => {

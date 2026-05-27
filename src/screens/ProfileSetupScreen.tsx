@@ -142,7 +142,7 @@ export default function ProfileSetupScreen() {
           value={location}
           onChangeText={setLocation}
           error={locationError}
-          placeholder="Ex: Pinheiros, São Paulo"
+          placeholder="Ex: Botafogo, Rio de Janeiro"
           autoCapitalize="words"
         />
       </View>
@@ -159,7 +159,7 @@ export default function ProfileSetupScreen() {
         <Button
           label="Pular por agora"
           onPress={() =>
-            completeProfile({ favoriteSports: [], level: "beginner", location: "São Paulo" })
+            completeProfile({ favoriteSports: [], level: "beginner", location: "Rio de Janeiro" })
           }
           variant="ghost"
           size="md"

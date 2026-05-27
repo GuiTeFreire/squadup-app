@@ -243,7 +243,7 @@ export default function CreateMatchScreen() {
             value={location}
             onChangeText={setLocation}
             error={locationError}
-            placeholder="Ex: Arena Pinheiros — Rua Teodoro Sampaio"
+            placeholder="Ex: Arena Botafogo — Rua Gen. Polidoro"
             autoCapitalize="words"
           />
 

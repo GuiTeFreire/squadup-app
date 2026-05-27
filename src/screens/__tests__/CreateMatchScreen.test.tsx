@@ -30,7 +30,7 @@ function fillValidForm() {
     "Pelada de teste no parque"
   );
   fireEvent.changeText(
-    screen.getByPlaceholderText("Ex: Arena Pinheiros — Rua Teodoro Sampaio"),
+    screen.getByPlaceholderText("Ex: Arena Botafogo — Rua Gen. Polidoro"),
     "Parque Ibirapuera"
   );
   fireEvent.changeText(screen.getByPlaceholderText("DD/MM/AAAA"), "01/06/2026");
@@ -53,7 +53,7 @@ describe("CreateMatchScreen — renderização", () => {
 
   it("exibe o campo de local", () => {
     render(<CreateMatchScreen />);
-    expect(screen.getByPlaceholderText("Ex: Arena Pinheiros — Rua Teodoro Sampaio")).toBeTruthy();
+    expect(screen.getByPlaceholderText("Ex: Arena Botafogo — Rua Gen. Polidoro")).toBeTruthy();
   });
 
   it("exibe os chips de esporte", () => {

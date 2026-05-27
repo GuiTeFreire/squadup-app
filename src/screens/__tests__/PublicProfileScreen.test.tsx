@@ -41,7 +41,7 @@ describe("PublicProfileScreen — usuário com avaliações (Ana Lima, user-2)",
 
   it("exibe a localização do usuário", () => {
     render(<PublicProfileScreen />);
-    expect(screen.getByText("Vila Madalena, São Paulo")).toBeTruthy();
+    expect(screen.getByText("Ipanema, Rio de Janeiro")).toBeTruthy();
   });
 
   it("exibe os esportes favoritos como badges", () => {

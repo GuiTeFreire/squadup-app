@@ -111,7 +111,7 @@ describe("MatchDetailScreen — renderização geral", () => {
 
   it("exibe o local da partida", () => {
     renderWithContext();
-    expect(screen.getByText("Arena Pinheiros — Rua Teodoro Sampaio, 1400")).toBeTruthy();
+    expect(screen.getByText("Arena Botafogo — Rua General Polidoro, 400")).toBeTruthy();
   });
 
   it("exibe o botão Voltar acessível", () => {

@@ -135,7 +135,7 @@ export default function EditProfileScreen() {
             value={location}
             onChangeText={setLocation}
             error={locationError}
-            placeholder="Ex: Pinheiros, São Paulo"
+            placeholder="Ex: Botafogo, Rio de Janeiro"
             autoCapitalize="words"
           />
 
