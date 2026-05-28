@@ -172,7 +172,12 @@ export default function MatchDetailScreen() {
           {/* Organizer */}
           <View className="bg-white rounded-2xl p-4">
             <Text className="text-sm font-semibold text-secondary-900 mb-3">Organizador</Text>
-            <View className="flex-row items-center gap-3">
+            <Pressable
+              onPress={() => navigation.navigate("PublicProfile", { userId: match.organizer.id })}
+              accessibilityRole="button"
+              accessibilityLabel={`Ver perfil de ${match.organizer.name}`}
+              className="flex-row items-center gap-3 active:opacity-70"
+            >
               <Avatar name={match.organizer.name} photoUrl={match.organizer.photoUrl} size="md" />
               <View className="flex-1">
                 <View className="flex-row items-center gap-1">
@@ -188,7 +193,8 @@ export default function MatchDetailScreen() {
                   {match.organizer.matchesPlayed} partidas
                 </Text>
               </View>
-            </View>
+              <MaterialCommunityIcons name="chevron-right" size={18} color="#CBD5E1" />
+            </Pressable>
           </View>
 
           {/* Participants */}
@@ -199,7 +205,10 @@ export default function MatchDetailScreen() {
             <Text className="text-xs text-neutral-400 mb-3">
               {confirmedCount} de {match.maxParticipants}
             </Text>
-            <ParticipantList participants={match.participants} />
+            <ParticipantList
+              participants={match.participants}
+              onPress={(userId) => navigation.navigate("PublicProfile", { userId })}
+            />
           </View>
         </View>
       </ScrollView>
