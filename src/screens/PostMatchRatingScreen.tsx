@@ -6,6 +6,7 @@ import React, { useMemo } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 
 import Avatar from "../components/Avatar";
+import Header from "../components/Header";
 import RatingStars from "../components/RatingStars";
 import { useMatchesContext } from "../contexts/MatchesContext";
 import { useRatingsContext } from "../contexts/RatingsContext";
@@ -55,7 +56,7 @@ function ParticipantRow({
       ) : (
         <Pressable
           onPress={onRate}
-          className="bg-primary-600 rounded-xl px-3 py-2"
+          className="bg-primary-500 rounded-xl px-3 py-2"
           accessibilityLabel={`Avaliar ${user.name}`}
           accessibilityRole="button"
         >
@@ -98,24 +99,10 @@ export default function PostMatchRatingScreen() {
 
   return (
     <View className="flex-1 bg-neutral-50">
-      {/* Header */}
-      <View className="bg-secondary-900 pt-14 pb-4 px-4 flex-row items-center">
-        <Pressable
-          onPress={() => navigation.goBack()}
-          className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Voltar"
-          accessibilityRole="button"
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-        </Pressable>
-        <Text className="flex-1 text-white text-lg font-bold text-center mx-2" numberOfLines={1}>
-          Avaliar participantes
-        </Text>
-        <View className="w-9" />
-      </View>
+      <Header title="Avaliar participantes" onBack={() => navigation.goBack()} />
 
       {/* Info banner */}
-      <View className="bg-primary-600/10 border-b border-primary-200 px-4 py-3">
+      <View className="bg-primary-500/10 border-b border-primary-200 px-4 py-3">
         <Text className="text-sm text-primary-700 text-center font-medium" numberOfLines={1}>
           {match.title}
         </Text>

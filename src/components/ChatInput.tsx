@@ -23,7 +23,7 @@ function ChatInput({ onSend }: ChatInputProps) {
         value={text}
         onChangeText={setText}
         placeholder="Mensagem..."
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor="#9CA3AF"
         multiline
         maxLength={500}
         onSubmitEditing={handleSend}
@@ -37,7 +37,7 @@ function ChatInput({ onSend }: ChatInputProps) {
         accessibilityLabel="Enviar mensagem"
         accessibilityRole="button"
         className={`w-10 h-10 rounded-full items-center justify-center ${
-          canSend ? "bg-primary-600" : "bg-neutral-200"
+          canSend ? "bg-primary-500" : "bg-neutral-200"
         }`}
       >
         <MaterialCommunityIcons name="send" size={18} color={canSend ? "#ffffff" : "#94A3B8"} />

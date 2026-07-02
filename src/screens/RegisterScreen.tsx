@@ -74,7 +74,7 @@ export default function RegisterScreen() {
   return (
     <ScrollView
       className="flex-1 bg-white"
-      contentContainerStyle={{ flexGrow: 1, padding: 24, paddingTop: 100 }}
+      contentContainerStyle={{ flexGrow: 1, padding: 24, paddingTop: 96 }}
       keyboardShouldPersistTaps="handled"
     >
       {/* Brand header */}

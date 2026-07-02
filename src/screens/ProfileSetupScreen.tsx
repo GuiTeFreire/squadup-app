@@ -81,7 +81,7 @@ export default function ProfileSetupScreen() {
       </View>
 
       <View className="mb-6">
-        <Text className="text-base font-semibold text-secondary-800 mb-3">Esportes favoritos</Text>
+        <Text className="text-sm font-semibold text-secondary-900 mb-3">Esportes favoritos</Text>
         <View className="flex-row flex-wrap">
           {SPORTS.map((sport) => {
             const selected = selectedSports.includes(sport);
@@ -108,9 +108,7 @@ export default function ProfileSetupScreen() {
       </View>
 
       <View className="mb-6">
-        <Text className="text-base font-semibold text-secondary-800 mb-3">
-          Nível de experiência
-        </Text>
+        <Text className="text-sm font-semibold text-secondary-900 mb-3">Nível de experiência</Text>
         <View className="flex-row">
           {LEVELS.map((lvl) => {
             const selected = level === lvl;

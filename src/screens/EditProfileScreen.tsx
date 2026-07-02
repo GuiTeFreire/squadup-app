@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useState } from "react";
@@ -6,6 +5,7 @@ import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 
 import Avatar from "../components/Avatar";
 import Button from "../components/Button";
+import Header from "../components/Header";
 import Input from "../components/Input";
 import { CURRENT_USER } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
@@ -80,19 +80,7 @@ export default function EditProfileScreen() {
 
   return (
     <View className="flex-1 bg-neutral-50">
-      {/* Header */}
-      <View className="bg-secondary-900 pt-14 pb-4 px-4 flex-row items-center">
-        <Pressable
-          onPress={() => navigation.goBack()}
-          className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Voltar"
-          accessibilityRole="button"
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-        </Pressable>
-        <Text className="flex-1 text-white text-lg font-bold text-center mx-2">Editar perfil</Text>
-        <View className="w-9" />
-      </View>
+      <Header title="Editar perfil" onBack={() => navigation.goBack()} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

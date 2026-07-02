@@ -8,6 +8,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import Avatar from "../components/Avatar";
 import Badge from "../components/Badge";
 import Button from "../components/Button";
+import Header from "../components/Header";
 import ParticipantList from "../components/ParticipantList";
 import RatingStars from "../components/RatingStars";
 import { useMatchParticipation } from "../hooks/useMatchParticipation";
@@ -91,21 +92,7 @@ export default function MatchDetailScreen() {
 
   return (
     <View className="flex-1 bg-neutral-50">
-      {/* Header */}
-      <View className="bg-secondary-900 pt-14 pb-4 px-4 flex-row items-center">
-        <Pressable
-          onPress={() => navigation.goBack()}
-          className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Voltar"
-          accessibilityRole="button"
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-        </Pressable>
-        <Text className="flex-1 text-white text-lg font-bold text-center mx-2" numberOfLines={1}>
-          Detalhes da partida
-        </Text>
-        <View className="w-9" />
-      </View>
+      <Header title="Detalhes da partida" onBack={() => navigation.goBack()} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

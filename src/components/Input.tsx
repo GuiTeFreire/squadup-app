@@ -6,7 +6,7 @@ interface InputProps extends Omit<TextInputProps, "className"> {
   error?: string;
 }
 
-function Input({ label, error, ...rest }: InputProps) {
+function Input({ label, error, multiline, style, ...rest }: InputProps) {
   const [focused, setFocused] = useState(false);
 
   const borderClass = error
@@ -22,6 +22,9 @@ function Input({ label, error, ...rest }: InputProps) {
       <TextInput
         className={`w-full rounded-lg border bg-white px-4 py-3 text-base text-neutral-900 ${borderClass}`}
         placeholderTextColor="#9ca3af"
+        multiline={multiline}
+        textAlignVertical={multiline ? "top" : undefined}
+        style={multiline ? [{ minHeight: 96 }, style] : style}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         accessibilityLabel={label}

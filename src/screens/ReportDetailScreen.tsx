@@ -1,12 +1,12 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useMemo } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 
 import Avatar from "../components/Avatar";
 import Button from "../components/Button";
+import Header from "../components/Header";
 import { useReportsContext } from "../contexts/ReportsContext";
 import type { AppRootStackParamList } from "../navigation/types";
 import type { ReportStatus } from "../types";
@@ -73,27 +73,14 @@ export default function ReportDetailScreen() {
 
   return (
     <View className="flex-1 bg-neutral-50">
-      <View className="bg-secondary-900 pt-14 pb-4 px-4 flex-row items-center">
-        <Pressable
-          onPress={() => navigation.goBack()}
-          className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Voltar"
-          accessibilityRole="button"
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-        </Pressable>
-        <Text className="flex-1 text-white text-lg font-bold text-center mx-2">
-          Detalhes da denúncia
-        </Text>
-        <View className="w-9" />
-      </View>
+      <Header title="Detalhes da denúncia" onBack={() => navigation.goBack()} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
       >
         <View className="bg-white rounded-2xl p-4 mb-4">
-          <Text className="text-xs font-semibold text-neutral-400 mb-2">USUÁRIO DENUNCIADO</Text>
+          <Text className="text-sm font-semibold text-secondary-900 mb-2">Usuário denunciado</Text>
           <View className="flex-row items-center gap-3">
             <Avatar
               name={report.reportedUser.name}
@@ -107,7 +94,7 @@ export default function ReportDetailScreen() {
         </View>
 
         <View className="bg-white rounded-2xl p-4 mb-4">
-          <Text className="text-xs font-semibold text-neutral-400 mb-2">DENUNCIADO POR</Text>
+          <Text className="text-sm font-semibold text-secondary-900 mb-2">Denunciado por</Text>
           <View className="flex-row items-center gap-3">
             <Avatar
               name={report.reporterUser.name}
@@ -121,33 +108,35 @@ export default function ReportDetailScreen() {
         </View>
 
         <View className="bg-white rounded-2xl p-4 mb-4">
-          <Text className="text-xs font-semibold text-neutral-400 mb-2">MOTIVO</Text>
+          <Text className="text-sm font-semibold text-secondary-900 mb-2">Motivo</Text>
           <Text className="text-sm text-secondary-900">{REASON_LABELS[report.reason]}</Text>
         </View>
 
         {report.description ? (
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="text-xs font-semibold text-neutral-400 mb-2">DESCRIÇÃO</Text>
+            <Text className="text-sm font-semibold text-secondary-900 mb-2">Descrição</Text>
             <Text className="text-sm text-neutral-600 leading-5">{report.description}</Text>
           </View>
         ) : null}
 
         {report.match ? (
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="text-xs font-semibold text-neutral-400 mb-2">PARTIDA RELACIONADA</Text>
+            <Text className="text-sm font-semibold text-secondary-900 mb-2">
+              Partida relacionada
+            </Text>
             <Text className="text-sm text-secondary-900">{report.match.title}</Text>
           </View>
         ) : null}
 
         <View className="bg-white rounded-2xl p-4 mb-4">
-          <Text className="text-xs font-semibold text-neutral-400 mb-2">ENVIADA EM</Text>
+          <Text className="text-sm font-semibold text-secondary-900 mb-2">Enviada em</Text>
           <Text className="text-sm text-secondary-900">
             {formatReportDateTime(report.createdAt)}
           </Text>
         </View>
 
         <View className="flex-row items-center gap-2 mb-4">
-          <Text className="text-xs font-semibold text-neutral-400">STATUS ATUAL</Text>
+          <Text className="text-sm font-semibold text-secondary-900">Status atual</Text>
           <View className={`self-start rounded-full px-3 py-1 ${STATUS_COLORS[report.status]}`}>
             <Text className="text-xs font-medium">{STATUS_LABELS[report.status]}</Text>
           </View>

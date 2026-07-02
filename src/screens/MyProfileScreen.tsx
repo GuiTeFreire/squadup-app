@@ -7,6 +7,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import Avatar from "../components/Avatar";
 import Badge from "../components/Badge";
 import Button from "../components/Button";
+import Header from "../components/Header";
 import ReviewCard from "../components/ReviewCard";
 import RatingStars from "../components/RatingStars";
 import TrustBadges from "../components/TrustBadges";
@@ -39,19 +40,19 @@ export default function MyProfileScreen() {
 
   return (
     <View className="flex-1 bg-neutral-50">
-      {/* Header */}
-      <View className="bg-secondary-900 pt-14 pb-4 px-4 flex-row items-center">
-        <View className="w-9" />
-        <Text className="flex-1 text-white text-lg font-bold text-center">Meu Perfil</Text>
-        <Pressable
-          onPress={() => navigation.navigate("EditProfile")}
-          className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Editar perfil"
-          accessibilityRole="button"
-        >
-          <MaterialCommunityIcons name="pencil-outline" size={22} color="#fff" />
-        </Pressable>
-      </View>
+      <Header
+        title="Meu Perfil"
+        rightElement={
+          <Pressable
+            onPress={() => navigation.navigate("EditProfile")}
+            className="w-9 h-9 items-center justify-center"
+            accessibilityLabel="Editar perfil"
+            accessibilityRole="button"
+          >
+            <MaterialCommunityIcons name="pencil-outline" size={22} color="#fff" />
+          </Pressable>
+        }
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

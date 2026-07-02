@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useMemo } from "react";
@@ -6,6 +5,7 @@ import { FlatList, Pressable, Text, View } from "react-native";
 
 import Avatar from "../components/Avatar";
 import EmptyState from "../components/EmptyState";
+import Header from "../components/Header";
 import { useReportsContext } from "../contexts/ReportsContext";
 import type { AppRootStackParamList } from "../navigation/types";
 import type { Report } from "../types";
@@ -59,20 +59,7 @@ export default function AdminDashboardScreen() {
 
   return (
     <View className="flex-1 bg-neutral-50">
-      <View className="bg-secondary-900 pt-14 pb-4 px-4 flex-row items-center">
-        <Pressable
-          onPress={() => navigation.goBack()}
-          className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Voltar"
-          accessibilityRole="button"
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-        </Pressable>
-        <Text className="flex-1 text-white text-lg font-bold text-center mx-2">
-          Painel administrativo
-        </Text>
-        <View className="w-9" />
-      </View>
+      <Header title="Painel administrativo" onBack={() => navigation.goBack()} />
 
       <Text className="text-sm text-neutral-500 px-4 pt-4 pb-2">
         {pendingCount === 0

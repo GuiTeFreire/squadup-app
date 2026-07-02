@@ -29,7 +29,7 @@ function StarRatingInput({ value, onChange, label, size = "md" }: StarRatingInpu
           >
             <Text
               style={{ fontSize: starFontSize[size] }}
-              className={star <= value ? "text-amber-400" : "text-neutral-300"}
+              className={star <= value ? "text-warning" : "text-neutral-300"}
             >
               ★
             </Text>

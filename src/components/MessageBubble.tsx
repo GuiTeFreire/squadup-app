@@ -24,7 +24,7 @@ function MessageBubble({ message, isOwn }: MessageBubbleProps) {
     return (
       <View className="flex-row justify-end px-4 mb-2">
         <View className="max-w-[75%]">
-          <View className="bg-primary-600 rounded-2xl rounded-tr-sm px-4 py-2.5">
+          <View className="bg-primary-500 rounded-2xl rounded-tr-sm px-4 py-2.5">
             <Text className="text-white text-sm leading-5">{message.text}</Text>
           </View>
           <Text className="text-xs text-neutral-400 mt-1 text-right">{message.createdAt}</Text>

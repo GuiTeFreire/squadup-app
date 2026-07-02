@@ -3,6 +3,7 @@ import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
+import Button from "../components/Button";
 import type { MatchFilters } from "../contexts/MatchFiltersContext";
 import { useMatchFiltersContext } from "../contexts/MatchFiltersContext";
 import type { ExperienceLevel, Sport } from "../types";
@@ -47,11 +48,7 @@ function ChipButton({
 }
 
 function SectionLabel({ children }: { children: string }) {
-  return (
-    <Text className="text-sm font-semibold text-secondary-700 uppercase tracking-wide mb-3">
-      {children}
-    </Text>
-  );
+  return <Text className="text-sm font-semibold text-secondary-900 mb-3">{children}</Text>;
 }
 
 export default function FiltersScreen() {
@@ -168,19 +165,17 @@ export default function FiltersScreen() {
       </ScrollView>
 
       {/* Apply button */}
-      <View className="px-4 pb-8 pt-3 border-t border-neutral-100">
-        <Pressable
-          className="bg-primary-500 rounded-xl py-4 items-center active:opacity-80"
-          onPress={handleApply}
-          accessibilityRole="button"
-          accessibilityLabel="Aplicar filtros"
-        >
-          <Text className="text-white font-bold text-base">
-            {localActiveCount > 0
+      <View className="px-4 pb-8 pt-4 border-t border-neutral-100">
+        <Button
+          label={
+            localActiveCount > 0
               ? `Aplicar ${localActiveCount} filtro${localActiveCount !== 1 ? "s" : ""}`
-              : "Aplicar filtros"}
-          </Text>
-        </Pressable>
+              : "Aplicar filtros"
+          }
+          onPress={handleApply}
+          size="lg"
+          fullWidth
+        />
       </View>
     </View>
   );

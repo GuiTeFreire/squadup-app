@@ -5,6 +5,7 @@ import React, { useRef, useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 
 import EmptyState from "../components/EmptyState";
+import Header from "../components/Header";
 import MatchCard from "../components/MatchCard";
 import { useMatchFiltersContext } from "../contexts/MatchFiltersContext";
 import { useMatchesContext } from "../contexts/MatchesContext";
@@ -23,10 +24,7 @@ export default function SearchScreen() {
 
   return (
     <View className="flex-1 bg-neutral-50">
-      {/* Header */}
-      <View className="bg-secondary-900 pt-14 pb-4 px-4">
-        <Text className="text-white text-2xl font-bold mb-4">Busca</Text>
-
+      <Header variant="large" title="Busca">
         <View className="flex-row gap-2">
           <View className="flex-1 flex-row items-center bg-secondary-800 rounded-xl px-3 h-11 gap-2">
             <MaterialCommunityIcons name="magnify" size={18} color="#94A3B8" />
@@ -66,7 +64,7 @@ export default function SearchScreen() {
             )}
           </Pressable>
         </View>
-      </View>
+      </Header>
 
       {/* Results count */}
       {searchText.length > 0 && (

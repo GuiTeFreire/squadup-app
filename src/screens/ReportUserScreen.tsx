@@ -3,10 +3,12 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 
 import Avatar from "../components/Avatar";
 import Button from "../components/Button";
+import Header from "../components/Header";
+import Input from "../components/Input";
 import { useMatchesContext } from "../contexts/MatchesContext";
 import { useReportsContext } from "../contexts/ReportsContext";
 import { CURRENT_USER, MOCK_USERS } from "../mocks/users";
@@ -83,21 +85,7 @@ export default function ReportUserScreen() {
 
   return (
     <View className="flex-1 bg-neutral-50">
-      {/* Header */}
-      <View className="bg-secondary-900 pt-14 pb-4 px-4 flex-row items-center">
-        <Pressable
-          onPress={() => navigation.goBack()}
-          className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Voltar"
-          accessibilityRole="button"
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-        </Pressable>
-        <Text className="flex-1 text-white text-lg font-bold text-center mx-2">
-          Denunciar usuário
-        </Text>
-        <View className="w-9" />
-      </View>
+      <Header title="Denunciar usuário" onBack={() => navigation.goBack()} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -213,33 +201,22 @@ export default function ReportUserScreen() {
         <View className="bg-white rounded-2xl p-4 mb-4">
           <Text className="text-sm font-semibold text-secondary-900 mb-1">Descrição</Text>
           <Text className="text-xs text-neutral-400 mb-3">Opcional — ajuda na análise do caso</Text>
-          <TextInput
+          <Input
             value={description}
             onChangeText={setDescription}
             placeholder="Descreva o ocorrido com mais detalhes..."
-            placeholderTextColor="#94A3B8"
             multiline
             numberOfLines={4}
-            textAlignVertical="top"
             maxLength={500}
             accessibilityLabel="Descrição da denúncia"
-            style={{
-              fontSize: 14,
-              color: "#0F172A",
-              borderWidth: 1,
-              borderColor: "#E2E8F0",
-              borderRadius: 12,
-              padding: 12,
-              minHeight: 96,
-            }}
           />
           <Text className="text-xs text-neutral-400 mt-1 text-right">{description.length}/500</Text>
         </View>
 
         {/* Notice */}
-        <View className="flex-row items-start gap-2 bg-amber-50 rounded-xl px-4 py-3 mb-2">
-          <MaterialCommunityIcons name="shield-check-outline" size={18} color="#D97706" />
-          <Text className="text-xs text-amber-700 flex-1 leading-4">
+        <View className="flex-row items-start gap-2 bg-warning/10 rounded-xl px-4 py-3 mb-2">
+          <MaterialCommunityIcons name="shield-check-outline" size={18} color="#F59E0B" />
+          <Text className="text-xs text-warning flex-1 leading-4">
             Todas as denúncias são revisadas pela equipe do SquadUp. Denúncias falsas ou maliciosas
             podem resultar em suspensão da conta.
           </Text>

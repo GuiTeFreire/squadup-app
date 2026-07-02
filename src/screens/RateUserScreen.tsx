@@ -3,10 +3,12 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useState } from "react";
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 
 import Avatar from "../components/Avatar";
 import Button from "../components/Button";
+import Header from "../components/Header";
+import Input from "../components/Input";
 import RatingStars from "../components/RatingStars";
 import StarRatingInput from "../components/StarRatingInput";
 import { useMatchesContext } from "../contexts/MatchesContext";
@@ -83,21 +85,7 @@ export default function RateUserScreen() {
 
   return (
     <View className="flex-1 bg-neutral-50">
-      {/* Header */}
-      <View className="bg-secondary-900 pt-14 pb-4 px-4 flex-row items-center">
-        <Pressable
-          onPress={() => navigation.goBack()}
-          className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Voltar"
-          accessibilityRole="button"
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-        </Pressable>
-        <Text className="flex-1 text-white text-lg font-bold text-center mx-2" numberOfLines={1}>
-          Avaliar participante
-        </Text>
-        <View className="w-9" />
-      </View>
+      <Header title="Avaliar participante" onBack={() => navigation.goBack()} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -146,25 +134,14 @@ export default function RateUserScreen() {
           <Text className="text-sm font-semibold text-secondary-900 mb-3">
             Comentário <Text className="text-neutral-400 font-normal">(opcional)</Text>
           </Text>
-          <TextInput
+          <Input
             value={comment}
             onChangeText={setComment}
             placeholder="Descreva sua experiência com este participante..."
-            placeholderTextColor="#94A3B8"
             multiline
             numberOfLines={4}
-            textAlignVertical="top"
             maxLength={280}
             accessibilityLabel="Comentário"
-            style={{
-              fontSize: 14,
-              color: "#0F172A",
-              borderWidth: 1,
-              borderColor: "#E2E8F0",
-              borderRadius: 12,
-              padding: 12,
-              minHeight: 96,
-            }}
           />
           <Text className="text-xs text-neutral-400 mt-1 text-right">{comment.length}/280</Text>
         </View>

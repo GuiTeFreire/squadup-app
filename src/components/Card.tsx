@@ -8,7 +8,7 @@ interface CardProps extends Omit<ViewProps, "className"> {
 }
 
 function Card({ children, onPress, padded = true, ...rest }: CardProps) {
-  const base = `bg-white rounded-xl shadow-sm border border-neutral-100 ${padded ? "p-4" : ""}`;
+  const base = `bg-white rounded-2xl shadow-sm border border-neutral-100 ${padded ? "p-4" : ""}`;
 
   if (onPress) {
     return (

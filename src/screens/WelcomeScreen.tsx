@@ -38,7 +38,7 @@ export default function WelcomeScreen() {
           Conecte-se. Jogue. Repita.
         </Text>
 
-        <Text className="text-sm text-secondary-400 text-center leading-relaxed">
+        <Text className="text-sm text-secondary-400 text-center leading-5">
           Encontre partidas, forme grupos e pratique{"\n"}o esporte que você ama.
         </Text>
 

@@ -42,8 +42,8 @@ function ReviewCard({ rating }: ReviewCardProps) {
         <RatingStars rating={criteria.overall} size="sm" showValue />
       </View>
 
-      <View className="flex-row items-center gap-1.5 self-start bg-amber-50 rounded-full px-2.5 py-1">
-        <Text className="text-xs text-amber-700 font-medium">
+      <View className="flex-row items-center gap-1.5 self-start bg-warning/10 rounded-full px-2.5 py-1">
+        <Text className="text-xs text-warning font-medium">
           Destaque: {criteriaLabel[highlightEntry[0]]} {highlightEntry[1].toFixed(0)}/5
         </Text>
       </View>

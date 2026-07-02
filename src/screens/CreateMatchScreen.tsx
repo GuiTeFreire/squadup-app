@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 
 import Button from "../components/Button";
+import Header from "../components/Header";
 import Input from "../components/Input";
 import { useMatchesContext } from "../contexts/MatchesContext";
 import { CURRENT_USER } from "../mocks/users";
@@ -184,10 +185,7 @@ export default function CreateMatchScreen() {
 
   return (
     <View className="flex-1 bg-neutral-50">
-      {/* Header */}
-      <View className="bg-secondary-900 pt-14 pb-4 px-4">
-        <Text className="text-white text-2xl font-bold">Criar Partida</Text>
-      </View>
+      <Header variant="large" title="Criar Partida" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
