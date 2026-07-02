@@ -95,6 +95,10 @@ Não há backend. O `AuthContext` simula:
 - **Cadastro** → `RegisterScreen` → `ProfileSetupScreen` → cria novo perfil em memória
 - **Logout** — disponível na `HomeScreen`
 
+## Cabeçalho das telas
+
+Todas as telas internas usam o componente compartilhado `src/components/Header.tsx`, que padroniza o cabeçalho escuro (`secondary-900`), o botão de voltar, o respiro de safe-area (`useSafeAreaInsets`) e variantes `compact`/`large` (a segunda usada pelas abas Home/Busca/Criar, que têm título grande e podem receber conteúdo extra como a barra de busca).
+
 ## Moderação (mock)
 
 O `ReportsContext` guarda as denúncias em memória (seed em `src/mocks/reports.ts`). Qualquer denúncia enviada via `ReportUserScreen` entra na lista com status `pending`. O painel administrativo (`AdminDashboardScreen`, acessível pelo botão "Painel administrativo" em `MyProfileScreen` — rota oculta, sem RBAC real) permite arquivar, advertir ou banir a partir de `ReportDetailScreen`.
@@ -115,8 +119,8 @@ O `ReportsContext` guarda as denúncias em memória (seed em `src/mocks/reports.
 | 9 | Avaliação pós-partida | ✅ Concluída |
 | 10 | Denúncia e segurança | ✅ Concluída |
 | 11 | Moderação (opcional) | ✅ Concluída |
-| 12 | Revisão e polimento final | 🟡 **Próxima** |
+| 12 | Revisão e polimento final | 🟡 **Em andamento** (1/8 — consistência visual concluída) |
 
-181 testes passando · lint zerado · tsc com 1 erro pré-existente não relacionado (ver `.status/queue.md`, dívida D9) · 64/70 tarefas concluídas (91%)
+181 testes passando · lint zerado · tsc zerado · 65/70 tarefas concluídas (93%)
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

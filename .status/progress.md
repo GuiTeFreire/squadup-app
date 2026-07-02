@@ -572,3 +572,75 @@ Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
 - Fase 11 **100% concluída** (3/3 tarefas) — roadmap também corrigido: Fase 10 estava marcada como "A fazer" por desatualização, já estava concluída desde a sessão 12
 - Próxima fase: **Fase 12 — Revisão e polimento final** (12.1 a 12.8, ver `.status/queue.md`)
 - Ponto exato de retomada: corrigir a dívida técnica **D9** (`src/screens/RateUserScreen.tsx:78` — `user` possivelmente `undefined` no `tsc`, dentro da mensagem do `Alert.alert` em `handleSubmit`) como primeiro passo da Fase 12, depois seguir para 12.1 (revisão de consistência visual)
+
+---
+
+## Sessão 14 — 2026-07-02
+
+### Dívida técnica D9 corrigida
+
+`src/screens/RateUserScreen.tsx` — adicionado `if (!user) return;` no início de `handleSubmit`. Causa raiz: o narrowing de `if (!match || !user) return` no corpo do componente não se propaga para dentro de closures aninhadas como `handleSubmit` (limitação conhecida do TypeScript com controle de fluxo em funções aninhadas) — é preciso repetir o guard dentro da própria função.
+
+### Resultado dos testes
+
+- **181 testes, 20 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅
+- `npx tsc --noEmit` zero erros ✅ (primeira vez zerado desde que a dívida foi identificada)
+
+### Estado ao final da sessão 14
+
+- Merge branch `fix/rate-user-tsc-d9` → `dev`
+- Nenhuma branch nova criada para a Fase 12 ainda
+- Próxima ação: Fase 12, branch sugerida `feat/final-polish`, começar por 12.1
+
+---
+
+## Sessão 15 — 2026-07-02
+
+### Fase 12 — Revisão e polimento final (tarefa 12.1 concluída, branch `feat/final-polish`)
+
+| # | Tarefa | Observação |
+|---|--------|------------|
+| 12.1 | Revisar consistência visual entre todas as telas | Auditoria (agente Explore, leitura integral de 18 telas + 15 componentes) encontrou 25 inconsistências em 5 categorias: cores fora do design system, espaçamento fora da escala, tipografia inconsistente, border-radius divergente, estrutura duplicada entre telas. Todas as 25 corrigidas nesta sessão. |
+
+### Auditoria — achados e correções
+
+**Cores**
+- `amber-*` (paleta padrão do Tailwind, vazando por engano) substituído pelo token `warning` (`#F59E0B`) em estrelas de avaliação, badges de destaque, status "pendente" e avisos — arquivos: `RatingStars.tsx`, `StarRatingInput.tsx`, `TrustBadges.tsx`, `ReviewCard.tsx`, `reportLabels.ts`, `ReportUserScreen.tsx`.
+- `primary-600` (reservado ao estado `active:`/pressed em `Button.tsx`) estava sendo usado como cor de repouso em `ChatInput.tsx`, `MessageBubble.tsx` e `PostMatchRatingScreen.tsx` — corrigido para `primary-500`.
+- `placeholderTextColor` padronizado para `#9CA3AF` (neutral-400, o mesmo tom já usado em `Input.tsx`) em `ChatInput.tsx`, `RateUserScreen.tsx`, `ReportUserScreen.tsx`.
+
+**Estrutura**
+- `src/components/Header.tsx` reescrito — antes era um componente morto (nenhuma tela importava), agora centraliza o cabeçalho das 13 telas que duplicavam manualmente o bloco `bg-secondary-900 pt-14 ...`. Nova API: `title`, `subtitle?`, `onBack?`, `rightElement?`, `variant?: "compact"|"large"`, `children?`. Usa `useSafeAreaInsets` (`react-native-safe-area-context`) em vez do `pt-14` fixo, corrigindo um risco real de quebra visual em aparelhos com notch/status bar de altura diferente.
+- Telas migradas para `<Header>`: `HomeScreen`, `SearchScreen`, `CreateMatchScreen` (`variant="large"`), `MyProfileScreen`, `PublicProfileScreen`, `AdminDashboardScreen`, `ReportDetailScreen`, `ReportUserScreen`, `MatchDetailScreen`, `EditProfileScreen`, `PostMatchRatingScreen`, `RateUserScreen`, `MatchChatScreen` (`subtitle` para contagem de participantes).
+- `FiltersScreen.tsx` — botão de aplicar filtros agora usa o componente `Button` compartilhado (antes recriava um `Pressable` à mão, perdendo estados padronizados de `active:`).
+
+**Tipografia**
+- Rótulos de seção/card padronizados para `text-sm font-semibold text-secondary-900` (removendo variações de tamanho, cor e `uppercase`) em `FiltersScreen.tsx`, `ProfileSetupScreen.tsx` e `ReportDetailScreen.tsx` (que também tinha os textos em CAIXA ALTA manual, normalizados para sentence case).
+- `WelcomeScreen.tsx`: `leading-relaxed` (valor não numérico, fora do padrão) trocado por `leading-5` (consistente com o restante do texto `text-sm`).
+
+**Componentes**
+- `Input.tsx` ganhou suporte a `multiline` (com `textAlignVertical` e `minHeight` automáticos), eliminando dois blocos de `TextInput` com estilo inline duplicado byte a byte em `RateUserScreen.tsx` e `ReportUserScreen.tsx`.
+- `Card.tsx`: `rounded-xl` → `rounded-2xl` — o componente era o outlier (30+ lugares no app já usavam `rounded-2xl` manualmente para o mesmo tipo de card branco).
+
+**Design tokens**
+- `tailwind.config.js`: escala `spacing` formalizada com as chaves `0.5, 1.5, 2.5, 9, 11` — valores que já eram usados em várias telas via fallback do Tailwind (não documentados no design system customizado).
+
+**Não corrigido (limitação técnica registrada como dívida D10)**
+- NativeWind v4 instalado não suporta `contentContainerClassName`; os `contentContainerStyle={{ padding, gap }}` em pixels em várias telas permanecem como `style` inline em vez de classes Tailwind.
+
+### Testes ajustados
+
+Toda tela que renderiza `<Header>` chama `useSafeAreaInsets()`, que lança erro fora de um `<SafeAreaProvider>`. Adicionado `jest.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }) }))` em: `Header.test.tsx`, `PublicProfileScreen.test.tsx`, `AdminDashboardScreen.test.tsx`, `ReportDetailScreen.test.tsx`, `ReportUserScreen.test.tsx`, `MatchDetailScreen.test.tsx`, `CreateMatchScreen.test.tsx`.
+
+### Resultado dos testes
+
+- **181 testes, 20 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅ (após `npm run lint:fix` para CRLF → LF, dívida D4)
+- `npx tsc --noEmit` zero erros ✅
+
+### Estado ao final da sessão 15
+
+- Branch `feat/final-polish` criada a partir de `dev` — commit pendente (ver checkpoint em `.status/queue.md`)
+- Fase 12: 1/8 concluída (12.1)
+- Próxima ação: tarefa 12.2 — testar o fluxo completo (happy path: Welcome → Login → Home → MatchDetail → Chat → Avaliação) rodando o app via `npm start` (Expo Go ou emulador)

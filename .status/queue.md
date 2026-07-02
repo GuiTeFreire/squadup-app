@@ -35,7 +35,7 @@ Detalhes tarefa-a-tarefa das fases concluídas (Fases 1–11) foram movidos para
 
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
-| 12.1 | Revisar consistência visual entre todas as telas | ⚪ | Cores, espaçamentos, tipografia |
+| 12.1 | Revisar consistência visual entre todas as telas | 🟢 | Cores, espaçamentos, tipografia — 25 achados corrigidos. Detalhes completos em `progress.md`, sessão 15. |
 | 12.2 | Testar fluxo completo (happy path) | ⚪ | Welcome → Login → Home → Partida → Chat → Avaliação |
 | 12.3 | Testar no Expo Go em iOS e Android | ⚪ | Dispositivo físico ou emulador |
 | 12.4 | Verificar acessibilidade básica (`accessibilityLabel`, contraste) | ⚪ | |
@@ -59,12 +59,14 @@ Detalhes tarefa-a-tarefa das fases concluídas (Fases 1–11) foram movidos para
 | D7 | expo-asset não instalado | Baixa | `@expo/vector-icons` depende de `expo-asset` em runtime, mas no Jest é mockado via `moduleNameMapper`. Se adicionar novos pacotes Expo que também dependam de `expo-asset`, instalar: `npx expo install expo-asset`. |
 | D8 | Participação em partida local apenas | Média | `MatchDetailScreen.handleJoin` / `handleCancel` alteram só `useState` interno — mudança não persiste ao navegar. Fase 7 eleva para `MatchesContext` via `useMatchParticipation`. |
 | D9 | `RateUserScreen.tsx:78` — `user` possivelmente `undefined` (tsc) | ~~Baixa~~ **Resolvida** | Causa: narrowing de `if (!match \|\| !user) return` no corpo do componente não se propaga para dentro do closure `handleSubmit` (limitação conhecida do TS com controle de fluxo em funções aninhadas). Corrigido repetindo o guard `if (!user) return;` no início de `handleSubmit`. `npx tsc --noEmit` limpo, lint zerado, 181/181 testes passando (sessão 14). |
+| D10 | NativeWind v4 não suporta `contentContainerClassName` | Baixa | Vários `ScrollView`/`FlatList` usam `contentContainerStyle={{ padding, gap, ... }}` em pixels em vez de classes Tailwind, porque a versão instalada do NativeWind (`^4.2.4`) não expõe essa prop (verificado em `node_modules/nativewind` na sessão 15). Reavaliar ao atualizar o NativeWind — se a prop passar a existir, migrar esses blocos para `className`. |
 
 ---
 
 ## Bloqueadores e observações
 
-- Fase 11 concluída (sessão 13 — 2026-07-02). D9 corrigida (sessão 14 — 2026-07-02). Próxima etapa: 12.1 (consistência visual) em diante.
+- Fase 11 concluída (sessão 13 — 2026-07-02). D9 corrigida (sessão 14 — 2026-07-02). 12.1 concluída (sessão 15 — 2026-07-02), branch `feat/final-polish`. Próxima etapa: 12.2 (testar fluxo completo) em diante.
+- **12.1 (sessão 15):** resumo detalhado (o que mudou em cada categoria — cores, estrutura/Header, tipografia, componentes, tokens) está em `progress.md`, seção "Sessão 15". Ponto que mais importa para continuar: `src/components/Header.tsx` agora é usado por 13 telas e chama `useSafeAreaInsets`; qualquer teste novo que renderize uma tela com `<Header>` precisa mockar `react-native-safe-area-context` (ver `PublicProfileScreen.test.tsx` como referência).
 - `ReportsContext` (`src/contexts/ReportsContext.tsx`) expõe `reports`, `addReport`, `updateReportStatus`; seed em `src/mocks/reports.ts` (`MOCK_REPORTS`).
 - `ReportUserScreen` agora chama `addReport` ao enviar a denúncia (status inicial `"pending"`), além do `Alert` existente.
 - `Report` ganhou o campo `status: ReportStatus` (`"pending" | "archived" | "warned" | "banned"`); `ReportReason` foi realinhado aos motivos já usados na tela (`bad_behavior`, `hate_speech`, `fake_info` etc. — o tipo antigo nunca era usado de fato).
@@ -78,6 +80,6 @@ Detalhes tarefa-a-tarefa das fases concluídas (Fases 1–11) foram movidos para
 ## Progresso geral
 
 **Total de tarefas:** 70
-**Concluídas:** 64 (fases numeradas) + refinamento visual transversal
+**Concluídas:** 65 (fases numeradas + 12.1) + refinamento visual transversal
 **Em andamento:** 0
-**A fazer:** 6 (Fase 12)
+**A fazer:** 5 (Fase 12, restam 12.2–12.8)
