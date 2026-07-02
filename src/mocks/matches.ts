@@ -65,7 +65,7 @@ export const MOCK_MATCHES: Match[] = [
       { user: rafael, status: "confirmed" },
     ],
     status: "full",
-    allowBeginners: false,
+    allowBeginners: true,
     requiresApproval: true,
   },
   {
@@ -212,7 +212,7 @@ export const MOCK_MATCHES: Match[] = [
     id: "match-11",
     sport: "tennis",
     title: "Tênis casual — duplas mistas",
-    location: "Clube Caiçaras — Quadra 4",
+    location: "Clube Fluminense — Quadra 4, Laranjeiras",
     date: "2026-06-01",
     time: "10:00",
     maxParticipants: 4,
