@@ -18,7 +18,7 @@
 | Fase 11 | Moderação (opcional) | 🟢 Concluída (3/3 tarefas — sessão 13) |
 | Fase 12 | Revisão e polimento final | ⚪ A fazer |
 
-**Progresso geral:** 64/70 tarefas concluídas (91%) · 181 testes passando · lint zerado · tsc com 1 erro pré-existente não relacionado (ver dívida técnica D9)
+**Progresso geral:** 64/70 tarefas concluídas (91%) · 181 testes passando · lint zerado · tsc zerado (D9 corrigida — sessão 14)
 
 Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons)
 

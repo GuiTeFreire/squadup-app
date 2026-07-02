@@ -58,13 +58,13 @@ Detalhes tarefa-a-tarefa das fases concluídas (Fases 1–11) foram movidos para
 | D6 | AppNavigator incompleto | ~~Média~~ **Resolvida** | 4 abas com ícones vetoriais criadas na Fase 4 (sessão 5). |
 | D7 | expo-asset não instalado | Baixa | `@expo/vector-icons` depende de `expo-asset` em runtime, mas no Jest é mockado via `moduleNameMapper`. Se adicionar novos pacotes Expo que também dependam de `expo-asset`, instalar: `npx expo install expo-asset`. |
 | D8 | Participação em partida local apenas | Média | `MatchDetailScreen.handleJoin` / `handleCancel` alteram só `useState` interno — mudança não persiste ao navegar. Fase 7 eleva para `MatchesContext` via `useMatchParticipation`. |
-| D9 | `RateUserScreen.tsx:78` — `user` possivelmente `undefined` (tsc) | Baixa | `npx tsc --noEmit` aponta `TS18048` nessa linha; pré-existente (confirmado via stash antes da Fase 11), não bloqueia testes/lint. Corrigir na Fase 12 (revisão final). |
+| D9 | `RateUserScreen.tsx:78` — `user` possivelmente `undefined` (tsc) | ~~Baixa~~ **Resolvida** | Causa: narrowing de `if (!match \|\| !user) return` no corpo do componente não se propaga para dentro do closure `handleSubmit` (limitação conhecida do TS com controle de fluxo em funções aninhadas). Corrigido repetindo o guard `if (!user) return;` no início de `handleSubmit`. `npx tsc --noEmit` limpo, lint zerado, 181/181 testes passando (sessão 14). |
 
 ---
 
 ## Bloqueadores e observações
 
-- Fase 11 concluída (sessão 13 — 2026-07-02). Próxima sessão: Fase 12 (revisão e polimento final para apresentação acadêmica).
+- Fase 11 concluída (sessão 13 — 2026-07-02). D9 corrigida (sessão 14 — 2026-07-02). Próxima etapa: 12.1 (consistência visual) em diante.
 - `ReportsContext` (`src/contexts/ReportsContext.tsx`) expõe `reports`, `addReport`, `updateReportStatus`; seed em `src/mocks/reports.ts` (`MOCK_REPORTS`).
 - `ReportUserScreen` agora chama `addReport` ao enviar a denúncia (status inicial `"pending"`), além do `Alert` existente.
 - `Report` ganhou o campo `status: ReportStatus` (`"pending" | "archived" | "warned" | "banned"`); `ReportReason` foi realinhado aos motivos já usados na tela (`bad_behavior`, `hate_speech`, `fake_info` etc. — o tipo antigo nunca era usado de fato).
