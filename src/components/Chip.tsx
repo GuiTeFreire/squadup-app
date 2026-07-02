@@ -64,7 +64,7 @@ function Chip({
       <View>
         <Text className={`text-sm font-semibold ${textClass}`}>{label}</Text>
         {sublabel ? (
-          <Text className={`text-xs ${selected ? textClass : "text-neutral-400"}`}>{sublabel}</Text>
+          <Text className={`text-xs ${selected ? textClass : "text-neutral-500"}`}>{sublabel}</Text>
         ) : null}
       </View>
     </Pressable>

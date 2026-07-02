@@ -111,7 +111,7 @@ export default function RateUserScreen() {
                   {LEVEL_META[user.level].label}
                 </Text>
                 <RatingStars rating={user.averageRating} size="sm" showValue />
-                <Text className="text-xs text-neutral-400 mt-0.5">
+                <Text className="text-xs text-neutral-500 mt-0.5">
                   {user.matchesPlayed} partidas concluídas
                 </Text>
               </View>
@@ -136,7 +136,7 @@ export default function RateUserScreen() {
           {/* Comment */}
           <SectionCard
             title="Comentário"
-            rightElement={<Text className="text-xs text-neutral-400">opcional</Text>}
+            rightElement={<Text className="text-xs text-neutral-500">opcional</Text>}
           >
             <Input
               value={comment}
@@ -147,7 +147,7 @@ export default function RateUserScreen() {
               maxLength={280}
               accessibilityLabel="Comentário"
             />
-            <Text className="text-xs text-neutral-400 mt-1.5 text-right">{comment.length}/280</Text>
+            <Text className="text-xs text-neutral-500 mt-1.5 text-right">{comment.length}/280</Text>
           </SectionCard>
 
           {/* Error */}

@@ -17,7 +17,7 @@ function Input({ label, error, leftIcon, multiline, style, ...rest }: Readonly<I
   if (error) borderClass = "border-error";
   else if (focused) borderClass = "border-primary-500";
 
-  let iconColor: string = colors.neutral[400];
+  let iconColor: string = colors.neutral[500];
   if (error) iconColor = colors.error;
   else if (focused) iconColor = colors.primary[500];
 
@@ -39,7 +39,7 @@ function Input({ label, error, leftIcon, multiline, style, ...rest }: Readonly<I
         ) : null}
         <TextInput
           className="flex-1 px-4 py-3 text-base text-secondary-900"
-          placeholderTextColor={colors.neutral[400]}
+          placeholderTextColor={colors.neutral[500]}
           multiline={multiline}
           textAlignVertical={multiline ? "top" : undefined}
           style={multiline ? [{ minHeight: 96 }, style] : style}

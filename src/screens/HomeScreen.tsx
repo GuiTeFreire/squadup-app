@@ -91,7 +91,7 @@ export default function HomeScreen() {
             <TextInput
               className="flex-1 text-white text-sm"
               placeholder="Buscar partidas..."
-              placeholderTextColor={colors.secondary[500]}
+              placeholderTextColor={colors.secondary[400]}
               value={searchText}
               onChangeText={setSearchText}
               returnKeyType="search"
@@ -102,7 +102,7 @@ export default function HomeScreen() {
                 <MaterialCommunityIcons
                   name="close-circle"
                   size={16}
-                  color={colors.secondary[500]}
+                  color={colors.secondary[400]}
                 />
               </Pressable>
             )}
@@ -172,7 +172,7 @@ export default function HomeScreen() {
               <Text className="text-lg font-bold text-secondary-900 tracking-tight">
                 Partidas próximas
               </Text>
-              <Text className="text-xs font-medium text-neutral-400">
+              <Text className="text-xs font-medium text-neutral-500">
                 {filteredMatches.length}{" "}
                 {filteredMatches.length === 1 ? "encontrada" : "encontradas"}
               </Text>

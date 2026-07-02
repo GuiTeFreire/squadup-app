@@ -25,7 +25,7 @@ function ChatInput({ onSend }: Readonly<ChatInputProps>) {
         value={text}
         onChangeText={setText}
         placeholder="Mensagem..."
-        placeholderTextColor={colors.neutral[400]}
+        placeholderTextColor={colors.neutral[500]}
         multiline
         maxLength={500}
         onSubmitEditing={handleSend}

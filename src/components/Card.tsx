@@ -9,9 +9,18 @@ interface CardProps extends Omit<ViewProps, "className"> {
   padded?: boolean;
   /** Eleva o card acima do plano da lista (ex.: destaque, modal) */
   raised?: boolean;
+  /** Rótulo para leitores de tela quando o card inteiro é clicável */
+  accessibilityLabel?: string;
 }
 
-function Card({ children, onPress, padded = true, raised = false, ...rest }: Readonly<CardProps>) {
+function Card({
+  children,
+  onPress,
+  padded = true,
+  raised = false,
+  accessibilityLabel,
+  ...rest
+}: Readonly<CardProps>) {
   const base = `bg-white rounded-2xl border border-neutral-100 ${padded ? "p-4" : ""}`;
   const shadow = raised ? shadows.raised : shadows.card;
 
@@ -25,6 +34,7 @@ function Card({ children, onPress, padded = true, raised = false, ...rest }: Rea
         ]}
         onPress={onPress}
         accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
         {...rest}
       >
         {children}

@@ -143,7 +143,7 @@ export default function PublicProfileScreen() {
             </View>
           ) : (
             <SectionCard>
-              <Text className="text-sm text-neutral-400 text-center">Nenhuma avaliação ainda.</Text>
+              <Text className="text-sm text-neutral-500 text-center">Nenhuma avaliação ainda.</Text>
             </SectionCard>
           )}
 

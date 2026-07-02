@@ -73,7 +73,7 @@ export default function MatchChatScreen() {
             style={{ transform: [{ scaleY: -1 }] }}
           >
             <Text className="text-neutral-500 text-sm font-medium">Nenhuma mensagem ainda.</Text>
-            <Text className="text-neutral-400 text-sm mt-0.5">Seja o primeiro a escrever!</Text>
+            <Text className="text-neutral-500 text-sm mt-0.5">Seja o primeiro a escrever!</Text>
           </View>
         }
       />

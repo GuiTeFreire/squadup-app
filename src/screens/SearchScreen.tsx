@@ -33,7 +33,7 @@ export default function SearchScreen() {
               ref={inputRef}
               className="flex-1 text-white text-sm"
               placeholder="Esporte, local, organizador..."
-              placeholderTextColor={colors.secondary[500]}
+              placeholderTextColor={colors.secondary[400]}
               value={searchText}
               onChangeText={setSearchText}
               returnKeyType="search"
@@ -45,7 +45,7 @@ export default function SearchScreen() {
                 <MaterialCommunityIcons
                   name="close-circle"
                   size={16}
-                  color={colors.secondary[500]}
+                  color={colors.secondary[400]}
                 />
               </Pressable>
             )}
@@ -74,7 +74,7 @@ export default function SearchScreen() {
       {/* Results count */}
       {searchText.length > 0 && (
         <View className="px-5 pt-4">
-          <Text className="text-xs font-semibold text-neutral-400 uppercase tracking-wide">
+          <Text className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
             {filteredMatches.length} resultado{filteredMatches.length === 1 ? "" : "s"}
           </Text>
         </View>

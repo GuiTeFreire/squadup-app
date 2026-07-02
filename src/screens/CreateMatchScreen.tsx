@@ -55,7 +55,7 @@ function ToggleRow({
         >
           {label}
         </Text>
-        <Text className="text-xs text-neutral-400 mt-0.5">{description}</Text>
+        <Text className="text-xs text-neutral-500 mt-0.5">{description}</Text>
       </View>
       <View
         className={`w-6 h-6 rounded-lg border-2 items-center justify-center ${

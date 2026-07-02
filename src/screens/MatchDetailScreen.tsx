@@ -68,7 +68,7 @@ function InfoRow({
         <MaterialCommunityIcons name={icon} size={20} color={colors.primary[500]} />
       </View>
       <View className="flex-1">
-        <Text className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-0.5">
+        <Text className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-0.5">
           {label}
         </Text>
         <Text className="text-sm font-medium text-secondary-900">{value}</Text>
@@ -239,7 +239,7 @@ export default function MatchDetailScreen() {
                   )}
                 </View>
                 <RatingStars rating={match.organizer.averageRating} size="sm" showValue />
-                <Text className="text-xs text-neutral-400 mt-0.5">
+                <Text className="text-xs text-neutral-500 mt-0.5">
                   {match.organizer.matchesPlayed} partidas
                 </Text>
               </View>

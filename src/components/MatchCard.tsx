@@ -56,8 +56,10 @@ function MatchCard({ match, onPress }: Readonly<MatchCardProps>) {
   const isCancelled = match.status === "cancelled";
   const sportMeta = SPORT_META[match.sport];
 
+  const accessibilityLabel = `${match.title}, ${sportMeta.label}, ${formatMatchDate(match.date)} às ${match.time}, ${match.location}`;
+
   return (
-    <Card onPress={onPress} padded={false}>
+    <Card onPress={onPress} padded={false} accessibilityLabel={accessibilityLabel}>
       <View className={`p-4 ${isCancelled ? "opacity-60" : ""}`}>
         {/* Header: sport tile + eyebrow + title + status */}
         <View className="flex-row gap-3">

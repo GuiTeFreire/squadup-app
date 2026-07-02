@@ -162,7 +162,7 @@ export default function ReportUserScreen() {
               maxLength={500}
               accessibilityLabel="Descrição da denúncia"
             />
-            <Text className="text-xs text-neutral-400 mt-1.5 text-right">
+            <Text className="text-xs text-neutral-500 mt-1.5 text-right">
               {description.length}/500
             </Text>
           </SectionCard>

@@ -72,7 +72,7 @@ export default function AdminDashboardScreen() {
         <MaterialCommunityIcons
           name="shield-alert-outline"
           size={16}
-          color={pendingCount > 0 ? colors.warning : colors.neutral[400]}
+          color={pendingCount > 0 ? colors.warning : colors.neutral[500]}
         />
         <Text className="text-sm font-medium text-neutral-500">{pendingText}</Text>
       </View>

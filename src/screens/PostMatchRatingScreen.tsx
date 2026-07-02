@@ -44,7 +44,7 @@ function ParticipantRow({
             <MaterialCommunityIcons name="check-decagram" size={14} color={colors.primary[500]} />
           )}
         </View>
-        <Text className="text-xs text-neutral-400">{LEVEL_META[user.level].label}</Text>
+        <Text className="text-xs text-neutral-500">{LEVEL_META[user.level].label}</Text>
         <RatingStars rating={user.averageRating} size="sm" showValue />
       </View>
       {alreadyRated ? (

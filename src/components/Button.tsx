@@ -53,7 +53,7 @@ const textVariant: Record<Variant, string> = {
 const textDisabled: Record<Variant, string> = {
   primary: "text-white",
   secondary: "text-white",
-  ghost: "text-neutral-400",
+  ghost: "text-neutral-500",
   outline: "text-secondary-500",
   danger: "text-white",
 };
