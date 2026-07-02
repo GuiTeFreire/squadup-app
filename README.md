@@ -48,14 +48,14 @@ npm install
 
 ```
 src/
-├── components/   # Componentes reutilizáveis (Button, Input, Card, Avatar, MatchCard, ParticipantList…)
-├── contexts/     # Context API (AuthContext, MatchesContext, MatchFiltersContext)
-├── hooks/        # Hooks customizados (useMatchFilters)
-├── mocks/        # Dados mockados (users, matches, ratings)
+├── components/   # Componentes reutilizáveis (Button, Input, Card, Avatar, MatchCard, ParticipantList, MessageBubble, StarRatingInput…)
+├── contexts/     # Context API (AuthContext, MatchesContext, MatchFiltersContext, MessagesContext, RatingsContext, ReportsContext)
+├── hooks/        # Hooks customizados (useMatchFilters, useMatchParticipation)
+├── mocks/        # Dados mockados (users, matches, messages, ratings, reports)
 ├── navigation/   # Navigators (AuthNavigator, AppNavigator, RootNavigator)
 ├── screens/      # Telas da aplicação
 ├── types/        # Tipos TypeScript globais
-└── utils/        # Funções utilitárias (date)
+└── utils/        # Funções utilitárias (date, reportLabels)
 __mocks__/        # Mocks Jest (expo-vector-icons)
 ```
 
@@ -74,12 +74,17 @@ App
         │   ├── HomeScreen        ← lista de partidas + busca inline
         │   ├── SearchScreen      ← busca dedicada com filtros
         │   ├── CreateMatchScreen ← formulário completo de criação
-        │   └── MyProfileScreen   ← perfil do usuário logado
+        │   └── MyProfileScreen   ← perfil do usuário logado (+ acesso ao painel admin)
         ├── FiltersScreen (modal) ← esporte · nível · vagas disponíveis
         ├── MatchDetailScreen     ← detalhes + 5 estados de participação
+        ├── MatchChatScreen       ← chat da partida
         ├── PublicProfileScreen   ← perfil público de outro usuário
         ├── EditProfileScreen     ← edição de perfil
-        └── ReportUserScreen      ← placeholder (Fase 10)
+        ├── ReportUserScreen      ← denúncia de usuário
+        ├── PostMatchRatingScreen ← lista de participantes para avaliar
+        ├── RateUserScreen        ← formulário de avaliação (5 critérios)
+        ├── AdminDashboardScreen  ← painel de moderação (lista de denúncias)
+        └── ReportDetailScreen    ← detalhes da denúncia + ações administrativas
 ```
 
 ## Autenticação (mock)
@@ -89,6 +94,10 @@ Não há backend. O `AuthContext` simula:
 - **Login** — qualquer e-mail válido + senha ≥ 6 chars autentica como `Guilherme Freire`
 - **Cadastro** → `RegisterScreen` → `ProfileSetupScreen` → cria novo perfil em memória
 - **Logout** — disponível na `HomeScreen`
+
+## Moderação (mock)
+
+O `ReportsContext` guarda as denúncias em memória (seed em `src/mocks/reports.ts`). Qualquer denúncia enviada via `ReportUserScreen` entra na lista com status `pending`. O painel administrativo (`AdminDashboardScreen`, acessível pelo botão "Painel administrativo" em `MyProfileScreen` — rota oculta, sem RBAC real) permite arquivar, advertir ou banir a partir de `ReportDetailScreen`.
 
 ## Status do projeto
 
@@ -101,9 +110,13 @@ Não há backend. O `AuthContext` simula:
 | 5 | Detalhes da partida | ✅ Concluída |
 | 3 | Perfil do usuário | ✅ Concluída |
 | 6 | Criação de partida | ✅ Concluída |
-| 7 | Participação em partida | 🟡 **Próxima** |
-| 8–12 | Demais fases | ⚪ A fazer |
+| 7 | Participação em partida | ✅ Concluída |
+| 8 | Chat da partida | ✅ Concluída |
+| 9 | Avaliação pós-partida | ✅ Concluída |
+| 10 | Denúncia e segurança | ✅ Concluída |
+| 11 | Moderação (opcional) | ✅ Concluída |
+| 12 | Revisão e polimento final | 🟡 **Próxima** |
 
-124 testes passando · lint zerado · tsc sem erros · 46/70 tarefas concluídas (66%)
+181 testes passando · lint zerado · tsc com 1 erro pré-existente não relacionado (ver `.status/queue.md`, dívida D9) · 64/70 tarefas concluídas (91%)
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

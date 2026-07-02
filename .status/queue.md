@@ -23,118 +23,11 @@
 | Fase 8 — Chat da partida | 6/6 ✅ | `feat/match-chat` (sessão 10 — 2026-05-26) |
 | Fase 9 — Avaliação pós-partida | 5/5 ✅ | `feat/post-match-rating` (sessão 11 — 2026-05-26) |
 | Fase 10 — Denúncia e segurança | 5/5 ✅ | `feat/report-user` (sessão 12 — 2026-05-26) |
+| Fase 11 — Moderação | 3/3 ✅ | `feat/moderation` (sessão 13 — 2026-07-02) |
 
 ---
 
-## FASE 3 — Perfil do usuário ✅ Concluída — sessão 7 (2026-05-26)
-
-| # | Tarefa | Status | Observação |
-|---|--------|--------|------------|
-| 3.1 | Criar tela `MyProfileScreen` (Meu perfil) | 🟢 | Hero dark + stats + bio + esportes + nível + reviews |
-| 3.2 | Criar tela `EditProfileScreen` (Editar perfil) | 🟢 | Formulário com nome/bio/local/esportes/nível + Alert de sucesso |
-| 3.3 | Criar tela `PublicProfileScreen` (Perfil público) | 🟢 | Visão de outro usuário + avaliações + botão Denunciar |
-| 3.4 | Criar componente `TrustBadges` | 🟢 | Selos: verificado, partidas concluídas, nota média |
-| 3.5 | Criar componente `ReviewCard` | 🟢 | Avaliação recebida com nota, critério destaque e comentário |
-| 3.6 | Escrever testes para `PublicProfileScreen` | 🟢 | 13 testes — dados, verificação, reviews, navegação, userId inválido |
-
----
-
-## FASE 4 — Listagem e busca de partidas ✅ Concluída — sessão 5 (2026-05-25)
-
-| # | Tarefa | Status | Observação |
-|---|--------|--------|------------|
-| 4.1 | Expandir `AppNavigator` com Bottom Tabs completo | 🟢 | RootStack (tabs + modal Filters) · 4 abas com `MaterialCommunityIcons` |
-| 4.2 | Criar tela `HomeScreen` com lista de partidas | 🟢 | FlatList + busca inline + botão de filtros com badge de contagem |
-| 4.3 | Criar componente `MatchCard` | 🟢 | Badges sport/level/status, local, data, barra de vagas, organizador |
-| 4.4 | Criar tela `SearchScreen` (Busca) | 🟢 | Campo dedicado + contador de resultados + EmptyState contextual |
-| 4.5 | Criar tela/modal `FiltersScreen` (Filtros) | 🟢 | Modal nativo (presentation: modal) · chips sport/level + toggle vagas |
-| 4.6 | Criar hook `useMatchFilters` | 🟢 | `applyFilters` puro + hook com `MatchFiltersContext` |
-| 4.7 | Adicionar indicador visual de vagas | 🟢 | Barra colorida (verde/laranja/vermelho) + texto "X vagas disponíveis" |
-| 4.8 | Escrever testes para `MatchCard` e `useMatchFilters` | 🟢 | 12 testes MatchCard + 11 testes applyFilters · 75 total passando |
-
----
-
-## FASE 5 — Detalhes da partida ✅ Concluída — sessão 6 (2026-05-26)
-
-| # | Tarefa | Status | Observação |
-|---|--------|--------|------------|
-| 5.1 | Criar tela `MatchDetailScreen` (Detalhes) | 🟢 | Header dark + ScrollView + info block + badges + organizador |
-| 5.2 | Criar seção de participantes confirmados | 🟢 | Contador "X de Y" + `ParticipantList` |
-| 5.3 | Criar componente `ParticipantList` | 🟢 | Confirmados com avatar/rating; pendentes com badge laranja |
-| 5.4 | Implementar os 5 estados da tela | 🟢 | isMatchOver · confirmed · pending · isMatchFull · padrão |
-| 5.5 | Criar botão contextual de participação | 🟢 | Bottom bar absoluta; handleJoin / handleCancel com Alert |
-| 5.6 | Escrever testes para estados da tela | 🟢 | 11 testes — 5 estados + join + renderização + goBack + invalid id |
-
----
-
-## FASE 6 — Criação de partida ✅ Concluída — sessão 8 (2026-05-26)
-
-| # | Tarefa | Status | Observação |
-|---|--------|--------|------------|
-| 6.1 | Criar tela `CreateMatchScreen` (Criar partida) | 🟢 | Formulário completo: esporte (chips), título, local, data DD/MM/AAAA, hora HH:MM, vagas, nível (radio), descrição, toggles |
-| 6.2 | Implementar validação do formulário | 🟢 | Todos os campos obrigatórios validados com mensagens de erro; regex para data e hora |
-| 6.3 | Implementar feedback de sucesso | 🟢 | Alert.alert com resumo: título, esporte, data e hora; navega para Home ao confirmar |
-| 6.4 | Adicionar partida criada ao estado mock local | 🟢 | `MatchesContext` criado; `addMatch` insere no topo da lista; HomeScreen/SearchScreen/MatchDetailScreen migrados |
-| 6.5 | Escrever testes para o formulário de criação | 🟢 | 24 testes: renderização, validação (6 erros), submissão (4 casos), interações (5 casos) |
-
----
-
-## FASE 7 — Participação em partida ✅ Concluída — sessão 9 (2026-05-26)
-
-| # | Tarefa | Status | Observação |
-|---|--------|--------|------------|
-| 7.1 | Implementar ação "Participar de partida" | 🟢 | `updateParticipation` no `MatchesContext`; `join()` no hook |
-| 7.2 | Implementar ação "Cancelar participação" | 🟢 | `cancel()` com Alert de confirmação; status → "cancelled" |
-| 7.3 | Implementar estado "Aguardando aprovação" | 🟢 | `join()` detecta `requiresApproval` e define "pending" |
-| 7.4 | Criar hook `useMatchParticipation` | 🟢 | Encapsula match, userStatus, join, cancel; normaliza "cancelled" → null |
-| 7.5 | Escrever testes para fluxo de participação | 🟢 | 11 testes: leitura de status (5), join (4), cancel (2) |
-
----
-
-## FASE 8 — Chat da partida ✅ Concluída — sessão 10 (2026-05-26)
-
-| # | Tarefa | Status | Observação |
-|---|--------|--------|------------|
-| 8.1 | Criar tela `MatchChatScreen` | 🟢 | FlatList invertida + KeyboardAvoidingView + header com título e contagem de participantes |
-| 8.2 | Criar componente `MessageBubble` | 🟢 | 3 variantes: própria (azul, direita), outro (branca, esquerda + avatar), sistema (pill cinza, centrado) |
-| 8.3 | Criar componente `ChatInput` | 🟢 | TextInput multiline + botão send (desabilitado quando vazio) |
-| 8.4 | Simular envio de mensagem no estado local | 🟢 | `MessagesContext` com `sendMessage` — prepend no array para FlatList invertida |
-| 8.5 | Adicionar mensagens de sistema (ex: "Partida amanhã!") | 🟢 | Mocks para match-1 e match-3; tipo `"system"` com visual diferenciado |
-| 8.6 | Escrever testes para `MessageBubble` | 🟢 | 9 testes: mensagem de outro, própria, sistema |
-
----
-
-## FASE 9 — Avaliação pós-partida ✅ Concluída — sessão 11 (2026-05-26)
-
-| # | Tarefa | Status | Observação |
-|---|--------|--------|------------|
-| 9.1 | Criar tela `PostMatchRatingScreen` (Lista para avaliar) | 🟢 | FlatList de confirmados (excluindo current user) + badge "Avaliado" após submit |
-| 9.2 | Criar tela `RateUserScreen` (Formulário de avaliação) | 🟢 | Card do usuário + 5 `StarRatingInput` + comentário opcional + validação |
-| 9.3 | Criar componente `StarRatingInput` | 🟢 | Input interativo de 1–5 estrelas por critério; Pressable com accessibilityLabel |
-| 9.4 | Implementar feedback de avaliação enviada | 🟢 | `Alert.alert` com nome do usuário + `navigation.goBack()` no callback "OK" |
-| 9.5 | Escrever testes para `StarRatingInput` | 🟢 | 7 testes: label, 5 botões, 4 interações de onChange |
-
----
-
-## FASE 10 — Denúncia e segurança ✅ Concluída — sessão 12 (2026-05-26)
-
-| # | Tarefa | Status | Observação |
-|---|--------|--------|------------|
-| 10.1 | Criar tela `ReportUserScreen` (Denúncia) | 🟢 | 7 motivos predefinidos + descrição 500 chars + partida relacionada |
-| 10.2 | Implementar select de motivos de denúncia | 🟢 | Chips single-select: comportamento, violência, não compareceu, ódio, spam, fake info, outro |
-| 10.3 | Implementar feedback de denúncia enviada | 🟢 | Alert.alert com nome do usuário + goBack no "OK" + aviso sobre denúncias falsas |
-| 10.4 | Adicionar botão "Denunciar" no `PublicProfileScreen` | 🟢 | Já existia desde sessão 7 — ícone no header + botão ghost no rodapé |
-| 10.5 | Escrever testes para o formulário de denúncia | 🟢 | 14 testes: renderização (6), validação (2), submissão (2), navegação (1), partida (2), userId inválido (1) |
-
----
-
-## FASE 11 — Moderação (opcional)
-
-| # | Tarefa | Status | Observação |
-|---|--------|--------|------------|
-| 11.1 | Criar tela `AdminDashboardScreen` (Lista de denúncias) | ⚪ | Acessível via rota oculta ou perfil admin no mock |
-| 11.2 | Criar tela `ReportDetailScreen` (Detalhes da denúncia) | ⚪ | Informações + ações administrativas |
-| 11.3 | Implementar ações mockadas (arquivar, advertir, banir) | ⚪ | Atualiza estado local com feedback visual |
+Detalhes tarefa-a-tarefa das fases concluídas (Fases 1–11) foram movidos para [`progress.md`](progress.md), organizados por sessão.
 
 ---
 
@@ -165,13 +58,18 @@
 | D6 | AppNavigator incompleto | ~~Média~~ **Resolvida** | 4 abas com ícones vetoriais criadas na Fase 4 (sessão 5). |
 | D7 | expo-asset não instalado | Baixa | `@expo/vector-icons` depende de `expo-asset` em runtime, mas no Jest é mockado via `moduleNameMapper`. Se adicionar novos pacotes Expo que também dependam de `expo-asset`, instalar: `npx expo install expo-asset`. |
 | D8 | Participação em partida local apenas | Média | `MatchDetailScreen.handleJoin` / `handleCancel` alteram só `useState` interno — mudança não persiste ao navegar. Fase 7 eleva para `MatchesContext` via `useMatchParticipation`. |
+| D9 | `RateUserScreen.tsx:78` — `user` possivelmente `undefined` (tsc) | Baixa | `npx tsc --noEmit` aponta `TS18048` nessa linha; pré-existente (confirmado via stash antes da Fase 11), não bloqueia testes/lint. Corrigir na Fase 12 (revisão final). |
 
 ---
 
 ## Bloqueadores e observações
 
-- Fase 10 concluída. Próxima sessão: branch `feat/moderation` (Fase 11, opcional) ou direto para Fase 12 (revisão final).
-- Ponto exato de retomada: decidir se Fase 11 (moderação admin) será implementada ou pular para Fase 12 (polimento e build de apresentação).
+- Fase 11 concluída (sessão 13 — 2026-07-02). Próxima sessão: Fase 12 (revisão e polimento final para apresentação acadêmica).
+- `ReportsContext` (`src/contexts/ReportsContext.tsx`) expõe `reports`, `addReport`, `updateReportStatus`; seed em `src/mocks/reports.ts` (`MOCK_REPORTS`).
+- `ReportUserScreen` agora chama `addReport` ao enviar a denúncia (status inicial `"pending"`), além do `Alert` existente.
+- `Report` ganhou o campo `status: ReportStatus` (`"pending" | "archived" | "warned" | "banned"`); `ReportReason` foi realinhado aos motivos já usados na tela (`bad_behavior`, `hate_speech`, `fake_info` etc. — o tipo antigo nunca era usado de fato).
+- `AdminDashboardScreen` é acessível via botão "Painel administrativo" (ghost) no fim do `MyProfileScreen` — rota oculta sem RBAC real, adequado ao escopo de protótipo.
+- `ReportDetailScreen` tem 3 ações administrativas com `Alert` de confirmação antes de aplicar.
 - `ReportUserScreen` recebe `{ userId: string }` via rota, filtra partidas do usuário via `useMatchesContext`, e envia Alert com goBack no OK.
 - 7 motivos predefinidos como chips single-select; partida relacionada (opcional) com chips das partidas em que o usuário participou.
 
@@ -180,6 +78,6 @@
 ## Progresso geral
 
 **Total de tarefas:** 70
-**Concluídas:** 61 (fases numeradas) + refinamento visual transversal
+**Concluídas:** 64 (fases numeradas) + refinamento visual transversal
 **Em andamento:** 0
-**A fazer:** 9
+**A fazer:** 6 (Fase 12)

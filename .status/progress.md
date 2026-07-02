@@ -523,3 +523,52 @@ Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
 - Branch `feat/report-user` — pronta para commit e merge em `dev`
 - Fase 10 **100% concluída** (5/5 tarefas)
 - Próxima sessão: decidir entre Fase 11 (moderação admin, opcional) e Fase 12 (revisão e polimento final)
+
+---
+
+## Sessão 13 — 2026-07-02
+
+### Fase 11 — Moderação (tarefas 11.1 a 11.3 concluídas)
+
+| # | Tarefa | Observação |
+|---|--------|------------|
+| 11.1 | Criar tela `AdminDashboardScreen` | Lista de denúncias ordenada (pendentes primeiro) + contador no topo + `EmptyState`; acessível via botão "Painel administrativo" (ghost) no rodapé de `MyProfileScreen` — rota oculta, sem RBAC real |
+| 11.2 | Criar tela `ReportDetailScreen` | Usuário denunciado, denunciante, motivo, descrição, partida relacionada (se houver), data e status atual |
+| 11.3 | Implementar ações mockadas (arquivar, advertir, banir) | 3 botões com `Alert` de confirmação antes de aplicar; `ReportsContext.updateReportStatus` atualiza o estado e a tela volta com `goBack()` |
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/contexts/ReportsContext.tsx` | `ReportsProvider` + `useReportsContext` — `reports`, `addReport`, `updateReportStatus` |
+| `src/mocks/reports.ts` | `MOCK_REPORTS` — 4 denúncias cobrindo os 4 status (`pending` ×2, `warned`, `archived`) |
+| `src/utils/reportLabels.ts` | `REASON_LABELS`, `STATUS_LABELS`, `STATUS_COLORS` — compartilhados entre `AdminDashboardScreen` e `ReportDetailScreen` |
+| `src/screens/AdminDashboardScreen.tsx` | Lista de denúncias para moderação |
+| `src/screens/ReportDetailScreen.tsx` | Detalhes da denúncia + ações administrativas |
+| `src/screens/__tests__/AdminDashboardScreen.test.tsx` | 8 testes: renderização, ordenação, navegação |
+| `src/screens/__tests__/ReportDetailScreen.test.tsx` | 10 testes: renderização, ações administrativas, navegação |
+
+### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/types/index.ts` | `Report` ganhou `status: ReportStatus`; `ReportReason` realinhado aos motivos reais já usados em `ReportUserScreen` (o tipo antigo — `inappropriate_behavior` etc. — nunca era de fato referenciado no código) |
+| `src/screens/ReportUserScreen.tsx` | `handleSubmit` agora chama `addReport` (status inicial `"pending"`) além do `Alert` já existente |
+| `src/screens/__tests__/ReportUserScreen.test.tsx` | Mock de `useReportsContext` adicionado; +1 teste validando o payload enviado a `addReport` |
+| `src/screens/MyProfileScreen.tsx` | Botão "Painel administrativo" (`variant="ghost"`) adicionado após "Editar perfil" |
+| `src/navigation/types.ts` | `AdminDashboard: undefined` e `ReportDetail: { reportId: string }` adicionados ao `AppRootStackParamList` |
+| `src/navigation/AppNavigator.tsx` | `AdminDashboardScreen` e `ReportDetailScreen` registrados no `RootStack` |
+| `App.tsx` | `ReportsProvider` adicionado à árvore de contextos (entre `RatingsProvider` e `MessagesProvider`) |
+
+### Resultado dos testes
+
+- **181 testes, 20 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅ (após `npm run lint:fix` para normalizar CRLF → LF, dívida D4)
+- `npx tsc --noEmit` — 1 erro pré-existente e não relacionado em `RateUserScreen.tsx:78` (ver dívida D9); nenhum erro nos arquivos novos/modificados desta sessão
+
+### Estado ao final da sessão 13
+
+- Branch `feat/moderation` — commit realizado (ver histórico do git)
+- Fase 11 **100% concluída** (3/3 tarefas) — roadmap também corrigido: Fase 10 estava marcada como "A fazer" por desatualização, já estava concluída desde a sessão 12
+- Próxima fase: **Fase 12 — Revisão e polimento final** (12.1 a 12.8, ver `.status/queue.md`)
+- Ponto exato de retomada: corrigir a dívida técnica **D9** (`src/screens/RateUserScreen.tsx:78` — `user` possivelmente `undefined` no `tsc`, dentro da mensagem do `Alert.alert` em `handleSubmit`) como primeiro passo da Fase 12, depois seguir para 12.1 (revisão de consistência visual)
