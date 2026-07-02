@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import AdminDashboardScreen from "../screens/AdminDashboardScreen";
 import CreateMatchScreen from "../screens/CreateMatchScreen";
@@ -45,6 +46,7 @@ const ProfileIcon = ({ color, focused }: IconProps) => (
 );
 
 function AppTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={{
@@ -55,7 +57,9 @@ function AppTabs() {
           backgroundColor: "#0F172A",
           borderTopWidth: 0,
           elevation: 0,
-          paddingTop: 6,
+          height: 62 + insets.bottom,
+          paddingTop: 8,
+          paddingBottom: insets.bottom + 8,
         },
         tabBarLabelStyle: {
           fontSize: 11,
