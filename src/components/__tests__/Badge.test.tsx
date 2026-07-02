@@ -9,9 +9,10 @@ describe("Badge", () => {
     expect(screen.getByText("Futebol")).toBeTruthy();
   });
 
-  it("renders sport badge with emoji prefix", () => {
+  it("renders sport badge with vector icon", () => {
     render(<Badge label="Futebol" variant="sport" sport="football" />);
-    expect(screen.getByText("⚽ Futebol")).toBeTruthy();
+    expect(screen.getByText("Futebol")).toBeTruthy();
+    expect(screen.getByTestId("icon-soccer")).toBeTruthy();
   });
 
   it("renders level badge", () => {

@@ -644,3 +644,78 @@ Toda tela que renderiza `<Header>` chama `useSafeAreaInsets()`, que lança erro 
 - Branch `feat/final-polish` criada a partir de `dev` — commit pendente (ver checkpoint em `.status/queue.md`)
 - Fase 12: 1/8 concluída (12.1)
 - Próxima ação: tarefa 12.2 — testar o fluxo completo (happy path: Welcome → Login → Home → MatchDetail → Chat → Avaliação) rodando o app via `npm start` (Expo Go ou emulador)
+
+---
+
+## Sessão 16 — 2026-07-02
+
+### Redesign visual premium (transversal — branch `feat/final-polish`)
+
+Overhaul completo da interface para padrão B2C de mercado, mantendo a identidade Electric Blue + Dark Slate e 100% da funcionalidade/navegação. Zero mudanças de regra de negócio.
+
+#### Fundação — `src/theme/index.ts` (novo)
+
+Fonte única de verdade para estilos fora do NativeWind:
+- `colors` — espelho tipado do `tailwind.config.js`; substituiu ~40 hex codes hardcoded em props `color` de ícones espalhados por 20+ arquivos.
+- `shadows` — sistema de elevação com 4 presets (`card`, `raised`, `floating`, `cta`) combinando sombra iOS + `elevation` Android; aplicado via `style`.
+- `SPORT_META` — identidade por esporte: ícone vetorial + cor de categoria + bg tint (futebol esmeralda, vôlei violeta, basquete laranja, tênis lima, futsal teal, outro slate). Fim dos emojis como iconografia.
+- `LEVEL_META` — labels centralizados de nível (eliminou 6 cópias de `levelLabel`/`LEVEL_LABELS`).
+
+#### Componentes novos
+
+| Componente | Papel |
+|-----------|-------|
+| `SectionCard` | Card branco com título/subtítulo/rightElement — substituiu ~20 blocos `bg-white rounded-2xl p-4` duplicados |
+| `Chip` | Pill selecionável única (ícone, sublabel, tone primary/danger, roles radio/checkbox) — substituiu 5 implementações duplicadas |
+| `SportTile` | Tile quadrado com ícone + cor do esporte — âncora visual de MatchCard e MatchDetail |
+| `StatsRow` | Linha de métricas em cards — desduplicou stats dos 2 perfis |
+| `Skeleton` + `MatchCardSkeleton` | Loading pulsante (Animated loop) — usado na Home |
+
+#### Componentes elevados
+
+- `Button` — alturas fixas (h-10/12/14), `rounded-2xl`, prop `icon`, variant `danger`, glow azul no CTA primário, scale 0.98 no press, ghost agora `bg-secondary-100`.
+- `Card` — sombra real (`shadows.card`), prop `raised`, microinteração de press.
+- `Badge` — sport variant usa ícone vetorial + cores de categoria via `SPORT_META` (sem emoji).
+- `Avatar` — fallback sólido `primary-500` com iniciais brancas em bold, prop `ring` (anel branco para heros), `xl` 96px.
+- `EmptyState` — ícone `MaterialCommunityIcons` em círculo suave (prop `icon` agora é nome MCI, não emoji).
+- `RatingStars` / `StarRatingInput` — estrelas vetoriais (`star`/`star-half-full`/`star-outline`) em vez de texto "★"; input com scale no press.
+- `Header` — botão voltar em pill `bg-white/10`, large variant com `text-3xl` + subtitle.
+- `Input` — borda 1.5px, prop `leftIcon` com cor reativa a focus/erro, erro com ícone.
+- `ChatInput`/`MessageBubble` — send button maior com scale, bolhas `rounded-3xl` com cauda `rounded-b*-md`, sombra em bolhas de terceiros.
+- `ReviewCard` — usa `Card` + chip de destaque com ícone de troféu.
+
+#### Telas redesenhadas (todas as 18)
+
+- **Home** — hero header com saudação personalizada + avatar com anel, busca h-12, quick-filters horizontais por esporte (integrados ao `MatchFiltersContext`), section title com contagem, skeleton screen de 700ms no primeiro load.
+- **MatchCard** — layout novo: SportTile + eyebrow colorido (`FUTEBOL · INTERMEDIÁRIO`) + título, meta com ícones, barra de vagas, footer com organizador + tags pill.
+- **MatchDetail** — hero com SportTile 56 + eyebrow, `InfoRow` com ícones em tiles azuis, SectionCards, bottom bar com `useSafeAreaInsets` + sombra floating, botões com ícones.
+- **Welcome** — glow decorativo, tiles de esporte com cores de categoria, CTA invertido (Criar conta = primário).
+- **Login/Register/ProfileSetup** — inputs com ícones, câmera badge no avatar, footer link no Register, `StatusBar dark` local (global agora `light`).
+- **Perfis (My/Public)** — hero com avatar ring + `rounded-b-3xl`, StatsRow sobreposta (-mt-4), SectionCards, botões com ícones.
+- **CreateMatch** — chips de esporte com ícones coloridos, toggles com descrição, header com subtitle.
+- **Filters** — Chips, checkbox `rounded-lg` com `check-bold`, footer com sombra floating.
+- **Chat/PostMatchRating/RateUser/ReportUser/Admin** — SectionCards, EmptyStates vetoriais, bottom bars com safe area, denúncia com tone danger, "Banir usuário" com variant `danger`.
+- **Tab bar** — altura fixa removida (safe area correta em iPhones com home indicator), ícones filled/outline por foco, `borderTopWidth: 0`.
+
+#### Tokens ajustados (`tailwind.config.js`)
+
+- `borderRadius`: `2xl` 24→20px (mais moderno), `3xl` 28px adicionado.
+- `letterSpacing`: valores em px (RN não suporta `em`) — `tracking-tight`/`wide` agora funcionam.
+
+#### Testes atualizados
+
+- `Badge.test` — emoji prefix → ícone vetorial (`getByTestId("icon-soccer")`).
+- `EmptyState.test` — emojis → testIDs de ícones MCI.
+- `PublicProfileScreen.test` — `"🏐 Vôlei"` → `"Vôlei"`.
+
+### Resultado dos testes
+
+- **181 testes, 20 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅ (após `npm run lint:fix`, dívida D4)
+- `npx tsc --noEmit` zero erros ✅
+
+### Estado ao final da sessão 16
+
+- Branch `feat/final-polish` — redesign completo, commit pendente
+- Fase 12 permanece 1/8 (redesign foi trabalho transversal, não tarefa numerada)
+- Próxima ação: tarefa 12.2 — testar fluxo completo no app real (`npm start`), validando visualmente o redesign em runtime (especialmente sombras Android, skeleton da Home e safe areas)

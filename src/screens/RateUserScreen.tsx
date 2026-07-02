@@ -4,16 +4,19 @@ import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useState } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Avatar from "../components/Avatar";
 import Button from "../components/Button";
 import Header from "../components/Header";
 import Input from "../components/Input";
 import RatingStars from "../components/RatingStars";
+import SectionCard from "../components/SectionCard";
 import StarRatingInput from "../components/StarRatingInput";
 import { useMatchesContext } from "../contexts/MatchesContext";
 import { useRatingsContext } from "../contexts/RatingsContext";
 import type { AppRootStackParamList } from "../navigation/types";
+import { colors, LEVEL_META, shadows } from "../theme";
 import type { RatingCriteria } from "../types";
 
 type Nav = NativeStackNavigationProp<AppRootStackParamList>;
@@ -35,15 +38,10 @@ const EMPTY_CRITERIA: RatingCriteria = {
   overall: 0,
 };
 
-const levelLabel: Record<string, string> = {
-  beginner: "Iniciante",
-  intermediate: "Intermediário",
-  advanced: "Avançado",
-};
-
 export default function RateUserScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
+  const insets = useSafeAreaInsets();
   const { matchId, userId } = route.params;
   const { matches } = useMatchesContext();
   const { submitRating } = useRatingsContext();
@@ -57,7 +55,7 @@ export default function RateUserScreen() {
 
   if (!match || !user) {
     return (
-      <View className="flex-1 items-center justify-center bg-neutral-50">
+      <View className="flex-1 items-center justify-center bg-secondary-50">
         <Text className="text-neutral-500">Usuário não encontrado.</Text>
       </View>
     );
@@ -84,80 +82,90 @@ export default function RateUserScreen() {
   }
 
   return (
-    <View className="flex-1 bg-neutral-50">
+    <View className="flex-1 bg-secondary-50">
       <Header title="Avaliar participante" onBack={() => navigation.goBack()} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
+        contentContainerStyle={{ padding: 20, paddingBottom: 140 }}
       >
-        {/* User card */}
-        <View className="bg-white rounded-2xl p-4 flex-row items-center gap-3 mb-4">
-          <Avatar name={user.name} photoUrl={user.photoUrl} size="lg" />
-          <View className="flex-1">
-            <View className="flex-row items-center gap-1">
-              <Text className="text-base font-bold text-secondary-900" numberOfLines={1}>
-                {user.name}
-              </Text>
-              {user.isVerified && (
-                <MaterialCommunityIcons name="check-decagram" size={16} color="#2563EB" />
-              )}
+        <View className="gap-4">
+          {/* User card */}
+          <SectionCard>
+            <View className="flex-row items-center gap-3">
+              <Avatar name={user.name} photoUrl={user.photoUrl} size="lg" />
+              <View className="flex-1">
+                <View className="flex-row items-center gap-1">
+                  <Text className="text-base font-bold text-secondary-900" numberOfLines={1}>
+                    {user.name}
+                  </Text>
+                  {user.isVerified && (
+                    <MaterialCommunityIcons
+                      name="check-decagram"
+                      size={16}
+                      color={colors.primary[500]}
+                    />
+                  )}
+                </View>
+                <Text className="text-xs text-neutral-500 mt-0.5">
+                  {LEVEL_META[user.level].label}
+                </Text>
+                <RatingStars rating={user.averageRating} size="sm" showValue />
+                <Text className="text-xs text-neutral-400 mt-0.5">
+                  {user.matchesPlayed} partidas concluídas
+                </Text>
+              </View>
             </View>
-            <Text className="text-xs text-neutral-500 mt-0.5">{levelLabel[user.level]}</Text>
-            <RatingStars rating={user.averageRating} size="sm" showValue />
-            <Text className="text-xs text-neutral-400 mt-0.5">
-              {user.matchesPlayed} partidas concluídas
-            </Text>
-          </View>
-        </View>
+          </SectionCard>
 
-        {/* Criteria */}
-        <View className="bg-white rounded-2xl p-4 mb-4">
-          <Text className="text-sm font-semibold text-secondary-900 mb-4">
-            Critérios de avaliação
-          </Text>
-          <View className="gap-5">
-            {CRITERIA_LABELS.map(({ key, label }) => (
-              <StarRatingInput
-                key={key}
-                label={label}
-                value={criteria[key]}
-                onChange={(v) => setCriterion(key, v)}
-                size="lg"
-              />
-            ))}
-          </View>
-        </View>
+          {/* Criteria */}
+          <SectionCard title="Critérios de avaliação">
+            <View className="gap-5 mt-1">
+              {CRITERIA_LABELS.map(({ key, label }) => (
+                <StarRatingInput
+                  key={key}
+                  label={label}
+                  value={criteria[key]}
+                  onChange={(v) => setCriterion(key, v)}
+                  size="lg"
+                />
+              ))}
+            </View>
+          </SectionCard>
 
-        {/* Comment */}
-        <View className="bg-white rounded-2xl p-4 mb-4">
-          <Text className="text-sm font-semibold text-secondary-900 mb-3">
-            Comentário <Text className="text-neutral-400 font-normal">(opcional)</Text>
-          </Text>
-          <Input
-            value={comment}
-            onChangeText={setComment}
-            placeholder="Descreva sua experiência com este participante..."
-            multiline
-            numberOfLines={4}
-            maxLength={280}
-            accessibilityLabel="Comentário"
-          />
-          <Text className="text-xs text-neutral-400 mt-1 text-right">{comment.length}/280</Text>
-        </View>
+          {/* Comment */}
+          <SectionCard
+            title="Comentário"
+            rightElement={<Text className="text-xs text-neutral-400">opcional</Text>}
+          >
+            <Input
+              value={comment}
+              onChangeText={setComment}
+              placeholder="Descreva sua experiência com este participante..."
+              multiline
+              numberOfLines={4}
+              maxLength={280}
+              accessibilityLabel="Comentário"
+            />
+            <Text className="text-xs text-neutral-400 mt-1.5 text-right">{comment.length}/280</Text>
+          </SectionCard>
 
-        {/* Error */}
-        {error ? (
-          <View className="flex-row items-center gap-2 bg-error/10 rounded-xl px-4 py-3">
-            <MaterialCommunityIcons name="alert-circle-outline" size={18} color="#EF4444" />
-            <Text className="text-sm text-error flex-1">{error}</Text>
-          </View>
-        ) : null}
+          {/* Error */}
+          {error ? (
+            <View className="flex-row items-center gap-2 bg-error/10 rounded-2xl px-4 py-3">
+              <MaterialCommunityIcons name="alert-circle-outline" size={18} color={colors.error} />
+              <Text className="text-sm font-medium text-error flex-1">{error}</Text>
+            </View>
+          ) : null}
+        </View>
       </ScrollView>
 
       {/* Bottom action */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-neutral-100 px-4 pt-4 pb-8">
-        <Button label="Enviar avaliação" onPress={handleSubmit} fullWidth />
+      <View
+        className="absolute bottom-0 left-0 right-0 bg-white px-5 pt-4"
+        style={[shadows.floating, { paddingBottom: Math.max(insets.bottom, 16) }]}
+      >
+        <Button label="Enviar avaliação" icon="send" onPress={handleSubmit} size="lg" fullWidth />
       </View>
     </View>
   );

@@ -1,5 +1,8 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { memo } from "react";
 import { Pressable, Text, View } from "react-native";
+
+import { colors } from "../theme";
 
 interface StarRatingInputProps {
   value: number;
@@ -8,33 +11,36 @@ interface StarRatingInputProps {
   size?: "sm" | "md" | "lg";
 }
 
-const starFontSize: Record<"sm" | "md" | "lg", number> = {
-  sm: 20,
-  md: 28,
-  lg: 36,
+const starPixelSize: Record<"sm" | "md" | "lg", number> = {
+  sm: 22,
+  md: 30,
+  lg: 38,
 };
 
-function StarRatingInput({ value, onChange, label, size = "md" }: StarRatingInputProps) {
+function StarRatingInput({ value, onChange, label, size = "md" }: Readonly<StarRatingInputProps>) {
   return (
-    <View className="gap-1">
-      {label ? <Text className="text-sm text-secondary-800 font-medium">{label}</Text> : null}
-      <View className="flex-row gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Pressable
-            key={star}
-            onPress={() => onChange(star)}
-            accessibilityLabel={`${star} estrela${star !== 1 ? "s" : ""}`}
-            accessibilityRole="button"
-            hitSlop={4}
-          >
-            <Text
-              style={{ fontSize: starFontSize[size] }}
-              className={star <= value ? "text-warning" : "text-neutral-300"}
+    <View className="gap-1.5">
+      {label ? <Text className="text-sm text-secondary-800 font-semibold">{label}</Text> : null}
+      <View className="flex-row gap-1.5">
+        {[1, 2, 3, 4, 5].map((star) => {
+          const filled = star <= value;
+          return (
+            <Pressable
+              key={star}
+              onPress={() => onChange(star)}
+              accessibilityLabel={`${star} estrela${star !== 1 ? "s" : ""}`}
+              accessibilityRole="button"
+              hitSlop={6}
+              style={({ pressed }) => (pressed ? { transform: [{ scale: 1.15 }] } : undefined)}
             >
-              ★
-            </Text>
-          </Pressable>
-        ))}
+              <MaterialCommunityIcons
+                name={filled ? "star" : "star-outline"}
+                size={starPixelSize[size]}
+                color={filled ? colors.warning : colors.neutral[300]}
+              />
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );

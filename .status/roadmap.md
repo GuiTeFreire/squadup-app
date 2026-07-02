@@ -16,6 +16,7 @@
 | Fase 9 | Avaliação pós-partida | 🟢 Concluída (5/5 tarefas — sessão 11) |
 | Fase 10 | Denúncia e segurança | 🟢 Concluída (5/5 tarefas — sessão 12) |
 | Fase 11 | Moderação (opcional) | 🟢 Concluída (3/3 tarefas — sessão 13) |
+| — | Redesign visual premium (theme module, elevação, cor por esporte) | 🟢 Concluído (transversal — sessão 16) |
 | Fase 12 | Revisão e polimento final | 🟡 Em andamento (1/8 — 12.1 concluída, sessão 15) |
 
 **Progresso geral:** 65/70 tarefas concluídas (93%) · 181 testes passando · lint zerado · tsc zerado

@@ -107,8 +107,17 @@ module.exports = {
         md:   "8px",
         lg:   "12px",
         xl:   "16px",
-        "2xl":"24px",
+        "2xl":"20px",
+        "3xl":"28px",
         full: "9999px",
+      },
+      // React Native não suporta letterSpacing em `em` — valores em px
+      letterSpacing: {
+        tighter: "-0.5px",
+        tight: "-0.3px",
+        normal: "0px",
+        wide: "0.5px",
+        wider: "1px",
       },
     },
   },

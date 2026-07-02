@@ -50,8 +50,8 @@ describe("PublicProfileScreen — usuário com avaliações (Ana Lima, user-2)",
 
   it("exibe os esportes favoritos como badges", () => {
     render(<PublicProfileScreen />);
-    expect(screen.getByText("🏐 Vôlei")).toBeTruthy();
-    expect(screen.getByText("🏀 Basquete")).toBeTruthy();
+    expect(screen.getByText("Vôlei")).toBeTruthy();
+    expect(screen.getByText("Basquete")).toBeTruthy();
   });
 
   it("exibe o nível de experiência", () => {

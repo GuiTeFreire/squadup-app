@@ -1,20 +1,25 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { memo } from "react";
 import { Text, View } from "react-native";
 
+import { colors, type IconName } from "../theme";
+
 interface EmptyStateProps {
-  icon?: string;
+  icon?: IconName;
   title: string;
   description?: string;
   action?: React.ReactNode;
 }
 
-function EmptyState({ icon = "🔍", title, description, action }: EmptyStateProps) {
+function EmptyState({ icon = "magnify", title, description, action }: Readonly<EmptyStateProps>) {
   return (
-    <View className="flex-1 items-center justify-center px-8 py-12">
-      <Text className="text-5xl mb-4">{icon}</Text>
-      <Text className="text-lg font-semibold text-neutral-800 text-center mb-2">{title}</Text>
+    <View className="flex-1 items-center justify-center px-8 py-16">
+      <View className="w-20 h-20 rounded-full bg-secondary-100 items-center justify-center mb-5">
+        <MaterialCommunityIcons name={icon} size={36} color={colors.secondary[400]} />
+      </View>
+      <Text className="text-lg font-bold text-secondary-900 text-center mb-2">{title}</Text>
       {description ? (
-        <Text className="text-base text-neutral-500 text-center mb-6">{description}</Text>
+        <Text className="text-sm text-neutral-500 text-center leading-5 mb-6">{description}</Text>
       ) : null}
       {action ?? null}
     </View>

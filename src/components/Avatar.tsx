@@ -7,6 +7,8 @@ interface AvatarProps {
   name: string;
   photoUrl?: string;
   size?: AvatarSize;
+  /** Anel branco ao redor — para avatares sobre fundos escuros/heros */
+  ring?: boolean;
 }
 
 const sizeClass: Record<AvatarSize, string> = {
@@ -14,7 +16,7 @@ const sizeClass: Record<AvatarSize, string> = {
   sm: "w-8 h-8",
   md: "w-12 h-12",
   lg: "w-16 h-16",
-  xl: "w-20 h-20",
+  xl: "w-24 h-24",
 };
 
 const textSizeClass: Record<AvatarSize, string> = {
@@ -22,7 +24,7 @@ const textSizeClass: Record<AvatarSize, string> = {
   sm: "text-sm",
   md: "text-base",
   lg: "text-xl",
-  xl: "text-2xl",
+  xl: "text-3xl",
 };
 
 function getInitials(name: string): string {
@@ -33,17 +35,19 @@ function getInitials(name: string): string {
     .join("");
 }
 
-function Avatar({ name, photoUrl, size = "md" }: AvatarProps) {
+function Avatar({ name, photoUrl, size = "md", ring = false }: Readonly<AvatarProps>) {
   const [imgError, setImgError] = useState(false);
   const showFallback = !photoUrl || imgError;
-  const container = `${sizeClass[size]} rounded-full overflow-hidden items-center justify-center bg-primary-100`;
+  const container = [
+    sizeClass[size],
+    "rounded-full overflow-hidden items-center justify-center bg-primary-500",
+    ring ? "border-[3px] border-white/90" : "",
+  ].join(" ");
 
   return (
     <View className={container}>
       {showFallback ? (
-        <Text className={`${textSizeClass[size]} font-semibold text-primary-700`}>
-          {getInitials(name)}
-        </Text>
+        <Text className={`${textSizeClass[size]} font-bold text-white`}>{getInitials(name)}</Text>
       ) : (
         <Image
           source={{ uri: photoUrl }}

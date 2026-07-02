@@ -1,5 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
@@ -57,6 +58,7 @@ export default function LoginScreen() {
       contentContainerStyle={{ flexGrow: 1, padding: 24, paddingTop: 96 }}
       keyboardShouldPersistTaps="handled"
     >
+      <StatusBar style="dark" />
       {/* Brand header */}
       <View className="items-center mb-8">
         <SquadUpLogo width={180} height={54} />
@@ -76,6 +78,7 @@ export default function LoginScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
+          leftIcon="email-outline"
         />
 
         <Input
@@ -85,6 +88,7 @@ export default function LoginScreen() {
           error={passwordError}
           placeholder="Mínimo 6 caracteres"
           secureTextEntry
+          leftIcon="lock-outline"
         />
       </View>
 

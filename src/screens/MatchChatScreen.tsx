@@ -45,7 +45,7 @@ export default function MatchChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-neutral-50"
+      className="flex-1 bg-secondary-50"
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={0}
     >
@@ -68,9 +68,12 @@ export default function MatchChatScreen() {
         contentContainerStyle={{ paddingVertical: 12 }}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View className="flex-1 items-center justify-center py-16">
-            <Text className="text-neutral-400 text-sm">Nenhuma mensagem ainda.</Text>
-            <Text className="text-neutral-400 text-sm">Seja o primeiro a escrever!</Text>
+          <View
+            className="flex-1 items-center justify-center py-16"
+            style={{ transform: [{ scaleY: -1 }] }}
+          >
+            <Text className="text-neutral-500 text-sm font-medium">Nenhuma mensagem ainda.</Text>
+            <Text className="text-neutral-400 text-sm mt-0.5">Seja o primeiro a escrever!</Text>
           </View>
         }
       />

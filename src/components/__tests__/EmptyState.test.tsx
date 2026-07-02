@@ -12,12 +12,12 @@ describe("EmptyState", () => {
 
   it("renders default icon", () => {
     render(<EmptyState title="Vazio" />);
-    expect(screen.getByText("🔍")).toBeTruthy();
+    expect(screen.getByTestId("icon-magnify")).toBeTruthy();
   });
 
   it("renders custom icon", () => {
-    render(<EmptyState icon="⚽" title="Sem partidas" />);
-    expect(screen.getByText("⚽")).toBeTruthy();
+    render(<EmptyState icon="soccer" title="Sem partidas" />);
+    expect(screen.getByTestId("icon-soccer")).toBeTruthy();
   });
 
   it("renders description when provided", () => {

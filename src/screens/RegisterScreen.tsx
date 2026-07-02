@@ -1,7 +1,8 @@
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 import SquadUpLogo from "../../assets/squadup_logo.svg";
 import Button from "../components/Button";
@@ -77,6 +78,7 @@ export default function RegisterScreen() {
       contentContainerStyle={{ flexGrow: 1, padding: 24, paddingTop: 96 }}
       keyboardShouldPersistTaps="handled"
     >
+      <StatusBar style="dark" />
       {/* Brand header */}
       <View className="items-center mb-8">
         <SquadUpLogo width={180} height={54} />
@@ -94,6 +96,7 @@ export default function RegisterScreen() {
           error={nameError}
           placeholder="Seu nome"
           autoCapitalize="words"
+          leftIcon="account-outline"
         />
 
         <Input
@@ -105,6 +108,7 @@ export default function RegisterScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
+          leftIcon="email-outline"
         />
 
         <Input
@@ -114,6 +118,7 @@ export default function RegisterScreen() {
           error={passwordError}
           placeholder="Mínimo 6 caracteres"
           secureTextEntry
+          leftIcon="lock-outline"
         />
 
         <Input
@@ -124,6 +129,7 @@ export default function RegisterScreen() {
           placeholder="DD/MM/AAAA"
           keyboardType="numeric"
           maxLength={10}
+          leftIcon="cake-variant-outline"
         />
       </View>
 
@@ -136,6 +142,13 @@ export default function RegisterScreen() {
           fullWidth
           loading={loading}
         />
+      </View>
+
+      <View className="mt-6 flex-row justify-center">
+        <Text className="text-base text-neutral-500">Já tem uma conta? </Text>
+        <Pressable onPress={() => navigation.navigate("Login")}>
+          <Text className="text-base font-semibold text-primary-500">Entrar</Text>
+        </Pressable>
       </View>
     </ScrollView>
   );

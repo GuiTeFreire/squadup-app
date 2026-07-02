@@ -7,6 +7,7 @@ import { Alert, ScrollView, Text, View } from "react-native";
 import Avatar from "../components/Avatar";
 import Button from "../components/Button";
 import Header from "../components/Header";
+import SectionCard from "../components/SectionCard";
 import { useReportsContext } from "../contexts/ReportsContext";
 import type { AppRootStackParamList } from "../navigation/types";
 import type { ReportStatus } from "../types";
@@ -51,7 +52,7 @@ export default function ReportDetailScreen() {
 
   if (!report) {
     return (
-      <View className="flex-1 items-center justify-center bg-neutral-50">
+      <View className="flex-1 items-center justify-center bg-secondary-50">
         <Text className="text-neutral-500">Denúncia não encontrada.</Text>
       </View>
     );
@@ -72,87 +73,83 @@ export default function ReportDetailScreen() {
   }
 
   return (
-    <View className="flex-1 bg-neutral-50">
+    <View className="flex-1 bg-secondary-50">
       <Header title="Detalhes da denúncia" onBack={() => navigation.goBack()} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
       >
-        <View className="bg-white rounded-2xl p-4 mb-4">
-          <Text className="text-sm font-semibold text-secondary-900 mb-2">Usuário denunciado</Text>
-          <View className="flex-row items-center gap-3">
-            <Avatar
-              name={report.reportedUser.name}
-              photoUrl={report.reportedUser.photoUrl}
-              size="md"
-            />
-            <Text className="text-base font-bold text-secondary-900">
-              {report.reportedUser.name}
-            </Text>
-          </View>
-        </View>
+        <View className="gap-4">
+          <SectionCard title="Usuário denunciado">
+            <View className="flex-row items-center gap-3">
+              <Avatar
+                name={report.reportedUser.name}
+                photoUrl={report.reportedUser.photoUrl}
+                size="md"
+              />
+              <Text className="text-base font-bold text-secondary-900">
+                {report.reportedUser.name}
+              </Text>
+            </View>
+          </SectionCard>
 
-        <View className="bg-white rounded-2xl p-4 mb-4">
-          <Text className="text-sm font-semibold text-secondary-900 mb-2">Denunciado por</Text>
-          <View className="flex-row items-center gap-3">
-            <Avatar
-              name={report.reporterUser.name}
-              photoUrl={report.reporterUser.photoUrl}
-              size="sm"
-            />
+          <SectionCard title="Denunciado por">
+            <View className="flex-row items-center gap-3">
+              <Avatar
+                name={report.reporterUser.name}
+                photoUrl={report.reporterUser.photoUrl}
+                size="sm"
+              />
+              <Text className="text-sm font-medium text-secondary-900">
+                {report.reporterUser.name}
+              </Text>
+            </View>
+          </SectionCard>
+
+          <SectionCard title="Motivo">
             <Text className="text-sm font-medium text-secondary-900">
-              {report.reporterUser.name}
+              {REASON_LABELS[report.reason]}
             </Text>
-          </View>
-        </View>
+          </SectionCard>
 
-        <View className="bg-white rounded-2xl p-4 mb-4">
-          <Text className="text-sm font-semibold text-secondary-900 mb-2">Motivo</Text>
-          <Text className="text-sm text-secondary-900">{REASON_LABELS[report.reason]}</Text>
-        </View>
+          {report.description ? (
+            <SectionCard title="Descrição">
+              <Text className="text-sm text-neutral-600 leading-5">{report.description}</Text>
+            </SectionCard>
+          ) : null}
 
-        {report.description ? (
-          <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="text-sm font-semibold text-secondary-900 mb-2">Descrição</Text>
-            <Text className="text-sm text-neutral-600 leading-5">{report.description}</Text>
-          </View>
-        ) : null}
+          {report.match ? (
+            <SectionCard title="Partida relacionada">
+              <Text className="text-sm font-medium text-secondary-900">{report.match.title}</Text>
+            </SectionCard>
+          ) : null}
 
-        {report.match ? (
-          <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="text-sm font-semibold text-secondary-900 mb-2">
-              Partida relacionada
+          <SectionCard title="Enviada em">
+            <Text className="text-sm font-medium text-secondary-900">
+              {formatReportDateTime(report.createdAt)}
             </Text>
-            <Text className="text-sm text-secondary-900">{report.match.title}</Text>
+          </SectionCard>
+
+          <View className="flex-row items-center gap-2">
+            <Text className="text-sm font-bold text-secondary-900">Status atual</Text>
+            <View className={`self-start rounded-full px-3 py-1 ${STATUS_COLORS[report.status]}`}>
+              <Text className="text-xs font-semibold">{STATUS_LABELS[report.status]}</Text>
+            </View>
           </View>
-        ) : null}
 
-        <View className="bg-white rounded-2xl p-4 mb-4">
-          <Text className="text-sm font-semibold text-secondary-900 mb-2">Enviada em</Text>
-          <Text className="text-sm text-secondary-900">
-            {formatReportDateTime(report.createdAt)}
-          </Text>
-        </View>
-
-        <View className="flex-row items-center gap-2 mb-4">
-          <Text className="text-sm font-semibold text-secondary-900">Status atual</Text>
-          <View className={`self-start rounded-full px-3 py-1 ${STATUS_COLORS[report.status]}`}>
-            <Text className="text-xs font-medium">{STATUS_LABELS[report.status]}</Text>
+          <View className="gap-3 mt-1">
+            <Text className="text-sm font-bold text-secondary-900">Ações administrativas</Text>
+            {ACTIONS.map(({ status, label, message }) => (
+              <Button
+                key={status}
+                label={label}
+                onPress={() => handleAction(status, label, message)}
+                variant={status === "banned" ? "danger" : "secondary"}
+                fullWidth
+              />
+            ))}
           </View>
-        </View>
-
-        <View className="gap-3 mt-2">
-          <Text className="text-sm font-semibold text-secondary-900">Ações administrativas</Text>
-          {ACTIONS.map(({ status, label, message }) => (
-            <Button
-              key={status}
-              label={label}
-              onPress={() => handleAction(status, label, message)}
-              variant={status === "banned" ? "primary" : "secondary"}
-              fullWidth
-            />
-          ))}
         </View>
       </ScrollView>
     </View>

@@ -22,18 +22,26 @@ import type { AppRootStackParamList, AppTabParamList } from "./types";
 const Tab = createBottomTabNavigator<AppTabParamList>();
 const RootStack = createNativeStackNavigator<AppRootStackParamList>();
 
-type IconProps = { color: string };
-const HomeIcon = ({ color }: IconProps) => (
-  <MaterialCommunityIcons name="home-variant" size={24} color={color} />
+type IconProps = { color: string; focused: boolean };
+const HomeIcon = ({ color, focused }: IconProps) => (
+  <MaterialCommunityIcons
+    name={focused ? "home-variant" : "home-variant-outline"}
+    size={24}
+    color={color}
+  />
 );
-const SearchIcon = ({ color }: IconProps) => (
+const SearchIcon = ({ color }: Pick<IconProps, "color">) => (
   <MaterialCommunityIcons name="magnify" size={24} color={color} />
 );
-const CreateIcon = ({ color }: IconProps) => (
-  <MaterialCommunityIcons name="plus-circle-outline" size={24} color={color} />
+const CreateIcon = ({ color, focused }: IconProps) => (
+  <MaterialCommunityIcons
+    name={focused ? "plus-circle" : "plus-circle-outline"}
+    size={24}
+    color={color}
+  />
 );
-const ProfileIcon = ({ color }: IconProps) => (
-  <MaterialCommunityIcons name="account-outline" size={24} color={color} />
+const ProfileIcon = ({ color, focused }: IconProps) => (
+  <MaterialCommunityIcons name={focused ? "account" : "account-outline"} size={24} color={color} />
 );
 
 function AppTabs() {
@@ -41,13 +49,13 @@ function AppTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#2563EB",
+        tabBarActiveTintColor: "#3B82F6",
         tabBarInactiveTintColor: "#64748B",
         tabBarStyle: {
           backgroundColor: "#0F172A",
-          borderTopColor: "#1E293B",
-          height: 60,
-          paddingBottom: 8,
+          borderTopWidth: 0,
+          elevation: 0,
+          paddingTop: 6,
         },
         tabBarLabelStyle: {
           fontSize: 11,

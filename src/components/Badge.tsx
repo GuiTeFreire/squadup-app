@@ -1,6 +1,8 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { memo } from "react";
 import { Text, View } from "react-native";
 
+import { SPORT_META } from "../theme";
 import type { ExperienceLevel, MatchStatus, Sport } from "../types";
 
 type BadgeVariant = "sport" | "level" | "status" | "custom";
@@ -12,15 +14,6 @@ interface BadgeProps {
   level?: ExperienceLevel;
   status?: MatchStatus;
 }
-
-const sportEmoji: Record<Sport, string> = {
-  football: "⚽",
-  volleyball: "🏐",
-  basketball: "🏀",
-  tennis: "🎾",
-  futsal: "🥅",
-  other: "🏅",
-};
 
 const levelStyle: Record<ExperienceLevel, string> = {
   beginner: "bg-primary-100 text-primary-700",
@@ -36,14 +29,25 @@ const statusStyle: Record<MatchStatus, string> = {
   cancelled: "bg-neutral-200 text-neutral-500",
 };
 
-function Badge({ label, variant = "custom", sport, level, status }: BadgeProps) {
-  let colorClass = "bg-secondary-100 text-secondary-700";
-  let prefix = "";
-
+function Badge({ label, variant = "custom", sport, level, status }: Readonly<BadgeProps>) {
+  // Esporte: cor de categoria + ícone vetorial (aplicados via style — cores dinâmicas)
   if (variant === "sport" && sport) {
-    colorClass = "bg-primary-50 text-primary-700";
-    prefix = `${sportEmoji[sport]} `;
-  } else if (variant === "level" && level) {
+    const meta = SPORT_META[sport];
+    return (
+      <View
+        className="self-start flex-row items-center gap-1 rounded-full px-3 py-1"
+        style={{ backgroundColor: meta.bg }}
+      >
+        <MaterialCommunityIcons name={meta.icon} size={12} color={meta.color} />
+        <Text className="text-xs font-semibold" style={{ color: meta.color }}>
+          {label}
+        </Text>
+      </View>
+    );
+  }
+
+  let colorClass = "bg-secondary-100 text-secondary-700";
+  if (variant === "level" && level) {
     colorClass = levelStyle[level];
   } else if (variant === "status" && status) {
     colorClass = statusStyle[status];
@@ -51,7 +55,7 @@ function Badge({ label, variant = "custom", sport, level, status }: BadgeProps) 
 
   return (
     <View className={`self-start rounded-full px-3 py-1 ${colorClass}`}>
-      <Text className="text-xs font-medium">{`${prefix}${label}`}</Text>
+      <Text className="text-xs font-semibold">{label}</Text>
     </View>
   );
 }

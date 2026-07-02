@@ -65,7 +65,8 @@ Detalhes tarefa-a-tarefa das fases concluídas (Fases 1–11) foram movidos para
 
 ## Bloqueadores e observações
 
-- Fase 11 concluída (sessão 13 — 2026-07-02). D9 corrigida (sessão 14 — 2026-07-02). 12.1 concluída (sessão 15 — 2026-07-02), branch `feat/final-polish`. Próxima etapa: 12.2 (testar fluxo completo) em diante.
+- **Sessão 16 (2026-07-02): redesign visual premium completo** na branch `feat/final-polish` (transversal, fora das tarefas numeradas). Novidades estruturais que afetam trabalho futuro: módulo `src/theme/index.ts` (`colors`, `shadows`, `SPORT_META`, `LEVEL_META` — usar SEMPRE em vez de hex hardcoded), componentes novos `SectionCard`, `Chip`, `SportTile`, `StatsRow`, `Skeleton`/`MatchCardSkeleton`. Emojis eliminados da UI (só permanecem em conteúdo de mensagens mockadas). `Button` ganhou `icon` e variant `danger`. Detalhes completos em `progress.md`, sessão 16. 181 testes ✅ lint ✅ tsc ✅.
+- Fase 11 concluída (sessão 13 — 2026-07-02). D9 corrigida (sessão 14 — 2026-07-02). 12.1 concluída (sessão 15 — 2026-07-02), branch `feat/final-polish`. Próxima etapa: 12.2 (testar fluxo completo) em diante — validar visualmente o redesign em runtime (sombras Android, skeleton da Home, safe areas).
 - **12.1 (sessão 15):** resumo detalhado (o que mudou em cada categoria — cores, estrutura/Header, tipografia, componentes, tokens) está em `progress.md`, seção "Sessão 15". Ponto que mais importa para continuar: `src/components/Header.tsx` agora é usado por 13 telas e chama `useSafeAreaInsets`; qualquer teste novo que renderize uma tela com `<Header>` precisa mockar `react-native-safe-area-context` (ver `PublicProfileScreen.test.tsx` como referência).
 - `ReportsContext` (`src/contexts/ReportsContext.tsx`) expõe `reports`, `addReport`, `updateReportStatus`; seed em `src/mocks/reports.ts` (`MOCK_REPORTS`).
 - `ReportUserScreen` agora chama `addReport` ao enviar a denúncia (status inicial `"pending"`), além do `Alert` existente.
