@@ -8,30 +8,19 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import Avatar from "../components/Avatar";
 import Badge from "../components/Badge";
 import Button from "../components/Button";
+import Header from "../components/Header";
 import ReviewCard from "../components/ReviewCard";
 import RatingStars from "../components/RatingStars";
+import SectionCard from "../components/SectionCard";
+import StatsRow from "../components/StatsRow";
 import TrustBadges from "../components/TrustBadges";
 import { MOCK_RATINGS } from "../mocks/ratings";
 import { MOCK_USERS } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
+import { colors, LEVEL_META, SPORT_META } from "../theme";
 
 type Nav = NativeStackNavigationProp<AppRootStackParamList>;
 type Route = RouteProp<AppRootStackParamList, "PublicProfile">;
-
-const sportLabel: Record<string, string> = {
-  football: "Futebol",
-  volleyball: "Vôlei",
-  basketball: "Basquete",
-  futsal: "Futsal",
-  tennis: "Tênis",
-  other: "Outro",
-};
-
-const levelLabel: Record<string, string> = {
-  beginner: "Iniciante",
-  intermediate: "Intermediário",
-  advanced: "Avançado",
-};
 
 export default function PublicProfileScreen() {
   const navigation = useNavigation<Nav>();
@@ -46,62 +35,71 @@ export default function PublicProfileScreen() {
 
   if (!user) {
     return (
-      <View className="flex-1 items-center justify-center bg-neutral-50">
+      <View className="flex-1 items-center justify-center bg-secondary-50">
         <Text className="text-neutral-500">Usuário não encontrado.</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-neutral-50">
-      {/* Header */}
-      <View className="bg-secondary-900 pt-14 pb-4 px-4 flex-row items-center">
-        <Pressable
-          onPress={() => navigation.goBack()}
-          className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Voltar"
-          accessibilityRole="button"
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-        </Pressable>
-        <Text className="flex-1 text-white text-lg font-bold text-center mx-2" numberOfLines={1}>
-          {user.name}
-        </Text>
-        <Pressable
-          onPress={() => navigation.navigate("ReportUser", { userId: user.id })}
-          className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Denunciar usuário"
-          accessibilityRole="button"
-        >
-          <MaterialCommunityIcons name="flag-outline" size={22} color="#94A3B8" />
-        </Pressable>
-      </View>
+    <View className="flex-1 bg-secondary-50">
+      <Header
+        title={user.name}
+        onBack={() => navigation.goBack()}
+        rightElement={
+          <Pressable
+            onPress={() => navigation.navigate("ReportUser", { userId: user.id })}
+            className="w-10 h-10 items-center justify-center rounded-full bg-white/10 active:bg-white/20"
+            accessibilityLabel="Denunciar usuário"
+            accessibilityRole="button"
+          >
+            <MaterialCommunityIcons name="flag-outline" size={20} color={colors.secondary[400]} />
+          </Pressable>
+        }
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 32 }}
       >
         {/* Profile hero */}
-        <View className="bg-secondary-900 pb-6 px-4 items-center gap-3">
-          <Avatar name={user.name} photoUrl={user.photoUrl} size="xl" />
+        <View className="bg-secondary-900 pb-8 px-4 items-center gap-3 rounded-b-3xl">
+          <Avatar name={user.name} photoUrl={user.photoUrl} size="xl" ring />
           <View className="items-center gap-1">
             <View className="flex-row items-center gap-1.5">
-              <Text className="text-xl font-bold text-white">{user.name}</Text>
+              <Text className="text-xl font-bold text-white tracking-tight">{user.name}</Text>
               {user.isVerified && (
-                <MaterialCommunityIcons name="check-decagram" size={18} color="#2563EB" />
+                <MaterialCommunityIcons
+                  name="check-decagram"
+                  size={18}
+                  color={colors.primary[400]}
+                />
               )}
             </View>
             {user.location ? (
               <View className="flex-row items-center gap-1">
-                <MaterialCommunityIcons name="map-marker-outline" size={14} color="#94A3B8" />
-                <Text className="text-sm text-neutral-400">{user.location}</Text>
+                <MaterialCommunityIcons
+                  name="map-marker-outline"
+                  size={14}
+                  color={colors.secondary[400]}
+                />
+                <Text className="text-sm text-secondary-400">{user.location}</Text>
               </View>
             ) : null}
           </View>
           <RatingStars rating={user.averageRating} size="md" showValue />
         </View>
 
-        <View className="p-4 gap-4">
+        <View className="p-5 gap-4 -mt-4">
+          {/* Stats row */}
+          <StatsRow
+            stats={[
+              { value: user.matchesPlayed, label: "Partidas" },
+              { value: user.averageRating.toFixed(1), label: "Avaliação" },
+              { value: userReviews.length, label: "Avaliações" },
+            ]}
+          />
+
           {/* Trust badges */}
           <TrustBadges
             isVerified={user.isVerified}
@@ -109,54 +107,34 @@ export default function PublicProfileScreen() {
             averageRating={user.averageRating}
           />
 
-          {/* Stats row */}
-          <View className="flex-row gap-3">
-            <View className="flex-1 bg-white rounded-2xl p-4 items-center">
-              <Text className="text-2xl font-bold text-secondary-900">{user.matchesPlayed}</Text>
-              <Text className="text-xs text-neutral-500 mt-1">Partidas</Text>
-            </View>
-            <View className="flex-1 bg-white rounded-2xl p-4 items-center">
-              <Text className="text-2xl font-bold text-secondary-900">
-                {user.averageRating.toFixed(1)}
-              </Text>
-              <Text className="text-xs text-neutral-500 mt-1">Avaliação</Text>
-            </View>
-            <View className="flex-1 bg-white rounded-2xl p-4 items-center">
-              <Text className="text-2xl font-bold text-secondary-900">{userReviews.length}</Text>
-              <Text className="text-xs text-neutral-500 mt-1">Avaliações</Text>
-            </View>
-          </View>
-
           {/* Bio */}
           {user.bio ? (
-            <View className="bg-white rounded-2xl p-4">
-              <Text className="text-sm font-semibold text-secondary-900 mb-2">Sobre</Text>
+            <SectionCard title="Sobre">
               <Text className="text-sm text-neutral-600 leading-5">{user.bio}</Text>
-            </View>
+            </SectionCard>
           ) : null}
 
           {/* Sports */}
-          <View className="bg-white rounded-2xl p-4">
-            <Text className="text-sm font-semibold text-secondary-900 mb-3">
-              Esportes favoritos
-            </Text>
+          <SectionCard title="Esportes favoritos">
             <View className="flex-row flex-wrap gap-2">
               {user.favoriteSports.map((s) => (
-                <Badge key={s} variant="sport" sport={s} label={sportLabel[s]} />
+                <Badge key={s} variant="sport" sport={s} label={SPORT_META[s].label} />
               ))}
             </View>
-          </View>
+          </SectionCard>
 
           {/* Level */}
-          <View className="bg-white rounded-2xl p-4 flex-row items-center justify-between">
-            <Text className="text-sm font-semibold text-secondary-900">Nível de experiência</Text>
-            <Badge variant="level" level={user.level} label={levelLabel[user.level]} />
-          </View>
+          <SectionCard
+            title="Nível de experiência"
+            rightElement={
+              <Badge variant="level" level={user.level} label={LEVEL_META[user.level].label} />
+            }
+          />
 
           {/* Reviews */}
           {userReviews.length > 0 ? (
             <View className="gap-3">
-              <Text className="text-sm font-semibold text-secondary-900">
+              <Text className="text-base font-bold text-secondary-900 tracking-tight mt-1">
                 Avaliações recebidas ({userReviews.length})
               </Text>
               {userReviews.map((r) => (
@@ -164,14 +142,15 @@ export default function PublicProfileScreen() {
               ))}
             </View>
           ) : (
-            <View className="bg-white rounded-2xl p-4 items-center">
-              <Text className="text-sm text-neutral-400">Nenhuma avaliação ainda.</Text>
-            </View>
+            <SectionCard>
+              <Text className="text-sm text-neutral-500 text-center">Nenhuma avaliação ainda.</Text>
+            </SectionCard>
           )}
 
           {/* Report button */}
           <Button
             label="Denunciar usuário"
+            icon="flag-outline"
             onPress={() => navigation.navigate("ReportUser", { userId: user.id })}
             variant="ghost"
             fullWidth

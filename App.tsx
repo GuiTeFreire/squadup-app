@@ -19,7 +19,8 @@ export default function App() {
             <ReportsProvider>
               <MessagesProvider>
                 <MatchFiltersProvider>
-                  <StatusBar style="auto" />
+                  {/* Headers e heros são dark slate — status bar sempre clara */}
+                  <StatusBar style="light" />
                   <RootNavigator />
                 </MatchFiltersProvider>
               </MessagesProvider>

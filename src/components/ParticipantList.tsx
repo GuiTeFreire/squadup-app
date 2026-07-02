@@ -38,7 +38,7 @@ function ParticipantList({ participants, onPress }: ParticipantListProps) {
             <RatingStars rating={user.averageRating} size="sm" showValue={false} />
           </View>
           <View className="flex-row items-center gap-1">
-            <Text className="text-xs text-neutral-400">{user.matchesPlayed} partidas</Text>
+            <Text className="text-xs text-neutral-500">{user.matchesPlayed} partidas</Text>
             <MaterialCommunityIcons name="chevron-right" size={16} color="#CBD5E1" />
           </View>
         </Pressable>

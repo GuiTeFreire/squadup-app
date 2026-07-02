@@ -15,6 +15,10 @@ jest.mock("@react-navigation/native", () => ({
   useRoute: () => mockUseRoute(),
 }));
 
+jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
+}));
+
 jest.mock("../../contexts/ReportsContext", () => ({
   useReportsContext: () => mockUseReportsContext(),
 }));

@@ -6,8 +6,10 @@ import { FlatList, Pressable, Text, View } from "react-native";
 
 import Avatar from "../components/Avatar";
 import EmptyState from "../components/EmptyState";
+import Header from "../components/Header";
 import { useReportsContext } from "../contexts/ReportsContext";
 import type { AppRootStackParamList } from "../navigation/types";
+import { colors, shadows } from "../theme";
 import type { Report } from "../types";
 import { REASON_LABELS, STATUS_COLORS, STATUS_LABELS } from "../utils/reportLabels";
 
@@ -33,13 +35,18 @@ export default function AdminDashboardScreen() {
   );
   const pendingCount = reports.filter((r) => r.status === "pending").length;
 
+  let pendingText = "Nenhuma denúncia pendente";
+  if (pendingCount === 1) pendingText = "1 denúncia pendente";
+  else if (pendingCount > 1) pendingText = `${pendingCount} denúncias pendentes`;
+
   function renderItem({ item }: { item: Report }) {
     return (
       <Pressable
         onPress={() => navigation.navigate("ReportDetail", { reportId: item.id })}
         accessibilityRole="button"
         accessibilityLabel={`Denúncia contra ${item.reportedUser.name}`}
-        className="bg-white rounded-2xl p-4 mb-3 flex-row items-center gap-3"
+        className="bg-white rounded-2xl border border-neutral-100 p-4 mb-3 flex-row items-center gap-3 active:opacity-90"
+        style={shadows.card}
       >
         <Avatar name={item.reportedUser.name} photoUrl={item.reportedUser.photoUrl} size="md" />
         <View className="flex-1">
@@ -51,42 +58,36 @@ export default function AdminDashboardScreen() {
           </Text>
         </View>
         <View className={`self-start rounded-full px-3 py-1 ${STATUS_COLORS[item.status]}`}>
-          <Text className="text-xs font-medium">{STATUS_LABELS[item.status]}</Text>
+          <Text className="text-xs font-semibold">{STATUS_LABELS[item.status]}</Text>
         </View>
       </Pressable>
     );
   }
 
   return (
-    <View className="flex-1 bg-neutral-50">
-      <View className="bg-secondary-900 pt-14 pb-4 px-4 flex-row items-center">
-        <Pressable
-          onPress={() => navigation.goBack()}
-          className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Voltar"
-          accessibilityRole="button"
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-        </Pressable>
-        <Text className="flex-1 text-white text-lg font-bold text-center mx-2">
-          Painel administrativo
-        </Text>
-        <View className="w-9" />
-      </View>
+    <View className="flex-1 bg-secondary-50">
+      <Header title="Painel administrativo" onBack={() => navigation.goBack()} />
 
-      <Text className="text-sm text-neutral-500 px-4 pt-4 pb-2">
-        {pendingCount === 0
-          ? "Nenhuma denúncia pendente"
-          : `${pendingCount} denúncia${pendingCount > 1 ? "s" : ""} pendente${pendingCount > 1 ? "s" : ""}`}
-      </Text>
+      <View className="flex-row items-center gap-2 px-5 pt-5 pb-3">
+        <MaterialCommunityIcons
+          name="shield-alert-outline"
+          size={16}
+          color={pendingCount > 0 ? colors.warning : colors.neutral[500]}
+        />
+        <Text className="text-sm font-medium text-neutral-500">{pendingText}</Text>
+      </View>
 
       <FlatList
         data={sortedReports}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ padding: 16, paddingTop: 4, flexGrow: 1 }}
+        contentContainerStyle={{ padding: 20, paddingTop: 4, flexGrow: 1 }}
         ListEmptyComponent={
-          <EmptyState icon="🛡️" title="Sem denúncias" description="Nada para moderar por aqui." />
+          <EmptyState
+            icon="shield-check-outline"
+            title="Sem denúncias"
+            description="Nada para moderar por aqui."
+          />
         }
       />
     </View>

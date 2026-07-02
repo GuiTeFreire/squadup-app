@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import AdminDashboardScreen from "../screens/AdminDashboardScreen";
 import CreateMatchScreen from "../screens/CreateMatchScreen";
@@ -22,32 +23,43 @@ import type { AppRootStackParamList, AppTabParamList } from "./types";
 const Tab = createBottomTabNavigator<AppTabParamList>();
 const RootStack = createNativeStackNavigator<AppRootStackParamList>();
 
-type IconProps = { color: string };
-const HomeIcon = ({ color }: IconProps) => (
-  <MaterialCommunityIcons name="home-variant" size={24} color={color} />
+type IconProps = { color: string; focused: boolean };
+const HomeIcon = ({ color, focused }: IconProps) => (
+  <MaterialCommunityIcons
+    name={focused ? "home-variant" : "home-variant-outline"}
+    size={24}
+    color={color}
+  />
 );
-const SearchIcon = ({ color }: IconProps) => (
+const SearchIcon = ({ color }: Pick<IconProps, "color">) => (
   <MaterialCommunityIcons name="magnify" size={24} color={color} />
 );
-const CreateIcon = ({ color }: IconProps) => (
-  <MaterialCommunityIcons name="plus-circle-outline" size={24} color={color} />
+const CreateIcon = ({ color, focused }: IconProps) => (
+  <MaterialCommunityIcons
+    name={focused ? "plus-circle" : "plus-circle-outline"}
+    size={24}
+    color={color}
+  />
 );
-const ProfileIcon = ({ color }: IconProps) => (
-  <MaterialCommunityIcons name="account-outline" size={24} color={color} />
+const ProfileIcon = ({ color, focused }: IconProps) => (
+  <MaterialCommunityIcons name={focused ? "account" : "account-outline"} size={24} color={color} />
 );
 
 function AppTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#2563EB",
+        tabBarActiveTintColor: "#3B82F6",
         tabBarInactiveTintColor: "#64748B",
         tabBarStyle: {
           backgroundColor: "#0F172A",
-          borderTopColor: "#1E293B",
-          height: 60,
-          paddingBottom: 8,
+          borderTopWidth: 0,
+          elevation: 0,
+          height: 62 + insets.bottom,
+          paddingTop: 8,
+          paddingBottom: insets.bottom + 8,
         },
         tabBarLabelStyle: {
           fontSize: 11,

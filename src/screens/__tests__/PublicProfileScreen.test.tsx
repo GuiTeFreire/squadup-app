@@ -12,6 +12,10 @@ jest.mock("@react-navigation/native", () => ({
   useRoute: () => mockUseRoute(),
 }));
 
+jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
+}));
+
 beforeEach(() => {
   jest.clearAllMocks();
 });
@@ -46,8 +50,8 @@ describe("PublicProfileScreen — usuário com avaliações (Ana Lima, user-2)",
 
   it("exibe os esportes favoritos como badges", () => {
     render(<PublicProfileScreen />);
-    expect(screen.getByText("🏐 Vôlei")).toBeTruthy();
-    expect(screen.getByText("🏀 Basquete")).toBeTruthy();
+    expect(screen.getByText("Vôlei")).toBeTruthy();
+    expect(screen.getByText("Basquete")).toBeTruthy();
   });
 
   it("exibe o nível de experiência", () => {

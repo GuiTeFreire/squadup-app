@@ -3,6 +3,10 @@ import React from "react";
 
 import Header from "../Header";
 
+jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
+}));
+
 describe("Header", () => {
   it("renders the title", () => {
     render(<Header title="Minhas Partidas" />);

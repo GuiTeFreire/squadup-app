@@ -572,3 +572,211 @@ Regra 60-30-10: 60% branco/slate claro · 30% dark slate · 10% electric blue.
 - Fase 11 **100% concluída** (3/3 tarefas) — roadmap também corrigido: Fase 10 estava marcada como "A fazer" por desatualização, já estava concluída desde a sessão 12
 - Próxima fase: **Fase 12 — Revisão e polimento final** (12.1 a 12.8, ver `.status/queue.md`)
 - Ponto exato de retomada: corrigir a dívida técnica **D9** (`src/screens/RateUserScreen.tsx:78` — `user` possivelmente `undefined` no `tsc`, dentro da mensagem do `Alert.alert` em `handleSubmit`) como primeiro passo da Fase 12, depois seguir para 12.1 (revisão de consistência visual)
+
+---
+
+## Sessão 14 — 2026-07-02
+
+### Dívida técnica D9 corrigida
+
+`src/screens/RateUserScreen.tsx` — adicionado `if (!user) return;` no início de `handleSubmit`. Causa raiz: o narrowing de `if (!match || !user) return` no corpo do componente não se propaga para dentro de closures aninhadas como `handleSubmit` (limitação conhecida do TypeScript com controle de fluxo em funções aninhadas) — é preciso repetir o guard dentro da própria função.
+
+### Resultado dos testes
+
+- **181 testes, 20 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅
+- `npx tsc --noEmit` zero erros ✅ (primeira vez zerado desde que a dívida foi identificada)
+
+### Estado ao final da sessão 14
+
+- Merge branch `fix/rate-user-tsc-d9` → `dev`
+- Nenhuma branch nova criada para a Fase 12 ainda
+- Próxima ação: Fase 12, branch sugerida `feat/final-polish`, começar por 12.1
+
+---
+
+## Sessão 15 — 2026-07-02
+
+### Fase 12 — Revisão e polimento final (tarefa 12.1 concluída, branch `feat/final-polish`)
+
+| # | Tarefa | Observação |
+|---|--------|------------|
+| 12.1 | Revisar consistência visual entre todas as telas | Auditoria (agente Explore, leitura integral de 18 telas + 15 componentes) encontrou 25 inconsistências em 5 categorias: cores fora do design system, espaçamento fora da escala, tipografia inconsistente, border-radius divergente, estrutura duplicada entre telas. Todas as 25 corrigidas nesta sessão. |
+
+### Auditoria — achados e correções
+
+**Cores**
+- `amber-*` (paleta padrão do Tailwind, vazando por engano) substituído pelo token `warning` (`#F59E0B`) em estrelas de avaliação, badges de destaque, status "pendente" e avisos — arquivos: `RatingStars.tsx`, `StarRatingInput.tsx`, `TrustBadges.tsx`, `ReviewCard.tsx`, `reportLabels.ts`, `ReportUserScreen.tsx`.
+- `primary-600` (reservado ao estado `active:`/pressed em `Button.tsx`) estava sendo usado como cor de repouso em `ChatInput.tsx`, `MessageBubble.tsx` e `PostMatchRatingScreen.tsx` — corrigido para `primary-500`.
+- `placeholderTextColor` padronizado para `#9CA3AF` (neutral-400, o mesmo tom já usado em `Input.tsx`) em `ChatInput.tsx`, `RateUserScreen.tsx`, `ReportUserScreen.tsx`.
+
+**Estrutura**
+- `src/components/Header.tsx` reescrito — antes era um componente morto (nenhuma tela importava), agora centraliza o cabeçalho das 13 telas que duplicavam manualmente o bloco `bg-secondary-900 pt-14 ...`. Nova API: `title`, `subtitle?`, `onBack?`, `rightElement?`, `variant?: "compact"|"large"`, `children?`. Usa `useSafeAreaInsets` (`react-native-safe-area-context`) em vez do `pt-14` fixo, corrigindo um risco real de quebra visual em aparelhos com notch/status bar de altura diferente.
+- Telas migradas para `<Header>`: `HomeScreen`, `SearchScreen`, `CreateMatchScreen` (`variant="large"`), `MyProfileScreen`, `PublicProfileScreen`, `AdminDashboardScreen`, `ReportDetailScreen`, `ReportUserScreen`, `MatchDetailScreen`, `EditProfileScreen`, `PostMatchRatingScreen`, `RateUserScreen`, `MatchChatScreen` (`subtitle` para contagem de participantes).
+- `FiltersScreen.tsx` — botão de aplicar filtros agora usa o componente `Button` compartilhado (antes recriava um `Pressable` à mão, perdendo estados padronizados de `active:`).
+
+**Tipografia**
+- Rótulos de seção/card padronizados para `text-sm font-semibold text-secondary-900` (removendo variações de tamanho, cor e `uppercase`) em `FiltersScreen.tsx`, `ProfileSetupScreen.tsx` e `ReportDetailScreen.tsx` (que também tinha os textos em CAIXA ALTA manual, normalizados para sentence case).
+- `WelcomeScreen.tsx`: `leading-relaxed` (valor não numérico, fora do padrão) trocado por `leading-5` (consistente com o restante do texto `text-sm`).
+
+**Componentes**
+- `Input.tsx` ganhou suporte a `multiline` (com `textAlignVertical` e `minHeight` automáticos), eliminando dois blocos de `TextInput` com estilo inline duplicado byte a byte em `RateUserScreen.tsx` e `ReportUserScreen.tsx`.
+- `Card.tsx`: `rounded-xl` → `rounded-2xl` — o componente era o outlier (30+ lugares no app já usavam `rounded-2xl` manualmente para o mesmo tipo de card branco).
+
+**Design tokens**
+- `tailwind.config.js`: escala `spacing` formalizada com as chaves `0.5, 1.5, 2.5, 9, 11` — valores que já eram usados em várias telas via fallback do Tailwind (não documentados no design system customizado).
+
+**Não corrigido (limitação técnica registrada como dívida D10)**
+- NativeWind v4 instalado não suporta `contentContainerClassName`; os `contentContainerStyle={{ padding, gap }}` em pixels em várias telas permanecem como `style` inline em vez de classes Tailwind.
+
+### Testes ajustados
+
+Toda tela que renderiza `<Header>` chama `useSafeAreaInsets()`, que lança erro fora de um `<SafeAreaProvider>`. Adicionado `jest.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }) }))` em: `Header.test.tsx`, `PublicProfileScreen.test.tsx`, `AdminDashboardScreen.test.tsx`, `ReportDetailScreen.test.tsx`, `ReportUserScreen.test.tsx`, `MatchDetailScreen.test.tsx`, `CreateMatchScreen.test.tsx`.
+
+### Resultado dos testes
+
+- **181 testes, 20 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅ (após `npm run lint:fix` para CRLF → LF, dívida D4)
+- `npx tsc --noEmit` zero erros ✅
+
+### Estado ao final da sessão 15
+
+- Branch `feat/final-polish` criada a partir de `dev` — commit pendente (ver checkpoint em `.status/queue.md`)
+- Fase 12: 1/8 concluída (12.1)
+- Próxima ação: tarefa 12.2 — testar o fluxo completo (happy path: Welcome → Login → Home → MatchDetail → Chat → Avaliação) rodando o app via `npm start` (Expo Go ou emulador)
+
+---
+
+## Sessão 16 — 2026-07-02
+
+### Redesign visual premium (transversal — branch `feat/final-polish`)
+
+Overhaul completo da interface para padrão B2C de mercado, mantendo a identidade Electric Blue + Dark Slate e 100% da funcionalidade/navegação. Zero mudanças de regra de negócio.
+
+#### Fundação — `src/theme/index.ts` (novo)
+
+Fonte única de verdade para estilos fora do NativeWind:
+- `colors` — espelho tipado do `tailwind.config.js`; substituiu ~40 hex codes hardcoded em props `color` de ícones espalhados por 20+ arquivos.
+- `shadows` — sistema de elevação com 4 presets (`card`, `raised`, `floating`, `cta`) combinando sombra iOS + `elevation` Android; aplicado via `style`.
+- `SPORT_META` — identidade por esporte: ícone vetorial + cor de categoria + bg tint (futebol esmeralda, vôlei violeta, basquete laranja, tênis lima, futsal teal, outro slate). Fim dos emojis como iconografia.
+- `LEVEL_META` — labels centralizados de nível (eliminou 6 cópias de `levelLabel`/`LEVEL_LABELS`).
+
+#### Componentes novos
+
+| Componente | Papel |
+|-----------|-------|
+| `SectionCard` | Card branco com título/subtítulo/rightElement — substituiu ~20 blocos `bg-white rounded-2xl p-4` duplicados |
+| `Chip` | Pill selecionável única (ícone, sublabel, tone primary/danger, roles radio/checkbox) — substituiu 5 implementações duplicadas |
+| `SportTile` | Tile quadrado com ícone + cor do esporte — âncora visual de MatchCard e MatchDetail |
+| `StatsRow` | Linha de métricas em cards — desduplicou stats dos 2 perfis |
+| `Skeleton` + `MatchCardSkeleton` | Loading pulsante (Animated loop) — usado na Home |
+
+#### Componentes elevados
+
+- `Button` — alturas fixas (h-10/12/14), `rounded-2xl`, prop `icon`, variant `danger`, glow azul no CTA primário, scale 0.98 no press, ghost agora `bg-secondary-100`.
+- `Card` — sombra real (`shadows.card`), prop `raised`, microinteração de press.
+- `Badge` — sport variant usa ícone vetorial + cores de categoria via `SPORT_META` (sem emoji).
+- `Avatar` — fallback sólido `primary-500` com iniciais brancas em bold, prop `ring` (anel branco para heros), `xl` 96px.
+- `EmptyState` — ícone `MaterialCommunityIcons` em círculo suave (prop `icon` agora é nome MCI, não emoji).
+- `RatingStars` / `StarRatingInput` — estrelas vetoriais (`star`/`star-half-full`/`star-outline`) em vez de texto "★"; input com scale no press.
+- `Header` — botão voltar em pill `bg-white/10`, large variant com `text-3xl` + subtitle.
+- `Input` — borda 1.5px, prop `leftIcon` com cor reativa a focus/erro, erro com ícone.
+- `ChatInput`/`MessageBubble` — send button maior com scale, bolhas `rounded-3xl` com cauda `rounded-b*-md`, sombra em bolhas de terceiros.
+- `ReviewCard` — usa `Card` + chip de destaque com ícone de troféu.
+
+#### Telas redesenhadas (todas as 18)
+
+- **Home** — hero header com saudação personalizada + avatar com anel, busca h-12, quick-filters horizontais por esporte (integrados ao `MatchFiltersContext`), section title com contagem, skeleton screen de 700ms no primeiro load.
+- **MatchCard** — layout novo: SportTile + eyebrow colorido (`FUTEBOL · INTERMEDIÁRIO`) + título, meta com ícones, barra de vagas, footer com organizador + tags pill.
+- **MatchDetail** — hero com SportTile 56 + eyebrow, `InfoRow` com ícones em tiles azuis, SectionCards, bottom bar com `useSafeAreaInsets` + sombra floating, botões com ícones.
+- **Welcome** — glow decorativo, tiles de esporte com cores de categoria, CTA invertido (Criar conta = primário).
+- **Login/Register/ProfileSetup** — inputs com ícones, câmera badge no avatar, footer link no Register, `StatusBar dark` local (global agora `light`).
+- **Perfis (My/Public)** — hero com avatar ring + `rounded-b-3xl`, StatsRow sobreposta (-mt-4), SectionCards, botões com ícones.
+- **CreateMatch** — chips de esporte com ícones coloridos, toggles com descrição, header com subtitle.
+- **Filters** — Chips, checkbox `rounded-lg` com `check-bold`, footer com sombra floating.
+- **Chat/PostMatchRating/RateUser/ReportUser/Admin** — SectionCards, EmptyStates vetoriais, bottom bars com safe area, denúncia com tone danger, "Banir usuário" com variant `danger`.
+- **Tab bar** — altura fixa removida (safe area correta em iPhones com home indicator), ícones filled/outline por foco, `borderTopWidth: 0`.
+
+#### Tokens ajustados (`tailwind.config.js`)
+
+- `borderRadius`: `2xl` 24→20px (mais moderno), `3xl` 28px adicionado.
+- `letterSpacing`: valores em px (RN não suporta `em`) — `tracking-tight`/`wide` agora funcionam.
+
+#### Testes atualizados
+
+- `Badge.test` — emoji prefix → ícone vetorial (`getByTestId("icon-soccer")`).
+- `EmptyState.test` — emojis → testIDs de ícones MCI.
+- `PublicProfileScreen.test` — `"🏐 Vôlei"` → `"Vôlei"`.
+
+### Resultado dos testes
+
+- **181 testes, 20 suítes, 0 falhas** — `npm run test` ✅
+- `npm run lint` zero erros ✅ (após `npm run lint:fix`, dívida D4)
+- `npx tsc --noEmit` zero erros ✅
+
+### Estado ao final da sessão 16
+
+- Branch `feat/final-polish` — redesign completo, commit pendente
+- Fase 12 permanece 1/8 (redesign foi trabalho transversal, não tarefa numerada)
+
+---
+
+## Sessão 17 — 2026-07-02
+
+### Fase 12.2 — Testar fluxo completo (happy path)
+
+Sem emulador/dispositivo físico disponível no ambiente (sandbox Windows headless), o fluxo foi validado via `npm run web` (Metro bundler para web, porta 8081) dirigido por Playwright (Chromium headless), navegando pela UI real como um usuário faria — sem mocks de teste, sem `jest`.
+
+Rota percorrida: Welcome → Login (mock) → Home → MatchDetail (partida já confirmada) → Chat (envio de mensagem) → Home (busca) → MatchDetail (partida encerrada) → PostMatchRating → RateUser (envio de avaliação).
+
+| Tela | Resultado |
+|------|-----------|
+| Welcome | OK — hero, tiles de esporte, stats, CTAs renderizam conforme redesign da sessão 16 |
+| Login | OK — validação de e-mail/senha, mock aceita qualquer credencial válida |
+| Home | OK — skeleton inicial, busca, quick-filters por esporte, cards com barra de vagas |
+| MatchDetail (confirmado) | OK — estado "Você está confirmado", botão Chat da partida |
+| MatchChat | OK — histórico mockado, envio de mensagem via botão enviar |
+| MatchDetail (encerrada) | OK — botão "Avaliar participantes" visível só quando `status: closed` + usuário confirmado |
+| PostMatchRating → RateUser | OK — 5 critérios com estrelas, submissão grava a avaliação (`hasRated` passa a `true`, badge "Avaliado" aparece na lista) |
+
+Nenhum erro de console/página JS em nenhuma etapa.
+
+#### Achados (não bloqueantes para esta tarefa, registrados para tarefas futuras)
+
+- **`Alert.alert` não produz diálogo em `react-native-web`** (sem polyfill instalado): em `RateUserScreen`, `ReportUserScreen`, `ReportDetailScreen` e no cancelamento de participação em `MatchDetailScreen`, o `Alert.alert(...)` é chamado mas não renderiza nada no browser — a ação de dados ocorre normalmente (confirmado: `submitRating` grava e o badge "Avaliado" reflete o estado), mas o callback de `onPress` do botão "OK" (que faz `navigation.goBack()`) nunca dispara, deixando o usuário "preso" na tela sem feedback visual. Em Expo Go / iOS / Android nativo isso funciona normalmente — é uma limitação conhecida do `react-native-web` sem polyfill, não uma regressão desta sessão. Relevante para 12.3 (testar em Expo Go) confirmar que funciona nativamente, e para decidir se vale a pena um polyfill de `Alert` caso a apresentação use `npm run web` em vez de dispositivo/emulador.
+- **Timestamp de mensagem enviada no chat usa hora real (`new Date().toLocaleTimeString()`)** em `MessagesContext.sendMessage`, enquanto o histórico mockado usa horários fictícios fixos (ex.: 09:10–09:42) — mensagem nova pode aparecer com horário "menor" que mensagens anteriores da conversa, quebrando a ordem cronológica visual. Cosmético, relevante para 12.7 (revisar dados mockados para coerência narrativa).
+
+### Fase 12.5 e 12.6 — Lint e testes automatizados
+
+`npm run lint` e `npx tsc --noEmit` zero erros. `npm run test`: 181/181 testes, 20 suítes, 0 falhas. Nenhuma mudança de código necessária — suíte já estava saudável desde a sessão 16.
+
+### Fase 12.4 — Acessibilidade básica
+
+Auditoria feita por subagente dedicado (leitura de todos os `src/components/*.tsx` e `src/screens/*.tsx`, cálculo de contraste WCAG por luminância relativa para as combinações de cor mais usadas). Cobertura de `accessibilityLabel` já era boa (herdada do redesign da sessão 16); dois problemas concretos corrigidos:
+
+- **`Card.tsx`** — `Pressable` do card inteiro não tinha `accessibilityLabel` próprio; leitor de tela concatenava todos os `Text` internos em ordem confusa. Adicionada prop opcional `accessibilityLabel` ao componente; `MatchCard.tsx` agora monta `` `${título}, ${esporte}, ${data} às ${horário}, ${local}` ``.
+- **Contraste insuficiente** (abaixo de 4.5:1 para texto/3:1 para ícones informativos): `text-neutral-400` (~2.54:1 sobre branco) trocado por `text-neutral-500` (~4.83:1) em 15 arquivos (20 ocorrências) — `HomeScreen`, `SearchScreen`, `MatchDetailScreen`, `MatchChatScreen`, `CreateMatchScreen`, `PostMatchRatingScreen`, `RateUserScreen`, `PublicProfileScreen`, `ReportUserScreen`, `Button`, `ParticipantList`, `MessageBubble`, `Chip`, `SectionCard`, `ReviewCard`. `colors.neutral[400]` (ícone/placeholder) trocado por `colors.neutral[500]` em `Input.tsx` e `ChatInput.tsx`. Placeholder/ícone de busca em fundo escuro (`colors.secondary[500]` a ~3.07:1) trocado por `colors.secondary[400]` (mesmo tom já usado no ícone de lupa) em `HomeScreen.tsx` e `SearchScreen.tsx`.
+- **Não corrigido (nice-to-have, não bloqueante):** ícone `check-decagram` (selo de verificado) sem texto alternativo para leitor de tela em 6 arquivos (`ParticipantList`, `MatchDetailScreen`, `PublicProfileScreen`, `MyProfileScreen`, `RateUserScreen`, `PostMatchRatingScreen`) — ícone informativo, mas sozinho sem `accessibilityLabel`/texto "Verificado" próximo.
+
+Verificado visualmente após a mudança (`npm run web` + Playwright): busca, cards e perfil renderizam normalmente, sem regressão visual perceptível — o tom de cinza fica muito próximo do anterior.
+
+### Fase 12.7 — Coerência dos dados mockados
+
+Auditoria por subagente dedicado (leitura de `src/mocks/{users,matches,messages,ratings,reports}.ts`). Achados bloqueantes corrigidos:
+
+- **`matches.ts`, `match-3`** — tinha `allowBeginners: false` mas Juliana Costa (nível `beginner`) estava confirmada como participante, sem explicação. Corrigido para `allowBeginners: true` (a partida já tem `requiresApproval: true`, então o cenário coerente é o organizador aceitar uma exceção via aprovação manual).
+- **`ratings.ts` (todas as 7 avaliações) e `reports.ts` (`report-4`)** — referenciavam partidas ainda `status: "open"`/`"full"` com `createdAt` **anterior** à data da partida (avaliações/denúncia registradas antes do jogo acontecer) — e, ao mesmo tempo, `match-13` (a única partida `status: "closed"` do mock, cuja descrição pede explicitamente "Avalie os participantes!") não tinha nenhuma avaliação ou denúncia associada. Corrigido reapontando todas para `match-13` — seus participantes confirmados (guilherme, thiago, rafael, beatriz, ana) batem exatamente com quem já aparecia nas avaliações — com `createdAt` recalculado para depois da partida (`2026-05-10`/`2026-05-11`, a partida terminou por volta de 11h).
+- **`matches.ts`, `match-11`** — local "Clube Caiçaras" (um clube real em São Paulo) destoava dos demais locais do mock, todos no Rio de Janeiro. Trocado por "Clube Fluminense — Quadra 4, Laranjeiras".
+- **Não corrigido (cosmético, já documentado na 12.2):** timestamp de mensagem nova no chat usa hora real (`new Date()`) misturado com histórico mockado de horários fixos; nenhuma partida usa o status `pending_approval` apesar de existir no tipo; `matchesPlayed` dos usuários é bem maior que o volume de partidas do mock (esperado em dataset pequeno de protótipo).
+
+`MOCK_RATINGS` é consumido apenas por `PublicProfileScreen`/`MyProfileScreen` (lista de avaliações recebidas no perfil) — é um dataset estático independente do `RatingsContext.submittedRatings` (que começa vazio a cada sessão e alimenta o fluxo interativo de "Avaliar participantes"), então repontar o campo `match` não afeta o fluxo de avaliação pós-partida testado na 12.2. Confirmado visualmente: perfil de Beatriz Rocha mostra a avaliação de Ana Lima com data "11 de mai. de 2026", um dia após a partida.
+
+### Validação final
+
+`npm run lint` zero erros · `npx tsc --noEmit` zero erros · `npm run test` 181/181 passando (sem alteração de testes) · verificação visual via `npm run web` + Playwright sem erros de console.
+
+### Estado ao final da sessão 17
+
+- Branch `feat/final-polish`, working tree com alterações em `.status/*`, `src/components/{Card,MatchCard,Input,ChatInput}.tsx`, `src/screens/{HomeScreen,SearchScreen,AdminDashboardScreen,CreateMatchScreen,MatchChatScreen,MatchDetailScreen,ParticipantList,PostMatchRatingScreen,RateUserScreen,PublicProfileScreen,ReportUserScreen,MessageBubble,Chip,SectionCard,ReviewCard,Button}.tsx` (troca de tom de cinza) e `src/mocks/{matches,ratings,reports}.ts`
+- Fase 12: 12.1, 12.2, 12.4, 12.5, 12.6, 12.7 concluídas (6/8). Restam 12.3 (Expo Go iOS/Android — requer dispositivo/emulador do usuário) e 12.8 (build de apresentação)
+- Nenhum bug pendente — parada é limpa, entre tarefas

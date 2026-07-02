@@ -2,11 +2,13 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { memo, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 
+import { colors, shadows } from "../theme";
+
 interface ChatInputProps {
   onSend: (text: string) => void;
 }
 
-function ChatInput({ onSend }: ChatInputProps) {
+function ChatInput({ onSend }: Readonly<ChatInputProps>) {
   const [text, setText] = useState("");
 
   const canSend = text.trim().length > 0;
@@ -18,17 +20,17 @@ function ChatInput({ onSend }: ChatInputProps) {
   }
 
   return (
-    <View className="flex-row items-end bg-white border-t border-neutral-100 px-4 py-3 gap-2">
+    <View className="flex-row items-end bg-white px-4 py-3 gap-2.5" style={shadows.floating}>
       <TextInput
         value={text}
         onChangeText={setText}
         placeholder="Mensagem..."
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor={colors.neutral[500]}
         multiline
         maxLength={500}
         onSubmitEditing={handleSend}
-        className="flex-1 bg-neutral-100 rounded-2xl px-4 py-2.5 text-sm text-secondary-900 max-h-28"
-        style={{ minHeight: 40 }}
+        className="flex-1 bg-secondary-100 rounded-3xl px-4 py-2.5 text-sm text-secondary-900 max-h-28"
+        style={{ minHeight: 44 }}
         accessibilityLabel="Campo de mensagem"
       />
       <Pressable
@@ -36,11 +38,16 @@ function ChatInput({ onSend }: ChatInputProps) {
         disabled={!canSend}
         accessibilityLabel="Enviar mensagem"
         accessibilityRole="button"
-        className={`w-10 h-10 rounded-full items-center justify-center ${
-          canSend ? "bg-primary-600" : "bg-neutral-200"
+        className={`w-11 h-11 rounded-full items-center justify-center ${
+          canSend ? "bg-primary-500" : "bg-secondary-100"
         }`}
+        style={({ pressed }) => (pressed && canSend ? { transform: [{ scale: 0.92 }] } : undefined)}
       >
-        <MaterialCommunityIcons name="send" size={18} color={canSend ? "#ffffff" : "#94A3B8"} />
+        <MaterialCommunityIcons
+          name="send"
+          size={18}
+          color={canSend ? colors.white : colors.secondary[400]}
+        />
       </Pressable>
     </View>
   );

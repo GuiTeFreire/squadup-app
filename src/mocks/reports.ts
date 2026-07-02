@@ -4,6 +4,7 @@ import { MOCK_USERS } from "./users";
 
 const [guilherme, ana, rafael, juliana, thiago, beatriz] = MOCK_USERS;
 const [match1, match2] = MOCK_MATCHES;
+const closedMatch = MOCK_MATCHES.find((m) => m.id === "match-13")!;
 
 export const MOCK_REPORTS: Report[] = [
   {
@@ -39,10 +40,10 @@ export const MOCK_REPORTS: Report[] = [
     id: "report-4",
     reportedUser: ana,
     reporterUser: beatriz,
-    match: match1,
+    match: closedMatch,
     reason: "violence",
     description: "Empurrou outro participante após uma jogada mais dura.",
-    createdAt: "2026-05-15T20:00:00Z",
+    createdAt: "2026-05-10T11:30:00Z",
     status: "archived",
   },
 ];

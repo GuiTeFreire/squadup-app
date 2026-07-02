@@ -6,31 +6,18 @@ import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 
 import Avatar from "../components/Avatar";
 import Button from "../components/Button";
+import Chip from "../components/Chip";
+import Header from "../components/Header";
 import Input from "../components/Input";
 import { CURRENT_USER } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
+import { colors, LEVEL_META, SPORT_META } from "../theme";
 import type { ExperienceLevel, Sport } from "../types";
 
 type Nav = NativeStackNavigationProp<AppRootStackParamList>;
 
 const SPORTS: Sport[] = ["football", "volleyball", "basketball", "tennis", "futsal", "other"];
-
-const SPORT_LABELS: Record<Sport, string> = {
-  football: "⚽ Futebol",
-  volleyball: "🏐 Vôlei",
-  basketball: "🏀 Basquete",
-  tennis: "🎾 Tênis",
-  futsal: "🥅 Futsal",
-  other: "🏃 Outro",
-};
-
 const LEVELS: ExperienceLevel[] = ["beginner", "intermediate", "advanced"];
-
-const LEVEL_LABELS: Record<ExperienceLevel, string> = {
-  beginner: "Iniciante",
-  intermediate: "Intermediário",
-  advanced: "Avançado",
-};
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<Nav>();
@@ -79,37 +66,30 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <View className="flex-1 bg-neutral-50">
-      {/* Header */}
-      <View className="bg-secondary-900 pt-14 pb-4 px-4 flex-row items-center">
-        <Pressable
-          onPress={() => navigation.goBack()}
-          className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Voltar"
-          accessibilityRole="button"
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-        </Pressable>
-        <Text className="flex-1 text-white text-lg font-bold text-center mx-2">Editar perfil</Text>
-        <View className="w-9" />
-      </View>
+    <View className="flex-1 bg-secondary-50">
+      <Header title="Editar perfil" onBack={() => navigation.goBack()} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
       >
         {/* Photo */}
-        <View className="items-center mb-6">
+        <View className="items-center mb-8">
           <Pressable onPress={handlePhotoPress} accessibilityLabel="Alterar foto de perfil">
-            <Avatar name={name || user.name} photoUrl={user.photoUrl} size="xl" />
-            <View className="mt-2">
-              <Text className="text-sm text-primary-500 text-center font-medium">Alterar foto</Text>
+            <View>
+              <Avatar name={name || user.name} photoUrl={user.photoUrl} size="xl" />
+              <View className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary-500 border-2 border-white items-center justify-center">
+                <MaterialCommunityIcons name="camera" size={15} color={colors.white} />
+              </View>
             </View>
+            <Text className="mt-3 text-sm text-primary-500 text-center font-semibold">
+              Alterar foto
+            </Text>
           </Pressable>
         </View>
 
-        <View className="gap-4">
+        <View className="gap-5">
           {/* Name */}
           <Input
             label="Nome"
@@ -118,6 +98,7 @@ export default function EditProfileScreen() {
             error={nameError}
             placeholder="Seu nome"
             autoCapitalize="words"
+            leftIcon="account-outline"
           />
 
           {/* Bio */}
@@ -127,6 +108,7 @@ export default function EditProfileScreen() {
             onChangeText={setBio}
             placeholder="Conte um pouco sobre você e seu estilo de jogo"
             autoCapitalize="sentences"
+            multiline
           />
 
           {/* Location */}
@@ -137,44 +119,31 @@ export default function EditProfileScreen() {
             error={locationError}
             placeholder="Ex: Botafogo, Rio de Janeiro"
             autoCapitalize="words"
+            leftIcon="map-marker-outline"
           />
 
           {/* Sports */}
           <View>
-            <Text className="text-sm font-semibold text-secondary-900 mb-3">
-              Esportes favoritos
-            </Text>
-            <View className="flex-row flex-wrap">
-              {SPORTS.map((sport) => {
-                const selected = selectedSports.includes(sport);
-                return (
-                  <Pressable
-                    key={sport}
-                    onPress={() => toggleSport(sport)}
-                    accessibilityRole="checkbox"
-                    accessibilityState={{ checked: selected }}
-                    accessibilityLabel={SPORT_LABELS[sport]}
-                    className={`mr-2 mb-2 px-4 py-2 rounded-full border ${
-                      selected ? "bg-primary-500 border-primary-500" : "bg-white border-neutral-300"
-                    }`}
-                  >
-                    <Text
-                      className={`text-sm font-medium ${selected ? "text-white" : "text-neutral-700"}`}
-                    >
-                      {SPORT_LABELS[sport]}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+            <Text className="text-sm font-bold text-secondary-900 mb-3">Esportes favoritos</Text>
+            <View className="flex-row flex-wrap gap-2">
+              {SPORTS.map((sport) => (
+                <Chip
+                  key={sport}
+                  label={SPORT_META[sport].label}
+                  icon={SPORT_META[sport].icon}
+                  iconColor={SPORT_META[sport].color}
+                  selected={selectedSports.includes(sport)}
+                  onPress={() => toggleSport(sport)}
+                  accessibilityRole="checkbox"
+                />
+              ))}
             </View>
           </View>
 
           {/* Level */}
           <View>
-            <Text className="text-sm font-semibold text-secondary-900 mb-3">
-              Nível de experiência
-            </Text>
-            <View className="flex-row">
+            <Text className="text-sm font-bold text-secondary-900 mb-3">Nível de experiência</Text>
+            <View className="flex-row gap-2">
               {LEVELS.map((lvl) => {
                 const selected = level === lvl;
                 return (
@@ -183,15 +152,17 @@ export default function EditProfileScreen() {
                     onPress={() => setLevel(lvl)}
                     accessibilityRole="radio"
                     accessibilityState={{ checked: selected }}
-                    accessibilityLabel={LEVEL_LABELS[lvl]}
-                    className={`flex-1 mx-1 py-3 rounded-lg border items-center ${
-                      selected ? "bg-primary-500 border-primary-500" : "bg-white border-neutral-300"
+                    accessibilityLabel={LEVEL_META[lvl].label}
+                    className={`flex-1 py-3.5 rounded-xl border items-center ${
+                      selected ? "bg-primary-500 border-primary-500" : "bg-white border-neutral-200"
                     }`}
                   >
                     <Text
-                      className={`text-sm font-semibold ${selected ? "text-white" : "text-neutral-700"}`}
+                      className={`text-sm font-semibold ${
+                        selected ? "text-white" : "text-neutral-600"
+                      }`}
                     >
-                      {LEVEL_LABELS[lvl]}
+                      {LEVEL_META[lvl].label}
                     </Text>
                   </Pressable>
                 );
@@ -199,7 +170,14 @@ export default function EditProfileScreen() {
             </View>
           </View>
 
-          <Button label="Salvar alterações" onPress={handleSave} variant="primary" fullWidth />
+          <Button
+            label="Salvar alterações"
+            icon="check"
+            onPress={handleSave}
+            variant="primary"
+            size="lg"
+            fullWidth
+          />
         </View>
       </ScrollView>
     </View>

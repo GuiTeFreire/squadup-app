@@ -3,23 +3,23 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React from "react";
 import { Text, View } from "react-native";
-
-import SquadUpLogo from "../../assets/squadup_logo_dark.svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import SquadUpLogo from "../../assets/squadup_logo_dark.svg";
 import Button from "../components/Button";
 import type { AuthStackParamList } from "../navigation/types";
+import { SPORT_META } from "../theme";
+import type { Sport } from "../types";
 
 type WelcomeNavProp = NativeStackNavigationProp<AuthStackParamList, "Welcome">;
 
-type SportIcon = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+const SPORTS: Sport[] = ["football", "basketball", "volleyball", "tennis"];
 
-const SPORTS: { icon: SportIcon; label: string }[] = [
-  { icon: "soccer", label: "Futebol" },
-  { icon: "basketball", label: "Basquete" },
-  { icon: "volleyball", label: "Vôlei" },
-  { icon: "tennis", label: "Tênis" },
-];
+const STATS = [
+  { value: "10k+", label: "Jogadores" },
+  { value: "500+", label: "Partidas/mês" },
+  { value: "6", label: "Esportes" },
+] as const;
 
 export default function WelcomeScreen() {
   const navigation = useNavigation<WelcomeNavProp>();
@@ -27,6 +27,16 @@ export default function WelcomeScreen() {
 
   return (
     <View className="flex-1 bg-secondary-900">
+      {/* Glow decorativo atrás do hero */}
+      <View
+        className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-primary-500/10"
+        pointerEvents="none"
+      />
+      <View
+        className="absolute top-40 -left-32 w-64 h-64 rounded-full bg-primary-500/5"
+        pointerEvents="none"
+      />
+
       {/* Hero section */}
       <View
         className="flex-1 items-center justify-center px-8"
@@ -38,38 +48,36 @@ export default function WelcomeScreen() {
           Conecte-se. Jogue. Repita.
         </Text>
 
-        <Text className="text-sm text-secondary-400 text-center leading-relaxed">
+        <Text className="text-sm text-secondary-400 text-center leading-5">
           Encontre partidas, forme grupos e pratique{"\n"}o esporte que você ama.
         </Text>
 
-        {/* Sport chips */}
+        {/* Sport tiles — cores de categoria */}
         <View className="flex-row mt-10 gap-3">
-          {SPORTS.map((sport) => (
-            <View key={sport.label} className="items-center gap-2">
-              <View className="w-14 h-14 rounded-xl bg-secondary-800 items-center justify-center border border-secondary-700">
-                <MaterialCommunityIcons name={sport.icon} size={26} color="#2563EB" />
+          {SPORTS.map((sport) => {
+            const meta = SPORT_META[sport];
+            return (
+              <View key={sport} className="items-center gap-2">
+                <View className="w-14 h-14 rounded-2xl bg-secondary-800 items-center justify-center border border-secondary-700">
+                  <MaterialCommunityIcons name={meta.icon} size={26} color={meta.color} />
+                </View>
+                <Text className="text-xs text-secondary-400 font-medium">{meta.label}</Text>
               </View>
-              <Text className="text-xs text-secondary-400 font-medium">{sport.label}</Text>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         {/* Stats row */}
-        <View className="flex-row mt-8 gap-6">
-          <View className="items-center">
-            <Text className="text-2xl font-bold text-white">10k+</Text>
-            <Text className="text-xs text-secondary-400 mt-0.5">Jogadores</Text>
-          </View>
-          <View className="w-px bg-secondary-700" />
-          <View className="items-center">
-            <Text className="text-2xl font-bold text-white">500+</Text>
-            <Text className="text-xs text-secondary-400 mt-0.5">Partidas/mês</Text>
-          </View>
-          <View className="w-px bg-secondary-700" />
-          <View className="items-center">
-            <Text className="text-2xl font-bold text-white">6</Text>
-            <Text className="text-xs text-secondary-400 mt-0.5">Esportes</Text>
-          </View>
+        <View className="flex-row mt-10 gap-6">
+          {STATS.map((stat, index) => (
+            <React.Fragment key={stat.label}>
+              {index > 0 && <View className="w-px bg-secondary-700" />}
+              <View className="items-center">
+                <Text className="text-2xl font-bold text-white tracking-tight">{stat.value}</Text>
+                <Text className="text-xs text-secondary-400 mt-0.5">{stat.label}</Text>
+              </View>
+            </React.Fragment>
+          ))}
         </View>
       </View>
 
@@ -79,16 +87,16 @@ export default function WelcomeScreen() {
         style={{ paddingBottom: Math.max(insets.bottom, 32) }}
       >
         <Button
-          label="Entrar"
-          onPress={() => navigation.navigate("Login")}
+          label="Criar conta"
+          onPress={() => navigation.navigate("Register")}
           variant="primary"
           size="lg"
           fullWidth
         />
         <View className="h-3" />
         <Button
-          label="Criar conta"
-          onPress={() => navigation.navigate("Register")}
+          label="Já tenho conta"
+          onPress={() => navigation.navigate("Login")}
           variant="outline"
           size="lg"
           fullWidth

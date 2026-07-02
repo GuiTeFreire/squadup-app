@@ -1,7 +1,10 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { memo } from "react";
-import { ActivityIndicator, Pressable, Text } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
-type Variant = "primary" | "secondary" | "ghost" | "outline";
+import { colors, shadows, type IconName } from "../theme";
+
+type Variant = "primary" | "secondary" | "ghost" | "outline" | "danger";
 type Size = "sm" | "md" | "lg";
 
 interface ButtonProps {
@@ -12,28 +15,31 @@ interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
+  icon?: IconName;
 }
 
-const containerBase = "flex-row items-center justify-center rounded-xl";
+const containerBase = "flex-row items-center justify-center rounded-2xl";
 
 const containerVariant: Record<Variant, string> = {
   primary: "bg-primary-500 active:bg-primary-600",
-  secondary: "bg-secondary-800 active:bg-secondary-700",
-  ghost: "bg-transparent border border-neutral-300 active:bg-neutral-100",
-  outline: "bg-transparent border border-white active:bg-secondary-800",
+  secondary: "bg-secondary-900 active:bg-secondary-800",
+  ghost: "bg-secondary-100 active:bg-secondary-200",
+  outline: "bg-transparent border-2 border-white/80 active:bg-white/10",
+  danger: "bg-error active:opacity-90",
 };
 
 const containerDisabled: Record<Variant, string> = {
   primary: "bg-primary-300",
   secondary: "bg-secondary-400",
-  ghost: "border-neutral-200",
-  outline: "border-secondary-600",
+  ghost: "bg-secondary-50",
+  outline: "border-2 border-secondary-600",
+  danger: "bg-error/40",
 };
 
 const containerSize: Record<Size, string> = {
-  sm: "px-3 py-2",
-  md: "px-5 py-3",
-  lg: "px-6 py-4",
+  sm: "h-10 px-4",
+  md: "h-12 px-5",
+  lg: "h-14 px-6",
 };
 
 const textVariant: Record<Variant, string> = {
@@ -41,13 +47,15 @@ const textVariant: Record<Variant, string> = {
   secondary: "text-white font-semibold",
   ghost: "text-secondary-700 font-semibold",
   outline: "text-white font-semibold",
+  danger: "text-white font-semibold",
 };
 
 const textDisabled: Record<Variant, string> = {
   primary: "text-white",
   secondary: "text-white",
-  ghost: "text-neutral-400",
+  ghost: "text-neutral-500",
   outline: "text-secondary-500",
+  danger: "text-white",
 };
 
 const textSize: Record<Size, string> = {
@@ -56,11 +64,18 @@ const textSize: Record<Size, string> = {
   lg: "text-lg",
 };
 
-const spinnerColor: Record<Variant, string> = {
-  primary: "#ffffff",
-  secondary: "#ffffff",
-  ghost: "#334155",
-  outline: "#ffffff",
+const iconSize: Record<Size, number> = {
+  sm: 16,
+  md: 18,
+  lg: 20,
+};
+
+const contentColor: Record<Variant, string> = {
+  primary: colors.white,
+  secondary: colors.white,
+  ghost: colors.secondary[700],
+  outline: colors.white,
+  danger: colors.white,
 };
 
 function Button({
@@ -71,8 +86,10 @@ function Button({
   disabled = false,
   loading = false,
   fullWidth = false,
-}: ButtonProps) {
+  icon,
+}: Readonly<ButtonProps>) {
   const isDisabled = disabled || loading;
+  const hasCtaShadow = variant === "primary" && !isDisabled;
 
   const containerClass = [
     containerBase,
@@ -89,6 +106,10 @@ function Button({
   return (
     <Pressable
       className={containerClass}
+      style={({ pressed }) => [
+        hasCtaShadow && !pressed ? shadows.cta : undefined,
+        pressed ? { transform: [{ scale: 0.98 }] } : undefined,
+      ]}
       onPress={onPress}
       disabled={isDisabled}
       accessibilityRole="button"
@@ -98,11 +119,20 @@ function Button({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={spinnerColor[variant]}
+          color={contentColor[variant]}
           accessibilityLabel="Carregando"
         />
       ) : (
-        <Text className={textClass}>{label}</Text>
+        <View className="flex-row items-center gap-2">
+          {icon ? (
+            <MaterialCommunityIcons
+              name={icon}
+              size={iconSize[size]}
+              color={contentColor[variant]}
+            />
+          ) : null}
+          <Text className={textClass}>{label}</Text>
+        </View>
       )}
     </Pressable>
   );

@@ -1,11 +1,11 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useCallback } from "react";
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, Text, View } from "react-native";
+import { FlatList, KeyboardAvoidingView, Platform, Text, View } from "react-native";
 
 import ChatInput from "../components/ChatInput";
+import Header from "../components/Header";
 import MessageBubble from "../components/MessageBubble";
 import { useMatchesContext } from "../contexts/MatchesContext";
 import { useMessagesContext } from "../contexts/MessagesContext";
@@ -45,32 +45,19 @@ export default function MatchChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-neutral-50"
+      className="flex-1 bg-secondary-50"
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={0}
     >
-      {/* Header */}
-      <View className="bg-secondary-900 pt-14 pb-4 px-4 flex-row items-center">
-        <Pressable
-          onPress={() => navigation.goBack()}
-          className="w-9 h-9 items-center justify-center"
-          accessibilityLabel="Voltar"
-          accessibilityRole="button"
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-        </Pressable>
-        <View className="flex-1 mx-2">
-          <Text className="text-white text-base font-bold" numberOfLines={1}>
-            {match ? match.title : "Chat da partida"}
-          </Text>
-          <Text className="text-secondary-400 text-xs" numberOfLines={1}>
-            {match
-              ? `${match.participants.filter((p) => p.status === "confirmed").length} participantes`
-              : ""}
-          </Text>
-        </View>
-        <View className="w-9" />
-      </View>
+      <Header
+        title={match ? match.title : "Chat da partida"}
+        subtitle={
+          match
+            ? `${match.participants.filter((p) => p.status === "confirmed").length} participantes`
+            : ""
+        }
+        onBack={() => navigation.goBack()}
+      />
 
       {/* Messages list */}
       <FlatList
@@ -81,9 +68,12 @@ export default function MatchChatScreen() {
         contentContainerStyle={{ paddingVertical: 12 }}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View className="flex-1 items-center justify-center py-16">
-            <Text className="text-neutral-400 text-sm">Nenhuma mensagem ainda.</Text>
-            <Text className="text-neutral-400 text-sm">Seja o primeiro a escrever!</Text>
+          <View
+            className="flex-1 items-center justify-center py-16"
+            style={{ transform: [{ scaleY: -1 }] }}
+          >
+            <Text className="text-neutral-500 text-sm font-medium">Nenhuma mensagem ainda.</Text>
+            <Text className="text-neutral-500 text-sm mt-0.5">Seja o primeiro a escrever!</Text>
           </View>
         }
       />

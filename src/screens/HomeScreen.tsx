@@ -1,39 +1,97 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useState } from "react";
-import { FlatList, Pressable, Text, TextInput, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { FlatList, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import MatchCard from "../components/MatchCard";
+import Avatar from "../components/Avatar";
 import EmptyState from "../components/EmptyState";
+import MatchCard from "../components/MatchCard";
+import { MatchCardSkeleton } from "../components/Skeleton";
 import { useMatchFiltersContext } from "../contexts/MatchFiltersContext";
 import { useMatchesContext } from "../contexts/MatchesContext";
+import { CURRENT_USER } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
 import { useMatchFilters } from "../hooks/useMatchFilters";
+import { colors, SPORT_META } from "../theme";
+import type { Sport } from "../types";
 
 type Nav = NativeStackNavigationProp<AppRootStackParamList>;
 
+const QUICK_SPORTS: Sport[] = ["football", "futsal", "volleyball", "basketball", "tennis"];
+
+function SportQuickFilter({
+  sport,
+  selected,
+  onPress,
+}: Readonly<{ sport: Sport | null; selected: boolean; onPress: () => void }>) {
+  const meta = sport ? SPORT_META[sport] : null;
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      accessibilityLabel={meta ? meta.label : "Todos os esportes"}
+      className={`flex-row items-center gap-1.5 px-4 h-9 rounded-full ${
+        selected ? "bg-primary-500" : "bg-secondary-800"
+      }`}
+    >
+      {meta ? (
+        <MaterialCommunityIcons
+          name={meta.icon}
+          size={15}
+          color={selected ? colors.white : colors.secondary[400]}
+        />
+      ) : null}
+      <Text className={`text-sm font-semibold ${selected ? "text-white" : "text-secondary-300"}`}>
+        {meta ? meta.label : "Todos"}
+      </Text>
+    </Pressable>
+  );
+}
+
 export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
+  const insets = useSafeAreaInsets();
   const [searchText, setSearchText] = useState("");
-  const { activeFilterCount } = useMatchFiltersContext();
+  const [isLoading, setIsLoading] = useState(true);
+  const { filters, setFilters, activeFilterCount } = useMatchFiltersContext();
   const { matches } = useMatchesContext();
   const filteredMatches = useMatchFilters(matches, searchText);
 
-  return (
-    <View className="flex-1 bg-neutral-50">
-      {/* Header */}
-      <View className="bg-secondary-900 pt-14 pb-4 px-4">
-        <Text className="text-white text-2xl font-bold mb-4">Partidas</Text>
+  const firstName = CURRENT_USER.name.split(" ")[0];
 
-        {/* Search + Filter row */}
-        <View className="flex-row gap-2">
-          <View className="flex-1 flex-row items-center bg-secondary-800 rounded-xl px-3 h-11 gap-2">
-            <MaterialCommunityIcons name="magnify" size={18} color="#94A3B8" />
+  // Simula o fetch inicial para exibir o skeleton screen (protótipo sem backend)
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 700);
+    return () => clearTimeout(timer);
+  }, []);
+
+  function selectSport(sport: Sport | null) {
+    setFilters({ ...filters, sport });
+  }
+
+  return (
+    <View className="flex-1 bg-secondary-50">
+      {/* Hero header */}
+      <View className="bg-secondary-900 px-5 pb-5" style={{ paddingTop: insets.top + 16 }}>
+        <View className="flex-row items-center justify-between mb-5">
+          <View>
+            <Text className="text-secondary-400 text-sm">Bem-vindo de volta,</Text>
+            <Text className="text-white text-2xl font-bold tracking-tight">{firstName}</Text>
+          </View>
+          <Avatar name={CURRENT_USER.name} photoUrl={CURRENT_USER.photoUrl} size="md" ring />
+        </View>
+
+        {/* Search + filters */}
+        <View className="flex-row gap-2.5">
+          <View className="flex-1 flex-row items-center bg-secondary-800 rounded-2xl px-4 h-12 gap-2.5">
+            <MaterialCommunityIcons name="magnify" size={20} color={colors.secondary[400]} />
             <TextInput
               className="flex-1 text-white text-sm"
               placeholder="Buscar partidas..."
-              placeholderTextColor="#64748B"
+              placeholderTextColor={colors.secondary[400]}
               value={searchText}
               onChangeText={setSearchText}
               returnKeyType="search"
@@ -41,14 +99,17 @@ export default function HomeScreen() {
             />
             {searchText.length > 0 && (
               <Pressable onPress={() => setSearchText("")} accessibilityLabel="Limpar busca">
-                <MaterialCommunityIcons name="close-circle" size={16} color="#64748B" />
+                <MaterialCommunityIcons
+                  name="close-circle"
+                  size={16}
+                  color={colors.secondary[400]}
+                />
               </Pressable>
             )}
           </View>
 
-          {/* Filter button */}
           <Pressable
-            className="h-11 w-11 items-center justify-center bg-secondary-800 rounded-xl"
+            className="h-12 w-12 items-center justify-center bg-secondary-800 rounded-2xl"
             onPress={() => navigation.navigate("Filters")}
             accessibilityLabel="Abrir filtros"
             accessibilityRole="button"
@@ -56,7 +117,7 @@ export default function HomeScreen() {
             <MaterialCommunityIcons
               name="tune-variant"
               size={20}
-              color={activeFilterCount > 0 ? "#2563EB" : "#94A3B8"}
+              color={activeFilterCount > 0 ? colors.primary[400] : colors.secondary[400]}
             />
             {activeFilterCount > 0 && (
               <View className="absolute -top-1 -right-1 w-4 h-4 bg-primary-500 rounded-full items-center justify-center">
@@ -65,28 +126,69 @@ export default function HomeScreen() {
             )}
           </Pressable>
         </View>
+
+        {/* Sport quick filters */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="mt-3 -mx-5"
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
+        >
+          <SportQuickFilter
+            sport={null}
+            selected={filters.sport === null}
+            onPress={() => selectSport(null)}
+          />
+          {QUICK_SPORTS.map((sport) => (
+            <SportQuickFilter
+              key={sport}
+              sport={sport}
+              selected={filters.sport === sport}
+              onPress={() => selectSport(filters.sport === sport ? null : sport)}
+            />
+          ))}
+        </ScrollView>
       </View>
 
       {/* List */}
-      <FlatList
-        data={filteredMatches}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <MatchCard
-            match={item}
-            onPress={() => navigation.navigate("MatchDetail", { matchId: item.id })}
-          />
-        )}
-        contentContainerStyle={{ padding: 16, gap: 12 }}
-        ListEmptyComponent={
-          <EmptyState
-            icon="⚽"
-            title="Nenhuma partida encontrada"
-            description="Tente ajustar os filtros ou buscar por outro termo."
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      />
+      {isLoading ? (
+        <View className="p-5 gap-3">
+          <MatchCardSkeleton />
+          <MatchCardSkeleton />
+          <MatchCardSkeleton />
+        </View>
+      ) : (
+        <FlatList
+          data={filteredMatches}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <MatchCard
+              match={item}
+              onPress={() => navigation.navigate("MatchDetail", { matchId: item.id })}
+            />
+          )}
+          ListHeaderComponent={
+            <View className="flex-row items-baseline justify-between mb-1">
+              <Text className="text-lg font-bold text-secondary-900 tracking-tight">
+                Partidas próximas
+              </Text>
+              <Text className="text-xs font-medium text-neutral-500">
+                {filteredMatches.length}{" "}
+                {filteredMatches.length === 1 ? "encontrada" : "encontradas"}
+              </Text>
+            </View>
+          }
+          contentContainerStyle={{ padding: 20, gap: 12 }}
+          ListEmptyComponent={
+            <EmptyState
+              icon="calendar-search"
+              title="Nenhuma partida encontrada"
+              description="Tente ajustar os filtros ou buscar por outro termo."
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </View>
   );
 }

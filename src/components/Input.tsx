@@ -1,34 +1,61 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { memo, useState } from "react";
 import { Text, TextInput, TextInputProps, View } from "react-native";
+
+import { colors, type IconName } from "../theme";
 
 interface InputProps extends Omit<TextInputProps, "className"> {
   label?: string;
   error?: string;
+  leftIcon?: IconName;
 }
 
-function Input({ label, error, ...rest }: InputProps) {
+function Input({ label, error, leftIcon, multiline, style, ...rest }: Readonly<InputProps>) {
   const [focused, setFocused] = useState(false);
 
-  const borderClass = error
-    ? "border-error"
-    : focused
-      ? "border-primary-500"
-      : "border-neutral-300";
+  let borderClass = "border-neutral-200";
+  if (error) borderClass = "border-error";
+  else if (focused) borderClass = "border-primary-500";
+
+  let iconColor: string = colors.neutral[500];
+  if (error) iconColor = colors.error;
+  else if (focused) iconColor = colors.primary[500];
 
   return (
     <View className="w-full">
-      {label ? <Text className="mb-1 text-sm font-medium text-neutral-700">{label}</Text> : null}
+      {label ? (
+        <Text className="mb-1.5 text-sm font-semibold text-secondary-700">{label}</Text>
+      ) : null}
 
-      <TextInput
-        className={`w-full rounded-lg border bg-white px-4 py-3 text-base text-neutral-900 ${borderClass}`}
-        placeholderTextColor="#9ca3af"
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        accessibilityLabel={label}
-        {...rest}
-      />
+      <View
+        className={`w-full flex-row rounded-xl border-[1.5px] bg-white ${borderClass} ${
+          multiline ? "items-start" : "items-center"
+        }`}
+      >
+        {leftIcon ? (
+          <View className={`pl-4 ${multiline ? "pt-3.5" : ""}`}>
+            <MaterialCommunityIcons name={leftIcon} size={20} color={iconColor} />
+          </View>
+        ) : null}
+        <TextInput
+          className="flex-1 px-4 py-3 text-base text-secondary-900"
+          placeholderTextColor={colors.neutral[500]}
+          multiline={multiline}
+          textAlignVertical={multiline ? "top" : undefined}
+          style={multiline ? [{ minHeight: 96 }, style] : style}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          accessibilityLabel={label}
+          {...rest}
+        />
+      </View>
 
-      {error ? <Text className="mt-1 text-sm text-error">{error}</Text> : null}
+      {error ? (
+        <View className="mt-1.5 flex-row items-center gap-1">
+          <MaterialCommunityIcons name="alert-circle" size={14} color={colors.error} />
+          <Text className="text-sm text-error flex-1">{error}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
