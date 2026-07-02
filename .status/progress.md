@@ -718,4 +718,65 @@ Fonte única de verdade para estilos fora do NativeWind:
 
 - Branch `feat/final-polish` — redesign completo, commit pendente
 - Fase 12 permanece 1/8 (redesign foi trabalho transversal, não tarefa numerada)
-- Próxima ação: tarefa 12.2 — testar fluxo completo no app real (`npm start`), validando visualmente o redesign em runtime (especialmente sombras Android, skeleton da Home e safe areas)
+
+---
+
+## Sessão 17 — 2026-07-02
+
+### Fase 12.2 — Testar fluxo completo (happy path)
+
+Sem emulador/dispositivo físico disponível no ambiente (sandbox Windows headless), o fluxo foi validado via `npm run web` (Metro bundler para web, porta 8081) dirigido por Playwright (Chromium headless), navegando pela UI real como um usuário faria — sem mocks de teste, sem `jest`.
+
+Rota percorrida: Welcome → Login (mock) → Home → MatchDetail (partida já confirmada) → Chat (envio de mensagem) → Home (busca) → MatchDetail (partida encerrada) → PostMatchRating → RateUser (envio de avaliação).
+
+| Tela | Resultado |
+|------|-----------|
+| Welcome | OK — hero, tiles de esporte, stats, CTAs renderizam conforme redesign da sessão 16 |
+| Login | OK — validação de e-mail/senha, mock aceita qualquer credencial válida |
+| Home | OK — skeleton inicial, busca, quick-filters por esporte, cards com barra de vagas |
+| MatchDetail (confirmado) | OK — estado "Você está confirmado", botão Chat da partida |
+| MatchChat | OK — histórico mockado, envio de mensagem via botão enviar |
+| MatchDetail (encerrada) | OK — botão "Avaliar participantes" visível só quando `status: closed` + usuário confirmado |
+| PostMatchRating → RateUser | OK — 5 critérios com estrelas, submissão grava a avaliação (`hasRated` passa a `true`, badge "Avaliado" aparece na lista) |
+
+Nenhum erro de console/página JS em nenhuma etapa.
+
+#### Achados (não bloqueantes para esta tarefa, registrados para tarefas futuras)
+
+- **`Alert.alert` não produz diálogo em `react-native-web`** (sem polyfill instalado): em `RateUserScreen`, `ReportUserScreen`, `ReportDetailScreen` e no cancelamento de participação em `MatchDetailScreen`, o `Alert.alert(...)` é chamado mas não renderiza nada no browser — a ação de dados ocorre normalmente (confirmado: `submitRating` grava e o badge "Avaliado" reflete o estado), mas o callback de `onPress` do botão "OK" (que faz `navigation.goBack()`) nunca dispara, deixando o usuário "preso" na tela sem feedback visual. Em Expo Go / iOS / Android nativo isso funciona normalmente — é uma limitação conhecida do `react-native-web` sem polyfill, não uma regressão desta sessão. Relevante para 12.3 (testar em Expo Go) confirmar que funciona nativamente, e para decidir se vale a pena um polyfill de `Alert` caso a apresentação use `npm run web` em vez de dispositivo/emulador.
+- **Timestamp de mensagem enviada no chat usa hora real (`new Date().toLocaleTimeString()`)** em `MessagesContext.sendMessage`, enquanto o histórico mockado usa horários fictícios fixos (ex.: 09:10–09:42) — mensagem nova pode aparecer com horário "menor" que mensagens anteriores da conversa, quebrando a ordem cronológica visual. Cosmético, relevante para 12.7 (revisar dados mockados para coerência narrativa).
+
+### Fase 12.5 e 12.6 — Lint e testes automatizados
+
+`npm run lint` e `npx tsc --noEmit` zero erros. `npm run test`: 181/181 testes, 20 suítes, 0 falhas. Nenhuma mudança de código necessária — suíte já estava saudável desde a sessão 16.
+
+### Fase 12.4 — Acessibilidade básica
+
+Auditoria feita por subagente dedicado (leitura de todos os `src/components/*.tsx` e `src/screens/*.tsx`, cálculo de contraste WCAG por luminância relativa para as combinações de cor mais usadas). Cobertura de `accessibilityLabel` já era boa (herdada do redesign da sessão 16); dois problemas concretos corrigidos:
+
+- **`Card.tsx`** — `Pressable` do card inteiro não tinha `accessibilityLabel` próprio; leitor de tela concatenava todos os `Text` internos em ordem confusa. Adicionada prop opcional `accessibilityLabel` ao componente; `MatchCard.tsx` agora monta `` `${título}, ${esporte}, ${data} às ${horário}, ${local}` ``.
+- **Contraste insuficiente** (abaixo de 4.5:1 para texto/3:1 para ícones informativos): `text-neutral-400` (~2.54:1 sobre branco) trocado por `text-neutral-500` (~4.83:1) em 15 arquivos (20 ocorrências) — `HomeScreen`, `SearchScreen`, `MatchDetailScreen`, `MatchChatScreen`, `CreateMatchScreen`, `PostMatchRatingScreen`, `RateUserScreen`, `PublicProfileScreen`, `ReportUserScreen`, `Button`, `ParticipantList`, `MessageBubble`, `Chip`, `SectionCard`, `ReviewCard`. `colors.neutral[400]` (ícone/placeholder) trocado por `colors.neutral[500]` em `Input.tsx` e `ChatInput.tsx`. Placeholder/ícone de busca em fundo escuro (`colors.secondary[500]` a ~3.07:1) trocado por `colors.secondary[400]` (mesmo tom já usado no ícone de lupa) em `HomeScreen.tsx` e `SearchScreen.tsx`.
+- **Não corrigido (nice-to-have, não bloqueante):** ícone `check-decagram` (selo de verificado) sem texto alternativo para leitor de tela em 6 arquivos (`ParticipantList`, `MatchDetailScreen`, `PublicProfileScreen`, `MyProfileScreen`, `RateUserScreen`, `PostMatchRatingScreen`) — ícone informativo, mas sozinho sem `accessibilityLabel`/texto "Verificado" próximo.
+
+Verificado visualmente após a mudança (`npm run web` + Playwright): busca, cards e perfil renderizam normalmente, sem regressão visual perceptível — o tom de cinza fica muito próximo do anterior.
+
+### Fase 12.7 — Coerência dos dados mockados
+
+Auditoria por subagente dedicado (leitura de `src/mocks/{users,matches,messages,ratings,reports}.ts`). Achados bloqueantes corrigidos:
+
+- **`matches.ts`, `match-3`** — tinha `allowBeginners: false` mas Juliana Costa (nível `beginner`) estava confirmada como participante, sem explicação. Corrigido para `allowBeginners: true` (a partida já tem `requiresApproval: true`, então o cenário coerente é o organizador aceitar uma exceção via aprovação manual).
+- **`ratings.ts` (todas as 7 avaliações) e `reports.ts` (`report-4`)** — referenciavam partidas ainda `status: "open"`/`"full"` com `createdAt` **anterior** à data da partida (avaliações/denúncia registradas antes do jogo acontecer) — e, ao mesmo tempo, `match-13` (a única partida `status: "closed"` do mock, cuja descrição pede explicitamente "Avalie os participantes!") não tinha nenhuma avaliação ou denúncia associada. Corrigido reapontando todas para `match-13` — seus participantes confirmados (guilherme, thiago, rafael, beatriz, ana) batem exatamente com quem já aparecia nas avaliações — com `createdAt` recalculado para depois da partida (`2026-05-10`/`2026-05-11`, a partida terminou por volta de 11h).
+- **`matches.ts`, `match-11`** — local "Clube Caiçaras" (um clube real em São Paulo) destoava dos demais locais do mock, todos no Rio de Janeiro. Trocado por "Clube Fluminense — Quadra 4, Laranjeiras".
+- **Não corrigido (cosmético, já documentado na 12.2):** timestamp de mensagem nova no chat usa hora real (`new Date()`) misturado com histórico mockado de horários fixos; nenhuma partida usa o status `pending_approval` apesar de existir no tipo; `matchesPlayed` dos usuários é bem maior que o volume de partidas do mock (esperado em dataset pequeno de protótipo).
+
+`MOCK_RATINGS` é consumido apenas por `PublicProfileScreen`/`MyProfileScreen` (lista de avaliações recebidas no perfil) — é um dataset estático independente do `RatingsContext.submittedRatings` (que começa vazio a cada sessão e alimenta o fluxo interativo de "Avaliar participantes"), então repontar o campo `match` não afeta o fluxo de avaliação pós-partida testado na 12.2. Confirmado visualmente: perfil de Beatriz Rocha mostra a avaliação de Ana Lima com data "11 de mai. de 2026", um dia após a partida.
+
+### Validação final
+
+`npm run lint` zero erros · `npx tsc --noEmit` zero erros · `npm run test` 181/181 passando (sem alteração de testes) · verificação visual via `npm run web` + Playwright sem erros de console.
+
+### Estado ao final da sessão 17
+
+- Branch `feat/final-polish`, working tree com alterações em `.status/*`, `src/components/{Card,MatchCard,Input,ChatInput}.tsx`, `src/screens/{HomeScreen,SearchScreen,AdminDashboardScreen,CreateMatchScreen,MatchChatScreen,MatchDetailScreen,ParticipantList,PostMatchRatingScreen,RateUserScreen,PublicProfileScreen,ReportUserScreen,MessageBubble,Chip,SectionCard,ReviewCard,Button}.tsx` (troca de tom de cinza) e `src/mocks/{matches,ratings,reports}.ts`
+- Fase 12: 12.1, 12.2, 12.4, 12.5, 12.6, 12.7 concluídas (6/8). Restam 12.3 (Expo Go iOS/Android — requer dispositivo/emulador do usuário) e 12.8 (build de apresentação)
+- Nenhum bug pendente — parada é limpa, entre tarefas

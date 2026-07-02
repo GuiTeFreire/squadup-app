@@ -31,18 +31,14 @@ Detalhes tarefa-a-tarefa das fases concluídas (Fases 1–11) foram movidos para
 
 ---
 
-## FASE 12 — Revisão e polimento final
+## FASE 12 — Revisão e polimento final (6/8 concluídas — detalhes tarefa-a-tarefa em `progress.md`, sessões 15 e 17)
 
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
-| 12.1 | Revisar consistência visual entre todas as telas | 🟢 | Cores, espaçamentos, tipografia — 25 achados corrigidos. Detalhes completos em `progress.md`, sessão 15. |
-| 12.2 | Testar fluxo completo (happy path) | ⚪ | Welcome → Login → Home → Partida → Chat → Avaliação |
-| 12.3 | Testar no Expo Go em iOS e Android | ⚪ | Dispositivo físico ou emulador |
-| 12.4 | Verificar acessibilidade básica (`accessibilityLabel`, contraste) | ⚪ | |
-| 12.5 | Executar `npm run lint` — zero erros | ⚪ | |
-| 12.6 | Executar `npm run test` — zero falhas | ⚪ | |
-| 12.7 | Revisar dados mockados para coerência narrativa | ⚪ | Usuários e partidas devem parecer reais e consistentes |
+| 12.3 | Testar no Expo Go em iOS e Android | ⚪ | Dispositivo físico ou emulador — requer o usuário, não disponível no sandbox |
 | 12.8 | Preparar build de apresentação (`expo build` ou EAS Build) | ⚪ | Verificar sem erros |
+
+Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, sessão 17) · 12.4 (acessibilidade, sessão 17) · 12.5 (lint/tsc, sessão 17) · 12.6 (testes, sessão 17) · 12.7 (coerência dos mocks, sessão 17).
 
 ---
 
@@ -60,14 +56,17 @@ Detalhes tarefa-a-tarefa das fases concluídas (Fases 1–11) foram movidos para
 | D8 | Participação em partida local apenas | Média | `MatchDetailScreen.handleJoin` / `handleCancel` alteram só `useState` interno — mudança não persiste ao navegar. Fase 7 eleva para `MatchesContext` via `useMatchParticipation`. |
 | D9 | `RateUserScreen.tsx:78` — `user` possivelmente `undefined` (tsc) | ~~Baixa~~ **Resolvida** | Causa: narrowing de `if (!match \|\| !user) return` no corpo do componente não se propaga para dentro do closure `handleSubmit` (limitação conhecida do TS com controle de fluxo em funções aninhadas). Corrigido repetindo o guard `if (!user) return;` no início de `handleSubmit`. `npx tsc --noEmit` limpo, lint zerado, 181/181 testes passando (sessão 14). |
 | D10 | NativeWind v4 não suporta `contentContainerClassName` | Baixa | Vários `ScrollView`/`FlatList` usam `contentContainerStyle={{ padding, gap, ... }}` em pixels em vez de classes Tailwind, porque a versão instalada do NativeWind (`^4.2.4`) não expõe essa prop (verificado em `node_modules/nativewind` na sessão 15). Reavaliar ao atualizar o NativeWind — se a prop passar a existir, migrar esses blocos para `className`. |
+| D11 | `Alert.alert` não renderiza em `react-native-web` | Baixa | Sem polyfill instalado, `Alert.alert(...)` em `RateUserScreen`, `ReportUserScreen`, `ReportDetailScreen` e no cancelamento de `MatchDetailScreen` não produz diálogo no browser — a ação de dados ocorre normalmente, mas o callback do botão "OK" (que costuma fazer `navigation.goBack()`) nunca dispara, deixando o usuário sem feedback visual. Funciona normalmente em Expo Go/iOS/Android nativo (a confirmar na 12.3). Só relevante se a apresentação acadêmica usar `npm run web` em vez de dispositivo/emulador — nesse caso, avaliar um polyfill de `Alert` (ex.: `react-native-web` community package) antes da entrega. Descoberto na sessão 17. |
+| D12 | Timestamp de mensagem do chat usa hora real | Baixa | `MessagesContext.sendMessage` (`src/contexts/MessagesContext.tsx`) grava `createdAt: new Date().toLocaleTimeString(...)` para mensagens novas, enquanto o histórico mockado em `src/mocks/messages.ts` usa horários fictícios fixos — uma mensagem enviada durante a demo pode aparecer com horário "menor" que mensagens antigas da conversa, quebrando a ordem cronológica visual. Cosmético; considerar mockar um relógio fixo ou aceitar como comportamento esperado de protótipo. Descoberto na sessão 17. |
+| D13 | Selo de verificado sem texto alternativo para leitor de tela | Baixa | O ícone `check-decagram` (usuário verificado) aparece sozinho, sem `accessibilityLabel`, em `ParticipantList.tsx`, `MatchDetailScreen.tsx`, `PublicProfileScreen.tsx`, `MyProfileScreen.tsx`, `RateUserScreen.tsx` e `PostMatchRatingScreen.tsx` — leitores de tela não anunciam essa informação. Nice-to-have, não bloqueante para a apresentação. Descoberto na auditoria de acessibilidade da sessão 17 (12.4). |
 
 ---
 
 ## Bloqueadores e observações
 
-- **Sessão 16 (2026-07-02): redesign visual premium completo** na branch `feat/final-polish` (transversal, fora das tarefas numeradas). Novidades estruturais que afetam trabalho futuro: módulo `src/theme/index.ts` (`colors`, `shadows`, `SPORT_META`, `LEVEL_META` — usar SEMPRE em vez de hex hardcoded), componentes novos `SectionCard`, `Chip`, `SportTile`, `StatsRow`, `Skeleton`/`MatchCardSkeleton`. Emojis eliminados da UI (só permanecem em conteúdo de mensagens mockadas). `Button` ganhou `icon` e variant `danger`. Detalhes completos em `progress.md`, sessão 16. 181 testes ✅ lint ✅ tsc ✅.
-- Fase 11 concluída (sessão 13 — 2026-07-02). D9 corrigida (sessão 14 — 2026-07-02). 12.1 concluída (sessão 15 — 2026-07-02), branch `feat/final-polish`. Próxima etapa: 12.2 (testar fluxo completo) em diante — validar visualmente o redesign em runtime (sombras Android, skeleton da Home, safe areas).
-- **12.1 (sessão 15):** resumo detalhado (o que mudou em cada categoria — cores, estrutura/Header, tipografia, componentes, tokens) está em `progress.md`, seção "Sessão 15". Ponto que mais importa para continuar: `src/components/Header.tsx` agora é usado por 13 telas e chama `useSafeAreaInsets`; qualquer teste novo que renderize uma tela com `<Header>` precisa mockar `react-native-safe-area-context` (ver `PublicProfileScreen.test.tsx` como referência).
+- **Sessão 17 (2026-07-02):** Fase 12 avançou para 6/8 (12.2, 12.4, 12.5, 12.6 e 12.7 concluídas — 12.1 já vinha da sessão 15). Zero erros de console, `npm run lint`/`npx tsc --noEmit`/`npm run test` (181/181) zerados. Duas auditorias corrigiram problemas reais de acessibilidade (contraste de cor, label do card de partida) e de coerência dos dados mockados (avaliações datadas antes da partida acontecer). Três achados não bloqueantes viraram dívidas técnicas D11–D13 (ver tabela acima). Restam 12.3 (Expo Go — requer dispositivo/emulador do usuário) e 12.8 (build de apresentação). Detalhes tarefa-a-tarefa em `progress.md`, sessão 17.
+- **Sessão 16 (2026-07-02):** redesign visual premium completo (transversal). Módulo `src/theme/index.ts` (`colors`, `shadows`, `SPORT_META`, `LEVEL_META`) é a fonte única de verdade para estilos fora do NativeWind — usar **sempre** em vez de hex hardcoded. Componentes novos: `SectionCard`, `Chip`, `SportTile`, `StatsRow`, `Skeleton`/`MatchCardSkeleton`. Emojis eliminados da UI (só permanecem em conteúdo de mensagens mockadas). Detalhes completos em `progress.md`, sessão 16.
+- **Sessão 15 (2026-07-02):** `src/components/Header.tsx` foi reescrito e agora é usado por 13+ telas via `useSafeAreaInsets` — qualquer teste novo que renderize uma tela com `<Header>` precisa mockar `react-native-safe-area-context` (ver `Header.test.tsx`/`PublicProfileScreen.test.tsx` como referência). Detalhes completos em `progress.md`, sessão 15.
 - `ReportsContext` (`src/contexts/ReportsContext.tsx`) expõe `reports`, `addReport`, `updateReportStatus`; seed em `src/mocks/reports.ts` (`MOCK_REPORTS`).
 - `ReportUserScreen` agora chama `addReport` ao enviar a denúncia (status inicial `"pending"`), além do `Alert` existente.
 - `Report` ganhou o campo `status: ReportStatus` (`"pending" | "archived" | "warned" | "banned"`); `ReportReason` foi realinhado aos motivos já usados na tela (`bad_behavior`, `hate_speech`, `fake_info` etc. — o tipo antigo nunca era usado de fato).
@@ -81,6 +80,6 @@ Detalhes tarefa-a-tarefa das fases concluídas (Fases 1–11) foram movidos para
 ## Progresso geral
 
 **Total de tarefas:** 70
-**Concluídas:** 65 (fases numeradas + 12.1) + refinamento visual transversal
+**Concluídas:** 69 (fases numeradas + 12.1, 12.2, 12.4, 12.5, 12.6, 12.7) + refinamento visual transversal
 **Em andamento:** 0
-**A fazer:** 5 (Fase 12, restam 12.2–12.8)
+**A fazer:** 2 (Fase 12: 12.3 requer dispositivo/emulador do usuário; 12.8 build de apresentação)
