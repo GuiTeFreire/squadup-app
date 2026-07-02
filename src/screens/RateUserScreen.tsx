@@ -67,6 +67,7 @@ export default function RateUserScreen() {
   }
 
   function handleSubmit() {
+    if (!user) return;
     const allFilled = CRITERIA_LABELS.every(({ key }) => criteria[key] >= 1);
     if (!allFilled) {
       setError("Avalie todos os critérios antes de enviar.");
