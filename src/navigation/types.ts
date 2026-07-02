@@ -15,6 +15,8 @@ export type AppRootStackParamList = {
   ReportUser: { userId: string };
   PostMatchRating: { matchId: string };
   RateUser: { matchId: string; userId: string };
+  AdminDashboard: undefined;
+  ReportDetail: { reportId: string };
 };
 
 export type AppTabParamList = {

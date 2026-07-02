@@ -8,14 +8,16 @@ import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-nativ
 import Avatar from "../components/Avatar";
 import Button from "../components/Button";
 import { useMatchesContext } from "../contexts/MatchesContext";
-import { MOCK_USERS } from "../mocks/users";
+import { useReportsContext } from "../contexts/ReportsContext";
+import { CURRENT_USER, MOCK_USERS } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
+import type { ReportReason } from "../types";
 import { formatMatchDate } from "../utils/date";
 
 type Nav = NativeStackNavigationProp<AppRootStackParamList>;
 type Route = RouteProp<AppRootStackParamList, "ReportUser">;
 
-const REPORT_REASONS = [
+const REPORT_REASONS: ReadonlyArray<{ value: ReportReason; label: string }> = [
   { value: "bad_behavior", label: "Comportamento inadequado" },
   { value: "violence", label: "Violência ou agressão" },
   { value: "no_show", label: "Não compareceu" },
@@ -23,13 +25,14 @@ const REPORT_REASONS = [
   { value: "spam", label: "Spam ou publicidade" },
   { value: "fake_info", label: "Informações falsas" },
   { value: "other", label: "Outro" },
-] as const;
+];
 
 export default function ReportUserScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const { userId } = route.params;
   const { matches } = useMatchesContext();
+  const { addReport } = useReportsContext();
 
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [description, setDescription] = useState("");
@@ -60,6 +63,17 @@ export default function ReportUserScreen() {
       setError("Selecione o motivo da denúncia.");
       return;
     }
+    const relatedMatch = userMatches.find((m) => m.id === selectedMatchId);
+    addReport({
+      id: `report-${Date.now()}`,
+      reportedUser: user!,
+      reporterUser: CURRENT_USER,
+      match: relatedMatch,
+      reason: selectedReason as ReportReason,
+      description,
+      createdAt: new Date().toISOString(),
+      status: "pending",
+    });
     Alert.alert(
       "Denúncia enviada!",
       `Sua denúncia sobre ${user!.name} foi registrada. Vamos analisar o caso em até 48 horas.`,

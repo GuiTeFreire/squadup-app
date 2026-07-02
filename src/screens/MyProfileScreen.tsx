@@ -148,6 +148,14 @@ export default function MyProfileScreen() {
             variant="secondary"
             fullWidth
           />
+
+          {/* Hidden admin entry point — protótipo acadêmico, sem RBAC real */}
+          <Button
+            label="Painel administrativo"
+            onPress={() => navigation.navigate("AdminDashboard")}
+            variant="ghost"
+            fullWidth
+          />
         </View>
       </ScrollView>
     </View>

@@ -6,7 +6,16 @@ export type MatchStatus = "open" | "full" | "pending_approval" | "closed" | "can
 
 export type ParticipationStatus = "confirmed" | "pending" | "cancelled";
 
-export type ReportReason = "inappropriate_behavior" | "violence" | "spam" | "no_show" | "other";
+export type ReportReason =
+  | "bad_behavior"
+  | "violence"
+  | "no_show"
+  | "hate_speech"
+  | "spam"
+  | "fake_info"
+  | "other";
+
+export type ReportStatus = "pending" | "archived" | "warned" | "banned";
 
 export interface User {
   id: string;
@@ -70,6 +79,7 @@ export interface Report {
   reason: ReportReason;
   description: string;
   createdAt: string;
+  status: ReportStatus;
 }
 
 export type MessageType = "message" | "system";

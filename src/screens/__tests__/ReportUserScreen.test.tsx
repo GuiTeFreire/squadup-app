@@ -8,6 +8,7 @@ import ReportUserScreen from "../ReportUserScreen";
 const mockGoBack = jest.fn();
 const mockUseRoute = jest.fn();
 const mockUseMatchesContext = jest.fn();
+const mockAddReport = jest.fn();
 
 jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ goBack: mockGoBack }),
@@ -16,6 +17,10 @@ jest.mock("@react-navigation/native", () => ({
 
 jest.mock("../../contexts/MatchesContext", () => ({
   useMatchesContext: () => mockUseMatchesContext(),
+}));
+
+jest.mock("../../contexts/ReportsContext", () => ({
+  useReportsContext: () => ({ addReport: mockAddReport }),
 }));
 
 jest.spyOn(Alert, "alert");
@@ -99,6 +104,15 @@ describe("ReportUserScreen — submissão", () => {
       "Denúncia enviada!",
       expect.stringContaining("Rafael Souza"),
       expect.any(Array)
+    );
+  });
+
+  it("registra a denúncia no ReportsContext com status pendente", () => {
+    render(<ReportUserScreen />);
+    fireEvent.press(screen.getByLabelText("Comportamento inadequado"));
+    fireEvent.press(screen.getByText("Enviar denúncia"));
+    expect(mockAddReport).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "bad_behavior", status: "pending" })
     );
   });
 

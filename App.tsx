@@ -7,6 +7,7 @@ import { MatchesProvider } from "./src/contexts/MatchesContext";
 import { MatchFiltersProvider } from "./src/contexts/MatchFiltersContext";
 import { MessagesProvider } from "./src/contexts/MessagesContext";
 import { RatingsProvider } from "./src/contexts/RatingsContext";
+import { ReportsProvider } from "./src/contexts/ReportsContext";
 import RootNavigator from "./src/navigation/RootNavigator";
 
 export default function App() {
@@ -15,12 +16,14 @@ export default function App() {
       <AuthProvider>
         <MatchesProvider>
           <RatingsProvider>
-            <MessagesProvider>
-              <MatchFiltersProvider>
-                <StatusBar style="auto" />
-                <RootNavigator />
-              </MatchFiltersProvider>
-            </MessagesProvider>
+            <ReportsProvider>
+              <MessagesProvider>
+                <MatchFiltersProvider>
+                  <StatusBar style="auto" />
+                  <RootNavigator />
+                </MatchFiltersProvider>
+              </MessagesProvider>
+            </ReportsProvider>
           </RatingsProvider>
         </MatchesProvider>
       </AuthProvider>

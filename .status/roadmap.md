@@ -1,6 +1,6 @@
 # SquadUp — Roadmap Inicial do Front-end
 
-## Status de execução (atualizado em 2026-05-26)
+## Status de execução (atualizado em 2026-07-02)
 
 | Fase | Descrição | Status |
 |------|-----------|--------|
@@ -14,11 +14,11 @@
 | Fase 7 | Participação em partida | 🟢 Concluída (5/5 tarefas — sessão 9) |
 | Fase 8 | Chat da partida | 🟢 Concluída (6/6 tarefas — sessão 10) |
 | Fase 9 | Avaliação pós-partida | 🟢 Concluída (5/5 tarefas — sessão 11) |
-| Fase 10 | Denúncia e segurança | ⚪ A fazer |
-| Fase 11 | Moderação (opcional) | ⚪ A fazer |
+| Fase 10 | Denúncia e segurança | 🟢 Concluída (5/5 tarefas — sessão 12) |
+| Fase 11 | Moderação (opcional) | 🟢 Concluída (3/3 tarefas — sessão 13) |
 | Fase 12 | Revisão e polimento final | ⚪ A fazer |
 
-**Progresso geral:** 56/70 tarefas concluídas (80%) · 151 testes passando · lint zerado · tsc sem erros
+**Progresso geral:** 64/70 tarefas concluídas (91%) · 181 testes passando · lint zerado · tsc com 1 erro pré-existente não relacionado (ver dívida técnica D9)
 
 Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons)
 

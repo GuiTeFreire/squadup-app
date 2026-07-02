@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 
+import AdminDashboardScreen from "../screens/AdminDashboardScreen";
 import CreateMatchScreen from "../screens/CreateMatchScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
 import FiltersScreen from "../screens/FiltersScreen";
@@ -13,6 +14,7 @@ import MyProfileScreen from "../screens/MyProfileScreen";
 import PostMatchRatingScreen from "../screens/PostMatchRatingScreen";
 import PublicProfileScreen from "../screens/PublicProfileScreen";
 import RateUserScreen from "../screens/RateUserScreen";
+import ReportDetailScreen from "../screens/ReportDetailScreen";
 import ReportUserScreen from "../screens/ReportUserScreen";
 import SearchScreen from "../screens/SearchScreen";
 import type { AppRootStackParamList, AppTabParamList } from "./types";
@@ -123,6 +125,16 @@ export default function AppNavigator() {
       <RootStack.Screen
         name="RateUser"
         component={RateUserScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="AdminDashboard"
+        component={AdminDashboardScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="ReportDetail"
+        component={ReportDetailScreen}
         options={{ headerShown: false }}
       />
     </RootStack.Navigator>
