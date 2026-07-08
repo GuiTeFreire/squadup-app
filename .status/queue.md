@@ -59,6 +59,22 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 | D11 | `Alert.alert` não renderiza em `react-native-web` | Baixa | Sem polyfill instalado, `Alert.alert(...)` em `RateUserScreen`, `ReportUserScreen`, `ReportDetailScreen` e no cancelamento de `MatchDetailScreen` não produz diálogo no browser — a ação de dados ocorre normalmente, mas o callback do botão "OK" (que costuma fazer `navigation.goBack()`) nunca dispara, deixando o usuário sem feedback visual. Funciona normalmente em Expo Go/iOS/Android nativo (a confirmar na 12.3). Só relevante se a apresentação acadêmica usar `npm run web` em vez de dispositivo/emulador — nesse caso, avaliar um polyfill de `Alert` (ex.: `react-native-web` community package) antes da entrega. Descoberto na sessão 17. |
 | D12 | Timestamp de mensagem do chat usa hora real | Baixa | `MessagesContext.sendMessage` (`src/contexts/MessagesContext.tsx`) grava `createdAt: new Date().toLocaleTimeString(...)` para mensagens novas, enquanto o histórico mockado em `src/mocks/messages.ts` usa horários fictícios fixos — uma mensagem enviada durante a demo pode aparecer com horário "menor" que mensagens antigas da conversa, quebrando a ordem cronológica visual. Cosmético; considerar mockar um relógio fixo ou aceitar como comportamento esperado de protótipo. Descoberto na sessão 17. |
 | D13 | Selo de verificado sem texto alternativo para leitor de tela | Baixa | O ícone `check-decagram` (usuário verificado) aparece sozinho, sem `accessibilityLabel`, em `ParticipantList.tsx`, `MatchDetailScreen.tsx`, `PublicProfileScreen.tsx`, `MyProfileScreen.tsx`, `RateUserScreen.tsx` e `PostMatchRatingScreen.tsx` — leitores de tela não anunciam essa informação. Nice-to-have, não bloqueante para a apresentação. Descoberto na auditoria de acessibilidade da sessão 17 (12.4). |
+| D14 | `ReportsContext.updateReportStatus` manda status-alvo, backend espera ação | Média | Backend (`PATCH /reports/{id}`) espera `{ action: "archive"\|"warn"\|"ban" }`; front manda `ReportStatus` direto. Único ponto de **quebra de contrato real** (não é só nomenclatura) encontrado na comparação com `../back`. Ver `.status/backend-contract.md` §2.6. Corrigir antes de plugar a API real de denúncias. |
+| D15 | Cadastro de usuário não coleta `age`, campo obrigatório no backend | Média | `POST /auth/register` exige `age: int` (`gt=0`); nem `RegisterScreen` nem `ProfileSetupScreen` coletam idade hoje — `AuthContext.completeProfile` hardcoda `age: 25`. Ver `.status/backend-contract.md` §2.7. |
+| D16 | `types.Match` único vs `MatchRead`/`MatchDetailRead` separados no backend | Média | Backend só expande `organizer`/`participants` no endpoint de detalhe; a listagem (`GET /matches`) devolve `organizer_id` e `confirmed_count`/`available_slots` prontos, sem array de participantes. Código que hoje lê `match.participants`/`match.organizer.name` a partir de uma lista vai quebrar silenciosamente ao trocar o mock pela API. Ver `.status/backend-contract.md` §2.2 para o plano de split em `MatchSummary`/`MatchDetail`. |
+| D17 | Faltam ações de organizador: encerrar partida e aprovar participante pendente | Baixa | Backend já expõe `POST /matches/{id}/close` e `POST /matches/{id}/participants/{user_id}/approve`, mas não há UI para nenhuma das duas — `MatchDetailScreen`/`ParticipantList` só exibem, não moderam. Bloqueia o fluxo real de avaliação pós-partida (exige partida `closed`). Ver `.status/backend-contract.md` §2.2. |
+| D18 | Filtros de partida não cobrem `date`/`location`, que o backend já suporta | Baixa | `GET /matches` aceita `date` e `location` como query params; `FiltersScreen`/`MatchFiltersContext` só implementam `sport`/`level`/`onlyAvailable`. Também é escopo original do `vision.md` (filtro por localização). Ver `.status/backend-contract.md` §4. |
+
+---
+
+## Paridade de contrato com o backend (`../back`)
+
+Comparação completa de models/schemas/routers do backend real (FastAPI + SQLModel, já com
+auth JWT, matches, mensagens, ratings e reports persistidos) contra os tipos/mocks do front
+está documentada em **`.status/backend-contract.md`** (sessão 18, 2026-07-08). Resumo:
+enums têm paridade total dos dois lados; maior risco é `Match` único no front vs duas shapes
+no backend (D16); único contrato genuinamente quebrado é a ação de moderação de denúncia
+(D14). Consultar esse documento antes de iniciar qualquer integração real com a API.
 
 ---
 

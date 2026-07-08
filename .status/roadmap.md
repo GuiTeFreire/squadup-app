@@ -435,6 +435,11 @@ Esses recursos poderão ser desenvolvidos posteriormente em PG2.
 
 ## 18. Próxima evolução após o protótipo
 
+> **Backend já existe e está adiantado** (`../back`, FastAPI + SQLModel): auth JWT, matches,
+> mensagens, ratings e reports já persistidos e testados. Antes de iniciar a integração,
+> consultar `.status/backend-contract.md` (comparação completa de contrato, sessão 18) e as
+> dívidas D14–D18 em `.status/queue.md`.
+
 Após a validação das telas, as próximas etapas serão:
 
 - refinar os casos de uso;
