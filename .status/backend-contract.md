@@ -7,6 +7,23 @@
 > SQLite via SQLModel. Este documento é a fonte única de verdade para o contrato de API —
 > manter atualizado sempre que um schema mudar de qualquer um dos dois lados (regra do
 > `CLAUDE.md`, seção 1).
+>
+> **Atualização (2026-07-08, confirmação pós-Fase 12 do backend):** D-B, D-C e D-D (seção 7)
+> foram implementadas e confirmadas contra o `/openapi.json` gerado localmente na branch
+> `feature/fase-12-contrato` (commit `46ca52c`). As seções 2.1, 2.4, 2.5 e 2.6 abaixo ainda
+> descrevem o estado *anterior* a essa mudança (mantido como histórico da comparação original)
+> — o estado *atual* confirmado é:
+> - **D-B (aplicada):** `RatingRead.rated_user` agora é `PublicProfileRead` (objeto completo),
+>   não mais só `rated_user_id`.
+> - **D-C (aplicada):** novo schema `MatchRef` (`id, title, sport, date`) substitui `match_id`
+>   solto em `RatingRead.match` (obrigatório) e `ReportRead.match` (opcional, `MatchRef | null`,
+>   pois `Report.match_id` é FK nula).
+> - **D-D (aplicada, escopo mínimo):** `POST /matches` agora emite automaticamente uma
+>   `Message(type=system, text="Partida criada. Bem-vindos!")` ao criar a partida — o front pode
+>   parar de simular essa mensagem em `src/mocks/messages.ts` ao integrar de fato.
+>
+> Nenhuma outra seção deste documento (Match summary/detail, Auth, ação de moderação por verbo,
+> `average_rating` nulo, etc.) mudou — seguem válidas como estavam.
 
 Backend lido em: `app/models/*.py`, `app/schemas/*.py`, `app/routers/*.py`, `app/main.py`.
 
