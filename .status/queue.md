@@ -78,6 +78,35 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 
 ---
 
+## Fila de integração — Fase 13 (`.status/roadmap.md` §19, sessão 19 — 2026-07-08)
+
+> Plano mestre completo, decisões de arquitetura (D-A a D-D) e por que cada item existe estão
+> em `.status/backend-contract.md` §6. Esta fila só lista o "o quê"; o "por quê" fica lá para
+> não duplicar manutenção. **Pré-requisito:** Etapa 1 do plano mestre concluída no backend
+> (`../back/.status/roadmap.md`, Fase 12) — sem isso, os tipos/adapters do front (13.1–13.2)
+> seriam construídos sobre um contrato ainda instável.
+
+| # | Tarefa | Sub-fase | Status |
+|---|--------|----------|--------|
+| 1 | Dividir `types.User` em `PublicUser`/`MyProfile`; dividir `types.Match` em `MatchSummary`/`MatchDetail` | 13.1 | ⚪ |
+| 2 | Ajustar `Rating`/`Report` aos shapes reais (`rater`, `match_id`) conforme decisão D-B/D-C do backend | 13.1 | ⚪ |
+| 3 | Criar `src/services/api/client.ts` (fetch tipado + parse de erro `{code,message}` + Bearer) | 13.2 | ⚪ |
+| 4 | Criar `src/services/adapters/` (conversão `snake_case↔camelCase`, achatamento de `RatingCriteria`) | 13.2 | ⚪ |
+| 5 | Instalar `expo-secure-store` e criar módulo de storage seguro de token | 13.2 | ⚪ |
+| 6 | Instalar e configurar `@tanstack/react-query` (`QueryClientProvider` em `App.tsx`) | 13.3 | ⚪ |
+| 7 | Adicionar campo de **idade** ao fluxo de cadastro (D15 — obrigatório no backend, sem input hoje) | 13.4 | ⚪ |
+| 8 | Reescrever `AuthContext` por dentro (register→login em sequência, token no storage seguro, refresh automático em 401, boot via `GET /auth/me`) | 13.4 | ⚪ |
+| 9 | `MatchesContext`/`MatchFiltersContext` → React Query contra `GET /matches`; adicionar filtros de **data** e **localização** (D18) | 13.5 | ⚪ |
+| 10 | `MatchDetailScreen` busca `MatchDetail` sob demanda; `CreateMatchScreen` envia só o payload de criação | 13.5 | ⚪ |
+| 11 | Botão "Encerrar partida" (organizador) chamando `POST /matches/{id}/close` (D17) | 13.5 | ⚪ |
+| 12 | UI de aprovar participante pendente (organizador) chamando `.../participants/{userId}/approve` (D17) | 13.5 | ⚪ |
+| 13 | `MessagesContext` → React Query; parar de gerar `createdAt` no cliente (resolve D12); paginação no `MatchChatScreen` | 13.6 | ⚪ |
+| 14 | `RatingsContext` → React Query; adapter de achatamento de critérios; UI trata `averageRating` nulo | 13.7 | ⚪ |
+| 15 | `ReportsContext.updateReportStatus` migrado para ação (`archive`/`warn`/`ban`) em vez de status-alvo (D14) | 13.8 | ⚪ |
+| 16 | Teste manual ponta a ponta contra backend local; apontar `.env` para URL de produção; ajustar texto do TCC (decisão D-A) | 13.9 | ⚪ |
+
+---
+
 ## Bloqueadores e observações
 
 - **Sessão 17 (2026-07-02):** Fase 12 avançou para 6/8 (12.2, 12.4, 12.5, 12.6 e 12.7 concluídas — 12.1 já vinha da sessão 15). Zero erros de console, `npm run lint`/`npx tsc --noEmit`/`npm run test` (181/181) zerados. Duas auditorias corrigiram problemas reais de acessibilidade (contraste de cor, label do card de partida) e de coerência dos dados mockados (avaliações datadas antes da partida acontecer). Três achados não bloqueantes viraram dívidas técnicas D11–D13 (ver tabela acima). Restam 12.3 (Expo Go — requer dispositivo/emulador do usuário) e 12.8 (build de apresentação). Detalhes tarefa-a-tarefa em `progress.md`, sessão 17.

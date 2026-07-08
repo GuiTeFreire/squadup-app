@@ -449,3 +449,108 @@ Após a validação das telas, as próximas etapas serão:
 - integrar frontend com backend;
 - testar fluxos principais;
 - preparar versão funcional do MVP.
+
+---
+
+## 19. Fase 13 — Integração com o backend real
+
+> Detalhamento tarefa-a-tarefa do plano mestre em `.status/backend-contract.md` §6. Esta fase
+> só pode começar depois que a Etapa 1 (backend) estiver concluída — ver `../back/.status/roadmap.md`,
+> Fase 12. As sub-fases 13.4–13.8 são independentes entre si (todas dependem só de 13.2/13.3) e
+> podem ser feitas em qualquer ordem.
+
+### Objetivo
+
+Substituir os seis Contexts mockados (`AuthContext`, `MatchesContext`, `MatchFiltersContext`,
+`MessagesContext`, `RatingsContext`, `ReportsContext`) por consumo real da API do backend,
+mantendo as mesmas interfaces públicas de hook sempre que possível, para minimizar mudanças nas
+telas.
+
+### 13.1 — Tipos alinhados ao contrato real
+
+- Dividir `types.User` em `PublicUser` (dados públicos) e `MyProfile extends PublicUser { email, role }`;
+- Dividir `types.Match` em `MatchSummary` (`organizerId`, `confirmedCount`, `availableSlots`) e
+  `MatchDetail extends MatchSummary` (`organizer`, `participants`);
+- Ajustar `Rating`/`Report` para refletir o shape real (`raterUser`→`rater` só se o backend
+  aplicar D-B; `ratedUser`/`match` viram opcionais ou removidos conforme decisão D-B/D-C do
+  backend);
+- Rodar `npx tsc --noEmit` e ajustar todos os usos quebrados pelos novos tipos (esperado —
+  é o objetivo do exercício: expor em tempo de compilação todo lugar que assumia o shape antigo).
+
+### 13.2 — Camada de infraestrutura de API
+
+- Criar `src/services/api/client.ts`: wrapper de `fetch` tipado, parse de
+  `{ detail: { code, message } }`, anexação de `Authorization: Bearer`;
+- Criar `src/services/adapters/`: funções puras de conversão (`toUser`, `toMatchSummary`,
+  `toRatingPayload`, etc.) isolando `snake_case↔camelCase` e achatamento/expansão de objetos;
+- Criar módulo de storage seguro de token com `expo-secure-store` (não `AsyncStorage` — dado
+  sensível, CLAUDE.md §4);
+- Adicionar `expo-secure-store` às dependências (`npx expo install expo-secure-store`);
+- Configurar `EXPO_PUBLIC_API_URL` via variável de ambiente (`.env` + `app.config.ts`).
+
+### 13.3 — React Query
+
+- Instalar `@tanstack/react-query` (já previsto no CLAUDE.md §2, nunca instalado até aqui);
+- Configurar `QueryClientProvider` no root do app (`App.tsx`);
+- Definir convenção de query keys (`["matches", filters]`, `["match", id]`, `["ratings", userId]`, etc.).
+
+### 13.4 — Auth real
+
+- Adicionar campo de **idade** ao fluxo de cadastro (`RegisterScreen` ou `ProfileSetupScreen`) — hoje
+  não existe input nenhum e `age` é obrigatório no backend (D15);
+- Reescrever `AuthContext` por dentro para chamar `POST /auth/register` → `POST /auth/login` em
+  sequência (registro não retorna token), mantendo a mesma assinatura pública (`login`,
+  `register`, `completeProfile`, `logout`) para não alterar telas;
+- Salvar `access_token`/`refresh_token` no storage seguro (13.2) após login;
+- Interceptor de refresh automático em 401 no cliente HTTP (13.2), usando `POST /auth/refresh`;
+- Tela de boot: ao abrir o app, tentar `GET /auth/me` com token salvo antes de mostrar `WelcomeScreen`;
+- `logout()` deve chamar `POST /auth/logout` com o refresh token antes de limpar o estado local.
+
+### 13.5 — Matches reais
+
+- `MatchesContext`/`MatchFiltersContext` → hooks de React Query contra `GET /matches` (com filtros
+  `sport`/`date`/`location`/`level`/`has_open_slots`);
+- Adicionar filtro de **data** e **localização** em `FiltersScreen`/`MatchFiltersContext` (D18 — o
+  backend já aceita, o front nunca expôs);
+- `MatchDetailScreen` busca `MatchDetail` sob demanda via `GET /matches/{id}`;
+- `CreateMatchScreen` envia só o payload de criação (`POST /matches`), deixando o backend gerar
+  `id`/`organizer`/`status`/`participants`;
+- `useMatchParticipation` migra `join`/`cancel` para `POST /matches/{id}/join` e `/leave`;
+- Adicionar botão **"Encerrar partida"** em `MatchDetailScreen`, visível só para o organizador
+  quando `status` é `open`/`full`, chamando `POST /matches/{id}/close` (D17);
+- Adicionar UI de **aprovar solicitação pendente** para o organizador (lista de `pending` com ação
+  por item), chamando `POST /matches/{id}/participants/{userId}/approve` (D17).
+
+### 13.6 — Mensagens reais
+
+- `MessagesContext` → React Query (`GET`/`POST /matches/{id}/messages`);
+- `sendMessage` para de gerar `createdAt` no cliente — usa o valor devolvido pelo `POST` (resolve D12);
+- `MatchChatScreen` ganha paginação (`skip`/`limit`, máx. 100 por página) em vez de carregar tudo de uma vez;
+- Comportamento de mensagens de sistema decidido conforme D-D do backend (`backend-contract.md` §6).
+
+### 13.7 — Avaliações reais
+
+- `RatingsContext` → React Query contra `POST /matches/{id}/ratings/{userId}` e `GET /users/{id}/ratings`;
+- Adapter achata `RatingCriteria` em campos soltos ao enviar, e (se D-B for aplicado no backend)
+  reagrupa ao ler;
+- `RatingStars`/telas de perfil tratam `averageRating` nulo (usuário sem avaliações) em vez de
+  assumir sempre um número.
+
+### 13.8 — Denúncias reais
+
+- `ReportsContext.updateReportStatus(reportId, status)` → `updateReportStatus(reportId, action)`,
+  onde `action` é `"archive" | "warn" | "ban"`, alinhado a `PATCH /reports/{id}` (D14 — único
+  contrato genuinamente quebrado encontrado na comparação);
+- `AdminDashboardScreen`/`ReportDetailScreen` atualizados para os três verbos de ação;
+- `ReportUserScreen` envia só `{ reported_user_id, match_id?, reason, description }` via
+  `POST /reports` (reporter vem do JWT).
+
+### 13.9 — Hardening conjunto e fechamento
+
+- Teste manual ponta a ponta (welcome → login → home → partida → chat → avaliação → denúncia)
+  contra o backend rodando localmente;
+- Apontar `EXPO_PUBLIC_API_URL` para a URL de produção decidida (`../back`, Fase 12);
+- Ajustar a redação do TCC conforme a decisão D-A (geolocalização/"Local") antes da defesa;
+- Remover `src/mocks/*.ts` **só depois** que todas as telas estiverem consumindo dados reais —
+  manter como fallback/seed de testes de componente até lá (os testes Jest continuam usando os
+  mocks como fixtures, isso não muda).

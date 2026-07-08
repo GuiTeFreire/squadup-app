@@ -200,7 +200,90 @@ Fase "integração com backend" (roadmap, seção 18) começar. Ficam registrada
 
 ---
 
-## 5. Resumo executivo
+## 5. Contexto adicional do TCC (`TCC.tex`, lido na sessão 19)
+
+O TCC confirma a visão de produto e a arquitetura (React Native + FastAPI + banco relacional)
+já descritas em `vision.md` dos dois repositórios — sem contradição aí. Duas afirmações do
+texto, porém, estão **à frente da implementação real** e representam risco de credibilidade
+na banca se não forem alinhadas antes da defesa:
+
+1. **Geolocalização como se já existisse** (§4.6.5, "Geolocalização"): *"No SquadUp, a
+   geolocalização foi utilizada para facilitar a descoberta de partidas esportivas próximas ao
+   usuário."* — no verbo no passado, como funcionalidade entregue. Na prática, `vision.md` dos
+   dois repositórios lista geolocalização real explicitamente **fora do escopo** (front §14,
+   back §8), e nem `User` nem `Match` têm campos de latitude/longitude — `location` é só
+   `string` livre nos dois lados. Nenhum código precisa mudar por causa disso; o texto do TCC
+   é que precisa ser ajustado (tempo verbal / mover para "trabalhos futuros"), a menos que se
+   decida implementar geolocalização de verdade antes da defesa (ver Decisão D-A abaixo).
+2. **"Local" como entidade própria** (§4.7, "Principais entidades"): o TCC lista `Local` como
+   uma das seis entidades principais, ao lado de Usuário/Partida/Participação/Avaliação/
+   Denúncia. No modelo real (`app/models/match.py`), não existe uma tabela `Location`/`Venue`
+   — `location` é um campo `str` solto em `Match`, igual ao `location: string` do front. Ajustar
+   o texto (tratar "local" como atributo, não entidade) é a opção de menor esforço; modelar uma
+   entidade `Location` de verdade é uma opção maior, só justificável se o projeto for evoluir
+   para busca por proximidade real.
+
+Nenhum dos dois pontos bloqueia a integração técnica — são decisões de **escopo/redação**, não
+bugs de contrato. Ficam registrados aqui porque afetam diretamente a defesa do TCC, e a decisão
+(ajustar o texto vs. implementar de verdade) muda o que entra no roadmap técnico. Ver "Decisão
+D-A" na seção 7.
+
+O cronograma do TCC (§5, Tabela "Cronograma de Desenvolvimento") também dá uma baliza de tempo
+útil: a etapa "Integração entre frontend e backend" está prevista para Ago–Set, logo após
+"Implementação do backend" (até Jul 2) — ou seja, pelo calendário do próprio TCC, **agora é o
+momento correto de iniciar exatamente o plano da seção 7 abaixo.**
+
+## 6. Plano de implementação mestre (integração front × backend)
+
+Plano de arquitetura para sair do estado atual (front 100% mockado, backend funcional e maduro
+mas não consumido) para um MVP integrado ponta a ponta. Numerado em **decisões** (a fechar
+antes de codar) e **etapas** (trabalho executável, em ordem de dependência). Cada etapa indica
+o repositório responsável. As etapas foram transformadas em tarefas concretas em
+`.status/roadmap.md` (Fase 13, deste repositório) e no `roadmap.md`/`queue.md` do backend.
+
+### Decisões a fechar antes de codar
+
+- **D-A (produto/escopo, decidir com o orientador):** manter geolocalização e "Local" como
+  trabalho futuro (ajustar só o texto do TCC) **ou** investir tempo em implementar de verdade
+  antes da defesa. Recomendação: manter como trabalho futuro — o cronograma do próprio TCC não
+  reserva tempo para isso, e nenhum caso de uso priorizado depende disso.
+- **D-B (contrato, backend):** `RatingRead` expande `rater` (`PublicProfileRead`) mas não
+  `rated_user` (só `rated_user_id`) — assimetria em relação ao padrão que o próprio backend já
+  estabeleceu para `Message.sender`/`Participant.user` ("Lições da Fase 8", `back/.status/queue.md`).
+  Recomendação: expandir `rated_user` também, por consistência e para permitir telas futuras
+  que listem avaliações fora do contexto de um perfil já carregado.
+- **D-C (contrato, backend):** `Rating`/`Report` só referenciam `Match` por `match_id`, sem
+  nome/data. Decidir se vale a pena um `MatchRef` leve (`id, title, sport, date`) embutido nos
+  dois `Read` schemas, para o front não precisar de uma segunda chamada só para mostrar "avaliação
+  referente à partida X, em 25/05". Recomendação: adicionar `MatchRef` — é pequeno e evita N+1
+  requests do front quando `PublicProfileScreen`/`ReportDetailScreen` renderizarem listas.
+- **D-D (produto, backend):** o backend não gera mensagens `type: system` (ex.: "Partida criada
+  por X, bem-vindos!") em nenhum evento — o enum existe, mas nada o emite. Decidir se isso é
+  uma feature real (o serviço de match/participante passa a inserir uma `Message` de sistema em
+  eventos-chave) ou se é retirado do escopo do protótipo (o front para de simular essas
+  mensagens ao trocar para dados reais). Recomendação: escopo mínimo — emitir só ao **criar a
+  partida**; não vale a pena replicar todas as variações que hoje só existem no mock
+  (`src/mocks/messages.ts`).
+
+### Etapas de execução (ordem de dependência)
+
+| # | Etapa | Repositório | Depende de |
+|---|---|---|---|
+| 1 | Refinamentos de consistência do contrato (D-B, D-C, D-D) + fechar Fase 11 (CORS produção, hospedagem, purge de refresh tokens) | **Backend** | Decisões acima |
+| 2 | Tipos TS alinhados ao contrato real (`PublicUser`/`MyProfile`, `MatchSummary`/`MatchDetail`) | **Front** | Etapa 1 (schemas finais) |
+| 3 | Camada de adapters (`src/services/adapters/`) + cliente HTTP tipado (`src/services/api/`) + storage seguro de token | **Front** | Etapa 2 |
+| 4 | Auth real: campo de idade no cadastro, fluxo register→login, `AuthContext` por trás da mesma interface pública, mas com API real | **Front** | Etapa 3 |
+| 5 | Matches reais: listagem/detalhe/criação/entrar/sair, filtros de data e local, botão "encerrar partida", UI de aprovar pendente | **Front** | Etapa 3 |
+| 6 | Mensagens reais: histórico paginado, envio sem timestamp gerado no cliente | **Front** | Etapa 3, decisão D-D |
+| 7 | Avaliações reais: adapter de achatamento de critérios, tratamento de `average_rating` nulo | **Front** | Etapa 3, decisão D-B |
+| 8 | Denúncias reais: `ReportsContext` migrado para ação (`archive`/`warn`/`ban`) em vez de status-alvo | **Front** | Etapa 3 |
+| 9 | Hardening conjunto: teste manual ponta a ponta contra o backend local, apontar `.env` do front para a URL de produção decidida, ajustar texto do TCC conforme decisão D-A | **Ambos** | Etapas 4–8 |
+
+Etapas 4–8 são independentes entre si (todas dependem só da 3) e podem ser feitas em qualquer
+ordem ou em paralelo — a ordem na tabela é só uma sugestão de prioridade (auth destrava tudo
+que exige usuário logado; matches é o fluxo mais visado na demo).
+
+## 7. Resumo executivo
 
 - **Paridade boa hoje:** todos os enums (`Sport`, `ExperienceLevel`, `MatchStatus`,
   `ParticipationStatus`, `MessageType`, `ReportReason`, `ReportStatus`) têm exatamente os
