@@ -486,7 +486,11 @@ telas.
 - Criar módulo de storage seguro de token com `expo-secure-store` (não `AsyncStorage` — dado
   sensível, CLAUDE.md §4);
 - Adicionar `expo-secure-store` às dependências (`npx expo install expo-secure-store`);
-- Configurar `EXPO_PUBLIC_API_URL` via variável de ambiente (`.env` + `app.config.ts`).
+- Configurar `EXPO_PUBLIC_API_URL` via variável de ambiente (`.env` + `app.config.ts`), com um
+  `.env.example` versionado (mesmo padrão já usado em `../back`) — **atenção:** `localhost` não
+  funciona a partir de um dispositivo físico ou emulador via Expo Go, que não alcançam o
+  `localhost` da máquina de desenvolvimento; usar o IP da rede local (`http://192.168.x.x:8000`)
+  ou o túnel do Expo (`expo start --tunnel`) ao testar fora do `npm run web`.
 
 ### 13.3 — React Query
 
