@@ -1,4 +1,5 @@
 import "./global.css";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -9,25 +10,28 @@ import { MessagesProvider } from "./src/contexts/MessagesContext";
 import { RatingsProvider } from "./src/contexts/RatingsContext";
 import { ReportsProvider } from "./src/contexts/ReportsContext";
 import RootNavigator from "./src/navigation/RootNavigator";
+import { queryClient } from "./src/services/queryClient";
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <MatchesProvider>
-          <RatingsProvider>
-            <ReportsProvider>
-              <MessagesProvider>
-                <MatchFiltersProvider>
-                  {/* Headers e heros são dark slate — status bar sempre clara */}
-                  <StatusBar style="light" />
-                  <RootNavigator />
-                </MatchFiltersProvider>
-              </MessagesProvider>
-            </ReportsProvider>
-          </RatingsProvider>
-        </MatchesProvider>
-      </AuthProvider>
-    </SafeAreaProvider>
+    <QueryClientProvider client={queryClient}>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <MatchesProvider>
+            <RatingsProvider>
+              <ReportsProvider>
+                <MessagesProvider>
+                  <MatchFiltersProvider>
+                    {/* Headers e heros são dark slate — status bar sempre clara */}
+                    <StatusBar style="light" />
+                    <RootNavigator />
+                  </MatchFiltersProvider>
+                </MessagesProvider>
+              </ReportsProvider>
+            </RatingsProvider>
+          </MatchesProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
+    </QueryClientProvider>
   );
 }

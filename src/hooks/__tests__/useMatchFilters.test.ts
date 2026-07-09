@@ -1,5 +1,5 @@
 import { applyFilters } from "../useMatchFilters";
-import type { Match } from "../../types";
+import type { MatchDetail } from "../../types";
 import type { MatchFilters } from "../../contexts/MatchFiltersContext";
 
 const makeUser = (id: string, name = "Usuário Teste") => ({
@@ -14,25 +14,36 @@ const makeUser = (id: string, name = "Usuário Teste") => ({
   isVerified: false,
 });
 
-const makeMatch = (overrides: Partial<Match> = {}): Match => ({
-  id: "m1",
-  sport: "football",
-  title: "Pelada de domingo",
-  location: "Arena Botafogo",
-  date: "2026-05-25",
-  time: "09:00",
-  maxParticipants: 10,
-  level: "intermediate",
-  organizer: makeUser("u1", "Carlos Lima"),
-  participants: [
-    { user: makeUser("u1"), status: "confirmed" },
-    { user: makeUser("u2"), status: "confirmed" },
-  ],
-  status: "open",
-  allowBeginners: true,
-  requiresApproval: false,
-  ...overrides,
-});
+type MatchSeed = Omit<MatchDetail, "organizerId" | "confirmedCount" | "availableSlots">;
+
+const makeMatch = (overrides: Partial<MatchSeed> = {}): MatchDetail => {
+  const seed: MatchSeed = {
+    id: "m1",
+    sport: "football",
+    title: "Pelada de domingo",
+    location: "Arena Botafogo",
+    date: "2026-05-25",
+    time: "09:00",
+    maxParticipants: 10,
+    level: "intermediate",
+    organizer: makeUser("u1", "Carlos Lima"),
+    participants: [
+      { user: makeUser("u1"), status: "confirmed" },
+      { user: makeUser("u2"), status: "confirmed" },
+    ],
+    status: "open",
+    allowBeginners: true,
+    requiresApproval: false,
+    ...overrides,
+  };
+  const confirmedCount = seed.participants.filter((p) => p.status === "confirmed").length;
+  return {
+    ...seed,
+    organizerId: seed.organizer.id,
+    confirmedCount,
+    availableSlots: seed.maxParticipants - confirmedCount,
+  };
+};
 
 const EMPTY_FILTERS: MatchFilters = {
   sport: null,
@@ -41,7 +52,7 @@ const EMPTY_FILTERS: MatchFilters = {
 };
 
 describe("applyFilters", () => {
-  const matches: Match[] = [
+  const matches: MatchDetail[] = [
     makeMatch({ id: "m1", sport: "football", level: "beginner", title: "Futebol iniciante" }),
     makeMatch({
       id: "m2",
@@ -86,10 +97,7 @@ describe("applyFilters", () => {
 
   it("filtra somente partidas com vagas disponíveis", () => {
     const result = applyFilters(matches, { ...EMPTY_FILTERS, onlyAvailable: true }, "");
-    result.forEach((m) => {
-      const confirmed = m.participants.filter((p) => p.status === "confirmed").length;
-      expect(confirmed).toBeLessThan(m.maxParticipants);
-    });
+    result.forEach((m) => expect(m.availableSlots).toBeGreaterThan(0));
   });
 
   it("filtra por texto no título", () => {

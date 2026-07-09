@@ -18,10 +18,11 @@
 | Fase 11 | Moderação (opcional) | 🟢 Concluída (3/3 tarefas — sessão 13) |
 | — | Redesign visual premium (theme module, elevação, cor por esporte) | 🟢 Concluído (transversal — sessão 16) |
 | Fase 12 | Revisão e polimento final | 🟡 Em andamento (6/8 — 12.1, 12.2, 12.4–12.7 concluídas, sessão 17) |
+| Fase 13 | Integração com o backend real | 🟡 Em andamento (7/16 — 13.1 sessão 20; 13.2/13.3 completas sessão 21; item 7 de 13.4 sessão 22) |
 
-**Progresso geral:** 69/70 tarefas concluídas (99%) · 181 testes passando · lint zerado · tsc zerado
+**Progresso geral:** 76/86 tarefas concluídas (88%) · 238 testes passando · lint zerado · tsc zerado
 
-Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons)
+Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons) · @tanstack/react-query v5 · expo-secure-store (sessão 21)
 
 ---
 
@@ -504,11 +505,16 @@ telas.
 
 ### 13.4 — Auth real
 
-- Adicionar campo de **idade** ao fluxo de cadastro (`RegisterScreen` ou `ProfileSetupScreen`) — hoje
-  não existe input nenhum e `age` é obrigatório no backend (D15);
+- ✅ **Concluído (sessão 22):** Adicionar campo de **idade** ao fluxo de cadastro — entrou em
+  `RegisterScreen` (decisão do usuário), reaproveitando o campo "Data de nascimento" que já
+  existia na tela mas nunca chegava a ser usado. A idade **não é digitada** — é calculada a partir
+  da data de nascimento (`parseBirthDate`/`calculateAge`, novos em `src/utils/date.ts`), com regra
+  de negócio de **18+ obrigatório** (decisão de segurança do produto, não só o `gt=0` do schema do
+  backend). `register()` já ganhou o 4º parâmetro `age: number` (D15 resolvida) — a assinatura
+  pública **não** ficou 100% igual à de antes desta sessão, só estável a partir de agora em diante;
 - Reescrever `AuthContext` por dentro para chamar `POST /auth/register` → `POST /auth/login` em
-  sequência (registro não retorna token), mantendo a mesma assinatura pública (`login`,
-  `register`, `completeProfile`, `logout`) para não alterar telas;
+  sequência (registro não retorna token), mantendo a assinatura pública atual (`login`,
+  `register` com `age`, `completeProfile`, `logout`) para não alterar telas de novo;
 - Salvar `access_token`/`refresh_token` no storage seguro (13.2) após login;
 - Interceptor de refresh automático em 401 no cliente HTTP (13.2), usando `POST /auth/refresh`;
 - Tela de boot: ao abrir o app, tentar `GET /auth/me` com token salvo antes de mostrar `WelcomeScreen`;

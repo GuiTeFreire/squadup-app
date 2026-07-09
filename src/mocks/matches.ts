@@ -1,9 +1,23 @@
-import type { Match } from "../types";
+import type { MatchDetail, Participant } from "../types";
 import { MOCK_USERS } from "./users";
 
 const [guilherme, ana, rafael, juliana, thiago, beatriz] = MOCK_USERS;
 
-export const MOCK_MATCHES: Match[] = [
+type MatchSeed = Omit<MatchDetail, "organizerId" | "confirmedCount" | "availableSlots">;
+
+function toMatchDetail(seed: MatchSeed): MatchDetail {
+  const confirmedCount = seed.participants.filter(
+    (p: Participant) => p.status === "confirmed"
+  ).length;
+  return {
+    ...seed,
+    organizerId: seed.organizer.id,
+    confirmedCount,
+    availableSlots: seed.maxParticipants - confirmedCount,
+  };
+}
+
+const MATCH_SEEDS: MatchSeed[] = [
   {
     id: "match-1",
     sport: "football",
@@ -269,3 +283,5 @@ export const MOCK_MATCHES: Match[] = [
     requiresApproval: false,
   },
 ];
+
+export const MOCK_MATCHES: MatchDetail[] = MATCH_SEEDS.map(toMatchDetail);

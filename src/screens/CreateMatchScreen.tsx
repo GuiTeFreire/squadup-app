@@ -12,7 +12,7 @@ import { useMatchesContext } from "../contexts/MatchesContext";
 import { CURRENT_USER } from "../mocks/users";
 import type { AppTabParamList } from "../navigation/types";
 import { colors, LEVEL_META, SPORT_META } from "../theme";
-import type { ExperienceLevel, Match, Sport } from "../types";
+import type { ExperienceLevel, MatchDetail, Sport } from "../types";
 
 type Nav = BottomTabNavigationProp<AppTabParamList>;
 
@@ -145,18 +145,22 @@ export default function CreateMatchScreen() {
     const [day, month, year] = date.split("/");
     const isoDate = `${year}-${month}-${day}`;
 
-    const newMatch: Match = {
+    const max = Number.parseInt(maxParticipants, 10);
+    const newMatch: MatchDetail = {
       id: `match-${Date.now()}`,
       sport: sport!,
       title: title.trim(),
       location: location.trim(),
       date: isoDate,
       time: time.trim(),
-      maxParticipants: Number.parseInt(maxParticipants, 10),
+      maxParticipants: max,
       level,
       description: description.trim() || undefined,
+      organizerId: CURRENT_USER.id,
       organizer: CURRENT_USER,
       participants: [{ user: CURRENT_USER, status: "confirmed" }],
+      confirmedCount: 1,
+      availableSlots: max - 1,
       status: "open",
       allowBeginners,
       requiresApproval,

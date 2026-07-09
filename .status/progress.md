@@ -780,3 +780,257 @@ Auditoria por subagente dedicado (leitura de `src/mocks/{users,matches,messages,
 - Branch `feat/final-polish`, working tree com alterações em `.status/*`, `src/components/{Card,MatchCard,Input,ChatInput}.tsx`, `src/screens/{HomeScreen,SearchScreen,AdminDashboardScreen,CreateMatchScreen,MatchChatScreen,MatchDetailScreen,ParticipantList,PostMatchRatingScreen,RateUserScreen,PublicProfileScreen,ReportUserScreen,MessageBubble,Chip,SectionCard,ReviewCard,Button}.tsx` (troca de tom de cinza) e `src/mocks/{matches,ratings,reports}.ts`
 - Fase 12: 12.1, 12.2, 12.4, 12.5, 12.6, 12.7 concluídas (6/8). Restam 12.3 (Expo Go iOS/Android — requer dispositivo/emulador do usuário) e 12.8 (build de apresentação)
 - Nenhum bug pendente — parada é limpa, entre tarefas
+
+## Sessão 18/19 — 2026-07-08 (documentação, sem código)
+
+Sessões só de documentação, sem alterar `src/`: leitura do backend real (`../back`) e criação de
+`.status/backend-contract.md` (comparação completa de contrato front×backend, decisões D-A a D-D)
+na sessão 18; na sessão 19, transformação do plano mestre em fila executável (Fase 13, 16 tarefas,
+13.1–13.9) em `.status/roadmap.md` §19 e `.status/queue.md`. Depois, ainda em 2026-07-08, o
+backend concluiu sua Etapa 1 (D-B/D-C/D-D aplicadas, deploy em produção no Railway) — sincronizado
+em `.status/backend-contract.md`, `.status/plano-de-entrega.md` (novo, plano de entrega final das
+5 trilhas) e URL de produção documentada (`https://squadup-api.up.railway.app`).
+
+## Sessão 20 — 2026-07-08
+
+### Fase 13.1 — Tipos alinhados ao contrato real
+
+Branch `feat/api-contract-types`. Objetivo: dividir `types.User`/`types.Match` conforme o
+contrato real do backend (`.status/backend-contract.md` §2.1/§2.2/§6, decisões D-B/D-C), expondo
+em tempo de compilação todo lugar que assumia o shape antigo — esse era o objetivo declarado da
+tarefa, não um efeito colateral indesejado.
+
+**`src/types/index.ts` reescrito:**
+- `User` → `PublicUser` (mesmos campos) + `MyProfile extends PublicUser { email, role }`
+  (`UserRole = "user" | "admin"`), espelhando `PublicProfileRead`/`MyProfileRead` do backend.
+- `Match` → `MatchSummary` (`organizerId`, `confirmedCount`, `availableSlots` — campos calculados
+  no servidor, sem organizador/participantes expandidos) + `MatchDetail extends MatchSummary`
+  (`organizer: PublicUser`, `participants: Participant[]`), espelhando `MatchRead`/`MatchDetailRead`.
+- Novo `MatchRef` (`id, title, sport, date`) — `Rating.match`/`Report.match` passam a usar esse
+  tipo leve em vez do `Match` completo, espelhando o `MatchRef` que o backend ganhou (decisão D-C,
+  já aplicada lá em 2026-07-08).
+
+**Decisão de escopo (registrada como dívida técnica D19 em `queue.md`):** os mocks já vêm com
+`organizer`/`participants` completos (é tudo mockado, não há round-trip de rede), então
+`MatchesContext`, `useMatchFilters` e `MatchCard` foram tipados sobre `MatchDetail` — não
+`MatchSummary` — para não regredir a busca por nome do organizador na `HomeScreen`/`SearchScreen`.
+Isso é consistente com o objetivo desta tarefa (só tipos, sem mudar comportamento), mas quando a
+13.5 trocar `MatchesContext` por `GET /matches` real, a listagem vai parar de trazer o objeto
+`organizer` — a busca por nome do organizador vai precisar ser removida ou resolvida de outra
+forma nesse momento.
+
+**Arquivos ajustados para os novos tipos** (guiado por `npx tsc --noEmit`, que caiu de ~34 erros
+para 0 em 3 rodadas):
+- `src/mocks/users.ts` — `MOCK_USERS: PublicUser[]`; `CURRENT_USER: MyProfile` (spread + `email`/`role`).
+- `src/mocks/matches.ts` — seeds sem os 3 campos calculados + `toMatchDetail()` que deriva
+  `organizerId`/`confirmedCount`/`availableSlots` a partir de `organizer`/`participants` (mesma
+  fórmula que o backend usa no servidor, para não haver dois lugares divergentes calculando isso).
+- `src/contexts/MatchesContext.tsx` — estado interno `MatchDetail[]`; `updateParticipation` agora
+  recalcula `confirmedCount`/`availableSlots` (`withRecalculatedSlots`) sempre que a lista de
+  participantes muda, em vez de deixar esses campos desatualizados.
+- `src/contexts/AuthContext.tsx` — `user: MyProfile`; **efeito colateral positivo:** `register()`
+  antes descartava o e-mail digitado (`_email`); agora guarda em `pendingEmail` e usa em
+  `completeProfile`, então o e-mail do cadastro passa a aparecer de fato no perfil criado.
+- `src/hooks/useMatchFilters.ts` — `getConfirmedCount`/`getAvailableSlots` removidos (eram
+  recomputados a cada render); `applyFilters`/`useMatchFilters` leem `match.confirmedCount`/
+  `match.availableSlots` direto, alinhado com "usar os campos calculados pelo servidor" (§2.2 do
+  contrato).
+- `src/hooks/useMatchParticipation.ts` — `Match`/`User` → `MatchDetail`/`PublicUser`.
+- `src/components/MatchCard.tsx` — prop `match: MatchDetail`; usa `match.confirmedCount` em vez de
+  chamar `getConfirmedCount` (import removido).
+- `src/screens/CreateMatchScreen.tsx` — `newMatch: MatchDetail` monta os 3 campos calculados
+  manualmente (organizador único, 1 confirmado no ato da criação).
+- Testes: `src/components/__tests__/MatchCard.test.tsx` e
+  `src/hooks/__tests__/useMatchFilters.test.ts` — mocks locais ajustados ao novo shape; o teste
+  "Sem vagas" passou a setar `confirmedCount`/`availableSlots` direto em vez de inflar o array de
+  `participants` (que não é mais o que o componente lê).
+
+**Não precisaram de mudança** (tsc já resolvia certo por tipagem estrutural ou inferência via
+hooks/contexts): `src/mocks/reports.ts`, `src/mocks/ratings.ts`, `src/mocks/messages.ts`,
+`ReportsContext`, `RatingsContext`, `MessagesContext`, `MatchFiltersContext`, e todas as
+`screens`/`components` que só recebem esses tipos por inferência (`PublicProfileScreen`,
+`MyProfileScreen`, `MatchDetailScreen`, `ParticipantList`, `ReviewCard`, etc.).
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros (após `eslint --fix` nos 11 arquivos
+tocados, só CRLF→LF/formatação — dívida D4, pré-existente) · `npm run test` 181/181 passando (sem
+regressão) · `npx expo export --platform web` gerou o bundle web sem erros (733 módulos).
+
+### Estado ao final da sessão 20
+
+- Branch `feat/api-contract-types`, criada a partir de `dev` (que já tinha o commit da URL de
+  produção do backend). Ainda **não commitada** — código pronto e validado, falta só o commit.
+- Fila da Fase 13 (`queue.md`): itens 1 e 2 (13.1) concluídos 🟢. Restam 14 itens (13.2–13.9).
+- Próxima tarefa: item 3 da fila — `src/services/api/client.ts` (13.2, cliente HTTP tipado).
+- Nenhum bug pendente — parada é limpa, entre tarefas. Ver "Checkpointer" no fechamento desta
+  sessão (mensagem final) para o ponto exato de retomada.
+
+---
+
+## Sessão 21 — 2026-07-08
+
+### Fase 13.2 — Camada de infraestrutura de API (itens 3–5 da fila)
+
+Branch `feat/api-contract-types` (mesma da sessão 20, ainda não mergeada). Objetivo: construir a
+infraestrutura de rede que todos os Contexts reais (13.4–13.8) vão consumir, sem tocar em nenhum
+Context ainda — só a base.
+
+**Item 3 — `src/services/api/client.ts`:**
+- Wrapper de `fetch` tipado (`apiClient.get/post/patch/delete`), classe `ApiError extends Error`
+  que faz parse do formato de erro real do backend (`{ detail: { code, message } }`), com
+  fallback `{ code: "UNKNOWN_ERROR" }` se o corpo não seguir o contrato.
+- `setAuthToken`/`getAuthToken` — token em memória; a persistência entre sessões é o item 5.
+- Base URL lida de `process.env.EXPO_PUBLIC_API_URL` (fallback `http://localhost:8000`); criado
+  `.env.example` na raiz (`.env` real já estava no `.gitignore`, nunca existiu no repo, então não
+  havia nenhum arquivo documentando as variáveis esperadas até agora).
+- 8 testes em `src/services/api/__tests__/client.test.ts` (mock de `globalThis.fetch`).
+
+**Item 4 — `src/services/adapters/`:**
+- Decisão de processo: em vez de confiar só no resumo do `backend-contract.md`, os schemas
+  Pydantic reais foram lidos direto de `../back/app/schemas/*.py` para garantir paridade exata de
+  campo a campo antes de escrever qualquer adapter.
+- `types.ts` define as interfaces `Api*` em `snake_case` espelhando os schemas reais
+  (`ApiPublicUser`, `ApiMyProfile`, `ApiParticipant`, `ApiMatchSummary`/`ApiMatchDetail`,
+  `ApiMatchRef`, `ApiRating`, `ApiReport`, `ApiMessage`).
+- Funções puras por entidade: `toPublicUser`/`toMyProfile` (`user.ts`),
+  `toMatchSummary`/`toMatchDetail`/`toParticipant`/`toMatchRef` (`match.ts`), `toRating`/
+  `toRatingPayload` (`rating.ts`, achata `RatingCriteria` para o `POST`), `toReport` (`report.ts`),
+  `toMessage` (`message.ts`).
+- **Duas decisões de conversão registradas como dívida técnica (D20/D21 em `queue.md`)** em vez de
+  resolvidas de fato, porque a correção completa é escopo de sub-fases futuras:
+  - `average_rating: null` (usuário sem avaliações) cai para `0` em `toPublicUser` — o tipo
+    `PublicUser.averageRating` continua `number`, então o `null` real do backend fica mascarado
+    até a 13.7 tratar isso na UI de verdade (D20).
+  - Horário do backend vem com segundos (`"09:00:00"`) e é cortado para `"09:00"` em
+    `toMatchSummary`, para casar com o formato dos mocks/telas — comportamento correto e
+    definitivo, não é dívida.
+  - `Message.createdAt`/`Rating.createdAt`/`Report.createdAt` recebem o ISO completo do servidor
+    sem reformatar. `MessageBubble` hoje imprime `message.createdAt` bruto na tela (formato
+    `"HH:mm"` do mock atual) — quando a 13.6 plugar mensagens reais, vai aparecer um ISO completo
+    ali até alguém adicionar a formatação (D21).
+- 17 testes novos em `src/services/adapters/__tests__/` (um arquivo por entidade).
+
+**Item 5 — `expo-secure-store` + `src/services/storage/tokenStorage.ts`:**
+- `npx expo install expo-secure-store` (registrou o config plugin em `app.json` automaticamente).
+- `tokenStorage.ts` expõe `saveTokens`/`getAccessToken`/`getRefreshToken`/`clearTokens`/
+  `restoreAuthToken`; `saveTokens`/`clearTokens`/`restoreAuthToken` já chamam `setAuthToken` do
+  `client.ts` por dentro, então a `AuthContext` da 13.4 só vai precisar chamar essas funções nos
+  momentos certos (login/refresh/logout/boot) sem repetir lógica de storage.
+- **Decisão de plataforma:** `expo-secure-store` é um no-op em `react-native-web` — o binário web
+  do pacote (`ExpoSecureStore.web.js`) exporta um objeto vazio, então qualquer chamada nativa
+  falharia silenciosamente ou lançaria em runtime no browser. Confirmado lendo o código-fonte do
+  pacote antes de decidir. Fallback: `sessionStorage` no web (limpa ao fechar a aba — aceitável
+  para a demo acadêmica, registrado como D22 porque significa que o login não sobrevive a um
+  fechar-e-abrir de aba no `npm run web`; no nativo via Expo Go/EAS o token vai para o
+  keychain/keystore de verdade, sem essa limitação).
+- 7 testes: `tokenStorage.test.ts` (branch nativo, mocka `expo-secure-store`) e
+  `tokenStorage.web.test.ts` (branch web, muta `Platform.OS` diretamente — não mocka o módulo
+  `react-native` inteiro, porque isso derruba o automock do Jest/RN e quebra com
+  `TurboModuleRegistry`/`DevMenu not found`; `isWeb()` foi escrito como função, não `const` de
+  módulo, justamente para dar para mutar `Platform.OS` em runtime de teste sem reset de módulo).
+
+### Fase 13.3 — React Query (item 6 da fila)
+
+- `npm install @tanstack/react-query` (`^5.101.2`).
+- `src/services/queryClient.ts` — uma instância única (`retry: 1`, `staleTime: 60_000`).
+- `src/services/queryKeys.ts` — convenção central de chaves (`me`, `matches(filters?)`,
+  `match(matchId)`, `messages(matchId)`, `userRatings(userId)`, `reports`) para as sub-fases
+  13.4–13.8 usarem sem reinventar o formato cada uma; tipada sobre `MatchFilters` já existente em
+  `MatchFiltersContext.tsx`.
+- `App.tsx` ganhou `<QueryClientProvider client={queryClient}>` envolvendo toda a árvore, por fora
+  de `SafeAreaProvider` e de todos os Contexts mockados (nenhum deles consome React Query ainda —
+  isso é só o terreno pronto, a migração real é 13.4+).
+- Primeiro teste do componente raiz: `__tests__/App.test.tsx` (smoke — renderiza `<App />` sem
+  lançar). Precisou de `jest.mock("../global.css", () => ({}))`, porque o Jest não sabe parsear
+  `@tailwind` do CSS importado por efeito colateral em `App.tsx`.
+- `src/services/__tests__/queryKeys.test.ts` — 4 testes cobrindo as 6 chaves.
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros (auto-fix aplicado só nos arquivos
+tocados, formatação — dívida D4, pré-existente) · `npm run test` 218/218 passando (era 181 no
+início da sessão; +37 testes novos) · `npx expo export --platform web` gerou o bundle sem erros,
+confirmado depois da mudança em `App.tsx` (componente raiz da árvore renderizada no `npm run web`).
+
+### Estado ao final da sessão 21
+
+- Branch `feat/api-contract-types`. 3 commits novos nesta sessão:
+  `feat(api): adiciona cliente HTTP tipado para a API do backend`,
+  `feat(api): adiciona camada de adapters snake_case -> camelCase`,
+  `feat(auth): adiciona storage seguro de token com expo-secure-store`,
+  `feat(api): instala e configura @tanstack/react-query`.
+- Sub-fases 13.2 e 13.3 **inteiramente concluídas** (itens 3–6 da fila). Fase 13 em 6/16.
+- Toda a infraestrutura de integração está pronta e testada: tipos (13.1), cliente HTTP, adapters,
+  storage seguro de token, React Query. Nenhum Context real ainda consome nada disso — a partir
+  daqui a fila entra em território de UI/produto (13.4, auth real).
+- Próxima tarefa: item 7 da fila — adicionar campo de **idade** ao fluxo de cadastro (D15, abre a
+  13.4). Pergunta em aberto ainda sem resposta do usuário: em qual tela o campo entra —
+  `RegisterScreen` (junto de nome/email/senha) ou `ProfileSetupScreen` (junto de esportes/nível/
+  localização)? Decidir isso é o primeiro passo da próxima sessão, antes de tocar em qualquer tela.
+- Nenhum bug pendente — parada é limpa, entre tarefas. Ver "Checkpointer" no fechamento desta
+  sessão (mensagem final) para o ponto exato de retomada.
+
+---
+
+## Sessão 22 — 2026-07-08
+
+### Fase 13.4 — Campo de idade no cadastro (item 7 da fila, D15)
+
+Branch `feat/api-contract-types` (mesma das sessões 20–21). Decisão do usuário no início da
+sessão: o campo de idade entra em `RegisterScreen`, não em `ProfileSetupScreen`.
+
+**Achado ao abrir `RegisterScreen.tsx`:** já existia um campo "Data de nascimento" (`DD/MM/AAAA`,
+texto livre) — mas era validado (`birthDateError`) e depois **descartado**: nunca era passado para
+`register(name, email, password)`.
+
+**Primeira implementação (revisada ainda na mesma sessão):** o campo foi trocado por "Idade"
+(numérico, valida inteiro > 0 — mesmo critério `gt=0` do schema do backend). Funcionou, tinha
+testes, `tsc`/lint/build todos verdes — mas o usuário corrigiu o approach antes de seguir: **o
+usuário deveria informar a data de nascimento, e o app calcula a idade**, com uma regra de negócio
+de **18+ obrigatório** (não é só satisfazer o `int > 0` do backend — é uma decisão de segurança do
+produto, já que o app conecta pessoas para jogar com desconhecidos).
+
+**Implementação final:**
+- `src/utils/date.ts` ganhou duas funções novas: `parseBirthDate(input): Date | null` (aceita só
+  `DD/MM/AAAA`, valida que a data existe de fato no calendário — rejeita `31/02`, `29/02` em ano
+  não bissexto etc. — via reconstrução com `Date` e comparação de dia/mês/ano) e
+  `calculateAge(birthDate, referenceDate = new Date()): number` (idade em anos completos,
+  considerando se o aniversário já ocorreu no ano de referência).
+- `RegisterScreen.tsx` voltou a usar "Data de nascimento" (mesmo campo/placeholder/ícone de antes),
+  mas agora de verdade: `handleRegister` faz `parseBirthDate` → se inválida, erro de formato; se
+  válida, `calculateAge` → se `< MINIMUM_AGE` (18), erro "Você precisa ter pelo menos 18 anos para
+  se cadastrar"; só então chama `register(name, email, password, age)` com a idade **computada**,
+  nunca digitada.
+- `AuthContext.tsx`: `register()` ganhou o 4º parâmetro `age: number`; novo estado `pendingAge`
+  (default `0`), consumido por `completeProfile` no lugar do `age: 25` hardcoded, resetado em
+  `completeProfile`/`logout` junto com `pendingName`/`pendingEmail`. Essa parte não mudou entre a
+  primeira tentativa e a versão final — só a origem do número (`age`) mudou, de input direto para
+  cálculo derivado.
+- **Cobertura de teste** (nem `RegisterScreen`, `AuthContext` nem `date.ts` tinham teste antes
+  desta sessão): `src/utils/__tests__/date.test.ts` (10 testes — `parseBirthDate` com formatos
+  válidos/inválidos/datas inexistentes/ano bissexto; `calculateAge` com referência antes/depois/no
+  dia do aniversário, e com o default `new Date()`); `src/screens/__tests__/RegisterScreen.test.tsx`
+  (6 testes — campo de data, erro de vazio/formato inválido/menor de 18, `register` chamado com a
+  idade calculada, navegação); `src/contexts/__tests__/AuthContext.test.tsx` (3 testes via
+  `renderHook` — `register` guarda estado pendente sem autenticar, `completeProfile` usa a idade do
+  `register` em vez de hardcodar 25 — nomeada explicitamente "regressão D15" no teste — e `logout`
+  limpa tudo).
+- D15 marcada como resolvida em `queue.md`.
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros (auto-fix nos arquivos tocados,
+formatação — D4) · `npm run test` 238/238 passando (era 218 no início da sessão; +20 testes novos) ·
+`npx expo export --platform web` gerou o bundle sem erros.
+
+### Estado ao final da sessão 22
+
+- Branch `feat/api-contract-types`. Mudanças desta sessão ainda **não commitadas** — código
+  pronto e validado, falta só o commit (próximo passo antes de seguir para o item 8).
+- Item 7 da fila concluído. Fase 13 em 7/16. Próxima tarefa: item 8 — reescrever `AuthContext` por
+  dentro para chamar `POST /auth/register` → `POST /auth/login` em sequência, salvar tokens no
+  storage seguro (13.2), interceptor de refresh em 401, tela de boot via `GET /auth/me`. É o
+  grosso da 13.4 e a primeira vez que um Context real vai consumir `client.ts`/`tokenStorage.ts`.
+- Nenhum bug pendente — parada é limpa, entre tarefas. Ver "Checkpointer" no fechamento desta
+  sessão (mensagem final) para o ponto exato de retomada.

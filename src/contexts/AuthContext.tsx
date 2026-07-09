@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 
 import { CURRENT_USER } from "../mocks/users";
-import type { ExperienceLevel, Sport, User } from "../types";
+import type { ExperienceLevel, MyProfile, Sport } from "../types";
 
 interface ProfileData {
   favoriteSports: Sport[];
@@ -11,11 +11,11 @@ interface ProfileData {
 }
 
 interface AuthContextValue {
-  user: User | null;
+  user: MyProfile | null;
   isAuthenticated: boolean;
   pendingName: string;
   login: (email: string, password: string) => void;
-  register: (name: string, email: string, password: string) => void;
+  register: (name: string, email: string, password: string, age: number) => void;
   completeProfile: (data: ProfileData) => void;
   logout: () => void;
 }
@@ -23,24 +23,30 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<MyProfile | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pendingName, setPendingName] = useState("");
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [pendingAge, setPendingAge] = useState(0);
 
   const login = (_email: string, _password: string) => {
     setUser(CURRENT_USER);
     setIsAuthenticated(true);
   };
 
-  const register = (name: string, _email: string, _password: string) => {
+  const register = (name: string, email: string, _password: string, age: number) => {
     setPendingName(name);
+    setPendingEmail(email);
+    setPendingAge(age);
   };
 
   const completeProfile = (data: ProfileData) => {
-    const newUser: User = {
+    const newUser: MyProfile = {
       id: `user-${Date.now()}`,
       name: pendingName,
-      age: 25,
+      email: pendingEmail,
+      role: "user",
+      age: pendingAge,
       location: data.location,
       favoriteSports: data.favoriteSports,
       level: data.level,
@@ -51,12 +57,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     setUser(newUser);
     setPendingName("");
+    setPendingEmail("");
+    setPendingAge(0);
     setIsAuthenticated(true);
   };
 
   const logout = () => {
     setUser(null);
     setPendingName("");
+    setPendingEmail("");
+    setPendingAge(0);
     setIsAuthenticated(false);
   };
 
