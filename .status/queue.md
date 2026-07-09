@@ -1,5 +1,7 @@
 # SquadUp — Fila de Tarefas Front-end
 
+> **Plano de entrega final (app + backend + TCC):** ver [`plano-de-entrega.md`](plano-de-entrega.md) (2026-07-08) — cobre deploy do backend, Fase 13 de integração, build/demo do app, estrutura de assets do TCC e os gaps de conteúdo da monografia. Consultar antes de priorizar a próxima tarefa.
+
 ## Legenda
 - ⚪ A fazer
 - 🟡 Em andamento
@@ -82,9 +84,11 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 
 > Plano mestre completo, decisões de arquitetura (D-A a D-D) e por que cada item existe estão
 > em `.status/backend-contract.md` §6. Esta fila só lista o "o quê"; o "por quê" fica lá para
-> não duplicar manutenção. **Pré-requisito:** Etapa 1 do plano mestre concluída no backend
-> (`../back/.status/roadmap.md`, Fase 12) — sem isso, os tipos/adapters do front (13.1–13.2)
-> seriam construídos sobre um contrato ainda instável.
+> não duplicar manutenção. **Pré-requisito:** Etapa 1 do plano mestre no backend
+> (`../back/.status/roadmap.md`, Fase 12) — **✅ concluída em 2026-07-08** (D-B/D-C/D-D
+> aplicadas, CORS de produção, hospedagem decidida, purge de refresh tokens e
+> `POST /auth/logout-all` implementados — ver `.status/backend-contract.md` para o detalhe
+> atualizado). **A fila abaixo pode começar agora**, o contrato já está estável.
 
 | # | Tarefa | Sub-fase | Status |
 |---|--------|----------|--------|

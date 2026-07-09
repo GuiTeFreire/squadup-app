@@ -454,10 +454,10 @@ Após a validação das telas, as próximas etapas serão:
 
 ## 19. Fase 13 — Integração com o backend real
 
-> Detalhamento tarefa-a-tarefa do plano mestre em `.status/backend-contract.md` §6. Esta fase
-> só pode começar depois que a Etapa 1 (backend) estiver concluída — ver `../back/.status/roadmap.md`,
-> Fase 12. As sub-fases 13.4–13.8 são independentes entre si (todas dependem só de 13.2/13.3) e
-> podem ser feitas em qualquer ordem.
+> Detalhamento tarefa-a-tarefa do plano mestre em `.status/backend-contract.md` §6. **Etapa 1
+> (backend) concluída em 2026-07-08** — `../back/.status/roadmap.md` Fase 11 e 12 ambas 🟢 —
+> então esta fase já pode começar. As sub-fases 13.4–13.8 são independentes entre si (todas
+> dependem só de 13.2/13.3) e podem ser feitas em qualquer ordem.
 
 ### Objetivo
 

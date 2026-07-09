@@ -15,4 +15,3 @@ yarn-error.*
 .env.local
 .DS_Store
 .claude
-TCC.tex
