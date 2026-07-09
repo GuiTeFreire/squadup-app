@@ -15,7 +15,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   pendingName: string;
   login: (email: string, password: string) => void;
-  register: (name: string, email: string, password: string) => void;
+  register: (name: string, email: string, password: string, age: number) => void;
   completeProfile: (data: ProfileData) => void;
   logout: () => void;
 }
@@ -27,15 +27,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pendingName, setPendingName] = useState("");
   const [pendingEmail, setPendingEmail] = useState("");
+  const [pendingAge, setPendingAge] = useState(0);
 
   const login = (_email: string, _password: string) => {
     setUser(CURRENT_USER);
     setIsAuthenticated(true);
   };
 
-  const register = (name: string, email: string, _password: string) => {
+  const register = (name: string, email: string, _password: string, age: number) => {
     setPendingName(name);
     setPendingEmail(email);
+    setPendingAge(age);
   };
 
   const completeProfile = (data: ProfileData) => {
@@ -44,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: pendingName,
       email: pendingEmail,
       role: "user",
-      age: 25,
+      age: pendingAge,
       location: data.location,
       favoriteSports: data.favoriteSports,
       level: data.level,
@@ -56,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(newUser);
     setPendingName("");
     setPendingEmail("");
+    setPendingAge(0);
     setIsAuthenticated(true);
   };
 
@@ -63,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setPendingName("");
     setPendingEmail("");
+    setPendingAge(0);
     setIsAuthenticated(false);
   };
 

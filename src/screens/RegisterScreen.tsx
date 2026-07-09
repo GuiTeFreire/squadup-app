@@ -9,6 +9,9 @@ import Button from "../components/Button";
 import Input from "../components/Input";
 import { useAuth } from "../contexts/AuthContext";
 import type { AuthStackParamList } from "../navigation/types";
+import { calculateAge, parseBirthDate } from "../utils/date";
+
+const MINIMUM_AGE = 18;
 
 type RegisterNavProp = NativeStackNavigationProp<AuthStackParamList, "Register">;
 
@@ -55,18 +58,26 @@ export default function RegisterScreen() {
       setPasswordError("");
     }
 
-    if (birthDate.trim().length === 0) {
-      setBirthDateError("Informe sua data de nascimento");
+    const parsedBirthDate = parseBirthDate(birthDate);
+    let age = 0;
+    if (!parsedBirthDate) {
+      setBirthDateError("Informe uma data de nascimento válida (DD/MM/AAAA)");
       valid = false;
     } else {
-      setBirthDateError("");
+      age = calculateAge(parsedBirthDate);
+      if (age < MINIMUM_AGE) {
+        setBirthDateError(`Você precisa ter pelo menos ${MINIMUM_AGE} anos para se cadastrar`);
+        valid = false;
+      } else {
+        setBirthDateError("");
+      }
     }
 
     if (!valid) return;
 
     setLoading(true);
     setTimeout(() => {
-      register(name.trim(), email, password);
+      register(name.trim(), email, password, age);
       setLoading(false);
       navigation.navigate("ProfileSetup");
     }, 600);
