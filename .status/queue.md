@@ -95,7 +95,7 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 |---|--------|----------|--------|
 | 1 | Dividir `types.User` em `PublicUser`/`MyProfile`; dividir `types.Match` em `MatchSummary`/`MatchDetail` | 13.1 | 🟢 (`feat/api-contract-types`, sessão 20) |
 | 2 | Ajustar `Rating`/`Report` aos shapes reais (`rater`, `match_id`) conforme decisão D-B/D-C do backend | 13.1 | 🟢 (`feat/api-contract-types`, sessão 20) |
-| 3 | Criar `src/services/api/client.ts` (fetch tipado + parse de erro `{code,message}` + Bearer) | 13.2 | ⚪ |
+| 3 | Criar `src/services/api/client.ts` (fetch tipado + parse de erro `{code,message}` + Bearer) | 13.2 | 🟢 (`feat/api-contract-types`, sessão 21) |
 | 4 | Criar `src/services/adapters/` (conversão `snake_case↔camelCase`, achatamento de `RatingCriteria`) | 13.2 | ⚪ |
 | 5 | Instalar `expo-secure-store` e criar módulo de storage seguro de token | 13.2 | ⚪ |
 | 6 | Instalar e configurar `@tanstack/react-query` (`QueryClientProvider` em `App.tsx`) | 13.3 | ⚪ |
@@ -114,6 +114,7 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 
 ## Bloqueadores e observações
 
+- **Sessão 21 (2026-07-08):** Item 3 da fila concluído (13.2) — `src/services/api/client.ts`: wrapper de `fetch` tipado (`apiClient.get/post/patch/delete`), parse de erro no formato `{ detail: { code, message } }` do backend (classe `ApiError extends Error`, com fallback `UNKNOWN_ERROR` se o corpo não seguir o contrato), e anexação automática de `Authorization: Bearer` via `setAuthToken`/`getAuthToken` (módulo com token em memória — a persistência via `expo-secure-store` fica para o item 5, que vai chamar `setAuthToken` no boot). Base URL lida de `process.env.EXPO_PUBLIC_API_URL` (fallback `http://localhost:8000`); criado `.env.example` na raiz (`.env` real já estava no `.gitignore`, nunca existiu no repo). 8 testes novos em `src/services/api/__tests__/client.test.ts` (mock de `globalThis.fetch`) — suíte total 189/189, lint e `tsc --noEmit` zerados. Próxima tarefa: item 4 (`src/services/adapters/`).
 - **Sessão 20 (2026-07-08):** Fase 13.1 concluída (itens 1–2 da fila) na branch `feat/api-contract-types`. `types.User`→`PublicUser`/`MyProfile`, `types.Match`→`MatchSummary`/`MatchDetail`, novo `MatchRef` em `Rating`/`Report`. `npx tsc --noEmit` guiou o ajuste de 11 arquivos (mocks, contexts, hooks, `MatchCard`, `CreateMatchScreen`, 2 testes) até zero erros; `npm run lint`/`npm run test` (181/181) e `npx expo export --platform web` também zerados. Decisão de escopo registrada como D19: listagem continua tipada como `MatchDetail` (não `MatchSummary`) para não perder a busca por organizador — vai precisar de ajuste na 13.5, quando a listagem passar a vir de `GET /matches` de verdade. Efeito colateral positivo: `AuthContext.register` parou de descartar o e-mail digitado. Detalhes completos em `progress.md`, sessão 20. Próxima tarefa: item 3 da fila (`src/services/api/client.ts`, 13.2).
 - **Sessão 17 (2026-07-02):** Fase 12 avançou para 6/8 (12.2, 12.4, 12.5, 12.6 e 12.7 concluídas — 12.1 já vinha da sessão 15). Zero erros de console, `npm run lint`/`npx tsc --noEmit`/`npm run test` (181/181) zerados. Duas auditorias corrigiram problemas reais de acessibilidade (contraste de cor, label do card de partida) e de coerência dos dados mockados (avaliações datadas antes da partida acontecer). Três achados não bloqueantes viraram dívidas técnicas D11–D13 (ver tabela acima). Restam 12.3 (Expo Go — requer dispositivo/emulador do usuário) e 12.8 (build de apresentação). Detalhes tarefa-a-tarefa em `progress.md`, sessão 17.
 - **Sessão 16 (2026-07-02):** redesign visual premium completo (transversal). Módulo `src/theme/index.ts` (`colors`, `shadows`, `SPORT_META`, `LEVEL_META`) é a fonte única de verdade para estilos fora do NativeWind — usar **sempre** em vez de hex hardcoded. Componentes novos: `SectionCard`, `Chip`, `SportTile`, `StatsRow`, `Skeleton`/`MatchCardSkeleton`. Emojis eliminados da UI (só permanecem em conteúdo de mensagens mockadas). Detalhes completos em `progress.md`, sessão 16.
@@ -131,6 +132,6 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 ## Progresso geral
 
 **Total de tarefas:** 86 (70 do protótipo + 16 da fila de integração, Fase 13)
-**Concluídas:** 71 (69 do protótipo + refinamento visual transversal + itens 1–2 da Fase 13, sessão 20)
+**Concluídas:** 72 (69 do protótipo + refinamento visual transversal + itens 1–3 da Fase 13, sessões 20–21)
 **Em andamento:** 0
-**A fazer:** 15 (Fase 12: 12.3 requer dispositivo/emulador do usuário, 12.8 build de apresentação; Fase 13: itens 3–16)
+**A fazer:** 14 (Fase 12: 12.3 requer dispositivo/emulador do usuário, 12.8 build de apresentação; Fase 13: itens 4–16)
