@@ -133,8 +133,8 @@ O `ReportsContext` guarda as denúncias em memória (seed em `src/mocks/reports.
 | 10 | Denúncia e segurança | ✅ Concluída |
 | 11 | Moderação (opcional) | ✅ Concluída |
 | 12 | Revisão e polimento final | 🟡 **Em andamento** (6/8 — restam apenas testes em Expo Go e build de apresentação) |
-| 13 | Integração com o backend real | 🟡 **Em andamento** (6/16 — tipos, cliente HTTP, adapters, storage seguro de token e React Query prontos; backend já deployado em `https://squadup-api.up.railway.app`) |
+| 13 | Integração com o backend real | 🟡 **Em andamento** (7/16 — tipos, cliente HTTP, adapters, storage seguro de token e React Query prontos; campo de idade no cadastro adicionado; backend já deployado em `https://squadup-api.up.railway.app`) |
 
-218 testes passando · lint zerado · tsc zerado · 75/86 tarefas concluídas (87%)
+238 testes passando · lint zerado · tsc zerado · 76/86 tarefas concluídas (88%)
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

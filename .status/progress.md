@@ -970,3 +970,67 @@ confirmado depois da mudança em `App.tsx` (componente raiz da árvore renderiza
   localização)? Decidir isso é o primeiro passo da próxima sessão, antes de tocar em qualquer tela.
 - Nenhum bug pendente — parada é limpa, entre tarefas. Ver "Checkpointer" no fechamento desta
   sessão (mensagem final) para o ponto exato de retomada.
+
+---
+
+## Sessão 22 — 2026-07-08
+
+### Fase 13.4 — Campo de idade no cadastro (item 7 da fila, D15)
+
+Branch `feat/api-contract-types` (mesma das sessões 20–21). Decisão do usuário no início da
+sessão: o campo de idade entra em `RegisterScreen`, não em `ProfileSetupScreen`.
+
+**Achado ao abrir `RegisterScreen.tsx`:** já existia um campo "Data de nascimento" (`DD/MM/AAAA`,
+texto livre) — mas era validado (`birthDateError`) e depois **descartado**: nunca era passado para
+`register(name, email, password)`.
+
+**Primeira implementação (revisada ainda na mesma sessão):** o campo foi trocado por "Idade"
+(numérico, valida inteiro > 0 — mesmo critério `gt=0` do schema do backend). Funcionou, tinha
+testes, `tsc`/lint/build todos verdes — mas o usuário corrigiu o approach antes de seguir: **o
+usuário deveria informar a data de nascimento, e o app calcula a idade**, com uma regra de negócio
+de **18+ obrigatório** (não é só satisfazer o `int > 0` do backend — é uma decisão de segurança do
+produto, já que o app conecta pessoas para jogar com desconhecidos).
+
+**Implementação final:**
+- `src/utils/date.ts` ganhou duas funções novas: `parseBirthDate(input): Date | null` (aceita só
+  `DD/MM/AAAA`, valida que a data existe de fato no calendário — rejeita `31/02`, `29/02` em ano
+  não bissexto etc. — via reconstrução com `Date` e comparação de dia/mês/ano) e
+  `calculateAge(birthDate, referenceDate = new Date()): number` (idade em anos completos,
+  considerando se o aniversário já ocorreu no ano de referência).
+- `RegisterScreen.tsx` voltou a usar "Data de nascimento" (mesmo campo/placeholder/ícone de antes),
+  mas agora de verdade: `handleRegister` faz `parseBirthDate` → se inválida, erro de formato; se
+  válida, `calculateAge` → se `< MINIMUM_AGE` (18), erro "Você precisa ter pelo menos 18 anos para
+  se cadastrar"; só então chama `register(name, email, password, age)` com a idade **computada**,
+  nunca digitada.
+- `AuthContext.tsx`: `register()` ganhou o 4º parâmetro `age: number`; novo estado `pendingAge`
+  (default `0`), consumido por `completeProfile` no lugar do `age: 25` hardcoded, resetado em
+  `completeProfile`/`logout` junto com `pendingName`/`pendingEmail`. Essa parte não mudou entre a
+  primeira tentativa e a versão final — só a origem do número (`age`) mudou, de input direto para
+  cálculo derivado.
+- **Cobertura de teste** (nem `RegisterScreen`, `AuthContext` nem `date.ts` tinham teste antes
+  desta sessão): `src/utils/__tests__/date.test.ts` (10 testes — `parseBirthDate` com formatos
+  válidos/inválidos/datas inexistentes/ano bissexto; `calculateAge` com referência antes/depois/no
+  dia do aniversário, e com o default `new Date()`); `src/screens/__tests__/RegisterScreen.test.tsx`
+  (6 testes — campo de data, erro de vazio/formato inválido/menor de 18, `register` chamado com a
+  idade calculada, navegação); `src/contexts/__tests__/AuthContext.test.tsx` (3 testes via
+  `renderHook` — `register` guarda estado pendente sem autenticar, `completeProfile` usa a idade do
+  `register` em vez de hardcodar 25 — nomeada explicitamente "regressão D15" no teste — e `logout`
+  limpa tudo).
+- D15 marcada como resolvida em `queue.md`.
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros (auto-fix nos arquivos tocados,
+formatação — D4) · `npm run test` 238/238 passando (era 218 no início da sessão; +20 testes novos) ·
+`npx expo export --platform web` gerou o bundle sem erros.
+
+### Estado ao final da sessão 22
+
+- Branch `feat/api-contract-types`. Mudanças desta sessão ainda **não commitadas** — código
+  pronto e validado, falta só o commit (próximo passo antes de seguir para o item 8).
+- Item 7 da fila concluído. Fase 13 em 7/16. Próxima tarefa: item 8 — reescrever `AuthContext` por
+  dentro para chamar `POST /auth/register` → `POST /auth/login` em sequência, salvar tokens no
+  storage seguro (13.2), interceptor de refresh em 401, tela de boot via `GET /auth/me`. É o
+  grosso da 13.4 e a primeira vez que um Context real vai consumir `client.ts`/`tokenStorage.ts`.
+- Nenhum bug pendente — parada é limpa, entre tarefas. Ver "Checkpointer" no fechamento desta
+  sessão (mensagem final) para o ponto exato de retomada.
