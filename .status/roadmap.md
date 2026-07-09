@@ -18,9 +18,9 @@
 | Fase 11 | Moderação (opcional) | 🟢 Concluída (3/3 tarefas — sessão 13) |
 | — | Redesign visual premium (theme module, elevação, cor por esporte) | 🟢 Concluído (transversal — sessão 16) |
 | Fase 12 | Revisão e polimento final | 🟡 Em andamento (6/8 — 12.1, 12.2, 12.4–12.7 concluídas, sessão 17) |
-| Fase 13 | Integração com o backend real | 🟡 Em andamento (3/16 — 13.1 concluída sessão 20; item 3 de 13.2 concluído sessão 21) |
+| Fase 13 | Integração com o backend real | 🟡 Em andamento (4/16 — 13.1 concluída sessão 20; itens 3–4 de 13.2 concluídos sessão 21) |
 
-**Progresso geral:** 72/86 tarefas concluídas (84%) · 189 testes passando · lint zerado · tsc zerado
+**Progresso geral:** 73/86 tarefas concluídas (85%) · 206 testes passando · lint zerado · tsc zerado
 
 Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons)
 
