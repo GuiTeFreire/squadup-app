@@ -66,6 +66,7 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 | D16 | `types.Match` único vs `MatchRead`/`MatchDetailRead` separados no backend | Média | Backend só expande `organizer`/`participants` no endpoint de detalhe; a listagem (`GET /matches`) devolve `organizer_id` e `confirmed_count`/`available_slots` prontos, sem array de participantes. Código que hoje lê `match.participants`/`match.organizer.name` a partir de uma lista vai quebrar silenciosamente ao trocar o mock pela API. Ver `.status/backend-contract.md` §2.2 para o plano de split em `MatchSummary`/`MatchDetail`. |
 | D17 | Faltam ações de organizador: encerrar partida e aprovar participante pendente | Baixa | Backend já expõe `POST /matches/{id}/close` e `POST /matches/{id}/participants/{user_id}/approve`, mas não há UI para nenhuma das duas — `MatchDetailScreen`/`ParticipantList` só exibem, não moderam. Bloqueia o fluxo real de avaliação pós-partida (exige partida `closed`). Ver `.status/backend-contract.md` §2.2. |
 | D18 | Filtros de partida não cobrem `date`/`location`, que o backend já suporta | Baixa | `GET /matches` aceita `date` e `location` como query params; `FiltersScreen`/`MatchFiltersContext` só implementam `sport`/`level`/`onlyAvailable`. Também é escopo original do `vision.md` (filtro por localização). Ver `.status/backend-contract.md` §4. |
+| D19 | `MatchesContext`/`useMatchFilters`/`MatchCard` tipados sobre `MatchDetail`, não `MatchSummary` | Média | Decisão deliberada da sessão 20 (13.1): os mocks sempre vêm com `organizer`/`participants` completos, então tipar a listagem como `MatchDetail` evitou regredir a busca por nome do organizador em `HomeScreen`/`SearchScreen` (`useMatchFilters.applyFilters` usa `match.organizer.name`). Quando a 13.5 trocar `MatchesContext` por `GET /matches` real, a listagem **não vai trazer** o objeto `organizer` (só `organizerId`, ver `.status/backend-contract.md` §2.2) — a busca por organizador vai quebrar em runtime sem erro de tipo. Resolver então: remover a busca por organizador da lista, ou o backend expor um campo `organizer_name` leve no `MatchRead`. |
 
 ---
 
@@ -92,8 +93,8 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 
 | # | Tarefa | Sub-fase | Status |
 |---|--------|----------|--------|
-| 1 | Dividir `types.User` em `PublicUser`/`MyProfile`; dividir `types.Match` em `MatchSummary`/`MatchDetail` | 13.1 | ⚪ |
-| 2 | Ajustar `Rating`/`Report` aos shapes reais (`rater`, `match_id`) conforme decisão D-B/D-C do backend | 13.1 | ⚪ |
+| 1 | Dividir `types.User` em `PublicUser`/`MyProfile`; dividir `types.Match` em `MatchSummary`/`MatchDetail` | 13.1 | 🟢 (`feat/api-contract-types`, sessão 20) |
+| 2 | Ajustar `Rating`/`Report` aos shapes reais (`rater`, `match_id`) conforme decisão D-B/D-C do backend | 13.1 | 🟢 (`feat/api-contract-types`, sessão 20) |
 | 3 | Criar `src/services/api/client.ts` (fetch tipado + parse de erro `{code,message}` + Bearer) | 13.2 | ⚪ |
 | 4 | Criar `src/services/adapters/` (conversão `snake_case↔camelCase`, achatamento de `RatingCriteria`) | 13.2 | ⚪ |
 | 5 | Instalar `expo-secure-store` e criar módulo de storage seguro de token | 13.2 | ⚪ |
@@ -113,6 +114,7 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 
 ## Bloqueadores e observações
 
+- **Sessão 20 (2026-07-08):** Fase 13.1 concluída (itens 1–2 da fila) na branch `feat/api-contract-types`. `types.User`→`PublicUser`/`MyProfile`, `types.Match`→`MatchSummary`/`MatchDetail`, novo `MatchRef` em `Rating`/`Report`. `npx tsc --noEmit` guiou o ajuste de 11 arquivos (mocks, contexts, hooks, `MatchCard`, `CreateMatchScreen`, 2 testes) até zero erros; `npm run lint`/`npm run test` (181/181) e `npx expo export --platform web` também zerados. Decisão de escopo registrada como D19: listagem continua tipada como `MatchDetail` (não `MatchSummary`) para não perder a busca por organizador — vai precisar de ajuste na 13.5, quando a listagem passar a vir de `GET /matches` de verdade. Efeito colateral positivo: `AuthContext.register` parou de descartar o e-mail digitado. Detalhes completos em `progress.md`, sessão 20. Próxima tarefa: item 3 da fila (`src/services/api/client.ts`, 13.2).
 - **Sessão 17 (2026-07-02):** Fase 12 avançou para 6/8 (12.2, 12.4, 12.5, 12.6 e 12.7 concluídas — 12.1 já vinha da sessão 15). Zero erros de console, `npm run lint`/`npx tsc --noEmit`/`npm run test` (181/181) zerados. Duas auditorias corrigiram problemas reais de acessibilidade (contraste de cor, label do card de partida) e de coerência dos dados mockados (avaliações datadas antes da partida acontecer). Três achados não bloqueantes viraram dívidas técnicas D11–D13 (ver tabela acima). Restam 12.3 (Expo Go — requer dispositivo/emulador do usuário) e 12.8 (build de apresentação). Detalhes tarefa-a-tarefa em `progress.md`, sessão 17.
 - **Sessão 16 (2026-07-02):** redesign visual premium completo (transversal). Módulo `src/theme/index.ts` (`colors`, `shadows`, `SPORT_META`, `LEVEL_META`) é a fonte única de verdade para estilos fora do NativeWind — usar **sempre** em vez de hex hardcoded. Componentes novos: `SectionCard`, `Chip`, `SportTile`, `StatsRow`, `Skeleton`/`MatchCardSkeleton`. Emojis eliminados da UI (só permanecem em conteúdo de mensagens mockadas). Detalhes completos em `progress.md`, sessão 16.
 - **Sessão 15 (2026-07-02):** `src/components/Header.tsx` foi reescrito e agora é usado por 13+ telas via `useSafeAreaInsets` — qualquer teste novo que renderize uma tela com `<Header>` precisa mockar `react-native-safe-area-context` (ver `Header.test.tsx`/`PublicProfileScreen.test.tsx` como referência). Detalhes completos em `progress.md`, sessão 15.
@@ -128,7 +130,7 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 
 ## Progresso geral
 
-**Total de tarefas:** 70
-**Concluídas:** 69 (fases numeradas + 12.1, 12.2, 12.4, 12.5, 12.6, 12.7) + refinamento visual transversal
+**Total de tarefas:** 86 (70 do protótipo + 16 da fila de integração, Fase 13)
+**Concluídas:** 71 (69 do protótipo + refinamento visual transversal + itens 1–2 da Fase 13, sessão 20)
 **Em andamento:** 0
-**A fazer:** 2 (Fase 12: 12.3 requer dispositivo/emulador do usuário; 12.8 build de apresentação)
+**A fazer:** 15 (Fase 12: 12.3 requer dispositivo/emulador do usuário, 12.8 build de apresentação; Fase 13: itens 3–16)

@@ -58,7 +58,8 @@ src/
 ├── navigation/   # Navigators (AuthNavigator, AppNavigator, RootNavigator)
 ├── screens/      # Telas da aplicação
 ├── theme/        # Fonte única de verdade para cores, sombras e metadados de esporte/nível fora do NativeWind
-├── types/        # Tipos TypeScript globais
+├── types/        # Tipos TypeScript globais — alinhados ao contrato do backend (PublicUser/MyProfile,
+│                 #   MatchSummary/MatchDetail, MatchRef), ver .status/backend-contract.md
 └── utils/        # Funções utilitárias (date, reportLabels)
 __mocks__/        # Mocks Jest (expo-vector-icons)
 ```
@@ -124,7 +125,8 @@ O `ReportsContext` guarda as denúncias em memória (seed em `src/mocks/reports.
 | 10 | Denúncia e segurança | ✅ Concluída |
 | 11 | Moderação (opcional) | ✅ Concluída |
 | 12 | Revisão e polimento final | 🟡 **Em andamento** (6/8 — restam apenas testes em Expo Go e build de apresentação) |
+| 13 | Integração com o backend real | 🟡 **Em andamento** (2/16 — tipos alinhados ao contrato real; backend já deployado em `https://squadup-api.up.railway.app`) |
 
-181 testes passando · lint zerado · tsc zerado · 69/70 tarefas concluídas (99%)
+181 testes passando · lint zerado · tsc zerado · 71/86 tarefas concluídas (83%)
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

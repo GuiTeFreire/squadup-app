@@ -780,3 +780,88 @@ Auditoria por subagente dedicado (leitura de `src/mocks/{users,matches,messages,
 - Branch `feat/final-polish`, working tree com alterações em `.status/*`, `src/components/{Card,MatchCard,Input,ChatInput}.tsx`, `src/screens/{HomeScreen,SearchScreen,AdminDashboardScreen,CreateMatchScreen,MatchChatScreen,MatchDetailScreen,ParticipantList,PostMatchRatingScreen,RateUserScreen,PublicProfileScreen,ReportUserScreen,MessageBubble,Chip,SectionCard,ReviewCard,Button}.tsx` (troca de tom de cinza) e `src/mocks/{matches,ratings,reports}.ts`
 - Fase 12: 12.1, 12.2, 12.4, 12.5, 12.6, 12.7 concluídas (6/8). Restam 12.3 (Expo Go iOS/Android — requer dispositivo/emulador do usuário) e 12.8 (build de apresentação)
 - Nenhum bug pendente — parada é limpa, entre tarefas
+
+## Sessão 18/19 — 2026-07-08 (documentação, sem código)
+
+Sessões só de documentação, sem alterar `src/`: leitura do backend real (`../back`) e criação de
+`.status/backend-contract.md` (comparação completa de contrato front×backend, decisões D-A a D-D)
+na sessão 18; na sessão 19, transformação do plano mestre em fila executável (Fase 13, 16 tarefas,
+13.1–13.9) em `.status/roadmap.md` §19 e `.status/queue.md`. Depois, ainda em 2026-07-08, o
+backend concluiu sua Etapa 1 (D-B/D-C/D-D aplicadas, deploy em produção no Railway) — sincronizado
+em `.status/backend-contract.md`, `.status/plano-de-entrega.md` (novo, plano de entrega final das
+5 trilhas) e URL de produção documentada (`https://squadup-api.up.railway.app`).
+
+## Sessão 20 — 2026-07-08
+
+### Fase 13.1 — Tipos alinhados ao contrato real
+
+Branch `feat/api-contract-types`. Objetivo: dividir `types.User`/`types.Match` conforme o
+contrato real do backend (`.status/backend-contract.md` §2.1/§2.2/§6, decisões D-B/D-C), expondo
+em tempo de compilação todo lugar que assumia o shape antigo — esse era o objetivo declarado da
+tarefa, não um efeito colateral indesejado.
+
+**`src/types/index.ts` reescrito:**
+- `User` → `PublicUser` (mesmos campos) + `MyProfile extends PublicUser { email, role }`
+  (`UserRole = "user" | "admin"`), espelhando `PublicProfileRead`/`MyProfileRead` do backend.
+- `Match` → `MatchSummary` (`organizerId`, `confirmedCount`, `availableSlots` — campos calculados
+  no servidor, sem organizador/participantes expandidos) + `MatchDetail extends MatchSummary`
+  (`organizer: PublicUser`, `participants: Participant[]`), espelhando `MatchRead`/`MatchDetailRead`.
+- Novo `MatchRef` (`id, title, sport, date`) — `Rating.match`/`Report.match` passam a usar esse
+  tipo leve em vez do `Match` completo, espelhando o `MatchRef` que o backend ganhou (decisão D-C,
+  já aplicada lá em 2026-07-08).
+
+**Decisão de escopo (registrada como dívida técnica D19 em `queue.md`):** os mocks já vêm com
+`organizer`/`participants` completos (é tudo mockado, não há round-trip de rede), então
+`MatchesContext`, `useMatchFilters` e `MatchCard` foram tipados sobre `MatchDetail` — não
+`MatchSummary` — para não regredir a busca por nome do organizador na `HomeScreen`/`SearchScreen`.
+Isso é consistente com o objetivo desta tarefa (só tipos, sem mudar comportamento), mas quando a
+13.5 trocar `MatchesContext` por `GET /matches` real, a listagem vai parar de trazer o objeto
+`organizer` — a busca por nome do organizador vai precisar ser removida ou resolvida de outra
+forma nesse momento.
+
+**Arquivos ajustados para os novos tipos** (guiado por `npx tsc --noEmit`, que caiu de ~34 erros
+para 0 em 3 rodadas):
+- `src/mocks/users.ts` — `MOCK_USERS: PublicUser[]`; `CURRENT_USER: MyProfile` (spread + `email`/`role`).
+- `src/mocks/matches.ts` — seeds sem os 3 campos calculados + `toMatchDetail()` que deriva
+  `organizerId`/`confirmedCount`/`availableSlots` a partir de `organizer`/`participants` (mesma
+  fórmula que o backend usa no servidor, para não haver dois lugares divergentes calculando isso).
+- `src/contexts/MatchesContext.tsx` — estado interno `MatchDetail[]`; `updateParticipation` agora
+  recalcula `confirmedCount`/`availableSlots` (`withRecalculatedSlots`) sempre que a lista de
+  participantes muda, em vez de deixar esses campos desatualizados.
+- `src/contexts/AuthContext.tsx` — `user: MyProfile`; **efeito colateral positivo:** `register()`
+  antes descartava o e-mail digitado (`_email`); agora guarda em `pendingEmail` e usa em
+  `completeProfile`, então o e-mail do cadastro passa a aparecer de fato no perfil criado.
+- `src/hooks/useMatchFilters.ts` — `getConfirmedCount`/`getAvailableSlots` removidos (eram
+  recomputados a cada render); `applyFilters`/`useMatchFilters` leem `match.confirmedCount`/
+  `match.availableSlots` direto, alinhado com "usar os campos calculados pelo servidor" (§2.2 do
+  contrato).
+- `src/hooks/useMatchParticipation.ts` — `Match`/`User` → `MatchDetail`/`PublicUser`.
+- `src/components/MatchCard.tsx` — prop `match: MatchDetail`; usa `match.confirmedCount` em vez de
+  chamar `getConfirmedCount` (import removido).
+- `src/screens/CreateMatchScreen.tsx` — `newMatch: MatchDetail` monta os 3 campos calculados
+  manualmente (organizador único, 1 confirmado no ato da criação).
+- Testes: `src/components/__tests__/MatchCard.test.tsx` e
+  `src/hooks/__tests__/useMatchFilters.test.ts` — mocks locais ajustados ao novo shape; o teste
+  "Sem vagas" passou a setar `confirmedCount`/`availableSlots` direto em vez de inflar o array de
+  `participants` (que não é mais o que o componente lê).
+
+**Não precisaram de mudança** (tsc já resolvia certo por tipagem estrutural ou inferência via
+hooks/contexts): `src/mocks/reports.ts`, `src/mocks/ratings.ts`, `src/mocks/messages.ts`,
+`ReportsContext`, `RatingsContext`, `MessagesContext`, `MatchFiltersContext`, e todas as
+`screens`/`components` que só recebem esses tipos por inferência (`PublicProfileScreen`,
+`MyProfileScreen`, `MatchDetailScreen`, `ParticipantList`, `ReviewCard`, etc.).
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros (após `eslint --fix` nos 11 arquivos
+tocados, só CRLF→LF/formatação — dívida D4, pré-existente) · `npm run test` 181/181 passando (sem
+regressão) · `npx expo export --platform web` gerou o bundle web sem erros (733 módulos).
+
+### Estado ao final da sessão 20
+
+- Branch `feat/api-contract-types`, criada a partir de `dev` (que já tinha o commit da URL de
+  produção do backend). Ainda **não commitada** — código pronto e validado, falta só o commit.
+- Fila da Fase 13 (`queue.md`): itens 1 e 2 (13.1) concluídos 🟢. Restam 14 itens (13.2–13.9).
+- Próxima tarefa: item 3 da fila — `src/services/api/client.ts` (13.2, cliente HTTP tipado).
+- Nenhum bug pendente — parada é limpa, entre tarefas. Ver "Checkpointer" no fechamento desta
+  sessão (mensagem final) para o ponto exato de retomada.
