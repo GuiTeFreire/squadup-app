@@ -2,7 +2,7 @@
 
 > Criado em 2026-07-08, a partir da leitura de `TCC.tex` (front), `.status/{vision,roadmap,queue,backend-contract}.md` (front) e `../back/.status/{vision,roadmap,queue}.md` (back). Documento vivo — atualizar conforme as trilhas avançam, mesmo padrão dos outros arquivos em `.status/`.
 >
-> **Onde estamos:** o backend (`../back`) está com as Fases 1–12 concluídas, testado (113 testes, 99% cobertura) e com hospedagem decidida (Railway) — falta só executar o deploy real. O front (`../front`) tem o protótipo visual 100% pronto (Fases 1–11 concluídas, Fase 12 em 6/8) mas **ainda não consome a API real** — é 100% mockado. A Fase 13 (integração real) é 0/16 e é o maior bloco de trabalho que resta. O `TCC.tex` está escrito como um **anteprojeto** (tempo futuro, "será implementado"), não como a monografia final — falta reescrever boa parte para refletir o que foi de fato construído, e os assets (prints, bibliografia) hoje só existem no Overleaf, fora do repositório.
+> **Onde estamos:** o backend (`../back`) está com as Fases 1–12 concluídas, testado (113 testes, 99% cobertura) e **já deployado em produção no Railway**: `https://squadup-api.up.railway.app` (documentado em 2026-07-08 — ver §2). O front (`../front`) tem o protótipo visual 100% pronto (Fases 1–11 concluídas, Fase 12 em 6/8) mas **ainda não consome a API real** — é 100% mockado. A Fase 13 (integração real) é 0/16 e é o maior bloco de trabalho que resta; agora já tem uma URL de produção real para apontar (`EXPO_PUBLIC_API_URL`), não só `localhost`. O `TCC.tex` está escrito como um **anteprojeto** (tempo futuro, "será implementado"), não como a monografia final — falta reescrever boa parte para refletir o que foi de fato construído, e os assets (prints, bibliografia) hoje só existem no Overleaf, fora do repositório.
 
 ---
 
@@ -10,7 +10,7 @@
 
 | Trilha | O quê | Depende de | Pode começar |
 |---|---|---|---|
-| **A — Deploy do backend** | Executar o deploy real no Railway | Nada (só falta a ação) | **Agora** |
+| **A — Deploy do backend** | Executar o deploy real no Railway | Nada — **✅ URL de produção já ativa** (`squadup-api.up.railway.app`) | Concluída (falta só a decisão de seed, §2) |
 | **B — Integração front↔back** | Fase 13 do front (trocar mocks por API real) | Trilha A (precisa de uma URL real para apontar, mas pode começar contra `localhost` antes disso) | **Agora**, em paralelo com A |
 | **C — Build e demo do app** | EAS Build / Expo Go para teste e apresentação | Trilha B razoavelmente avançada | Depois de B |
 | **D — Assets do TCC** | Estrutura de pastas, prints, bibliografia, diagramas | Nada (screenshots podem ser tirados com os mocks atuais) | **Agora**, em paralelo com tudo |
@@ -20,18 +20,22 @@ Nenhuma trilha bloqueia totalmente as outras — dá para avançar em 3–4 fren
 
 ---
 
-## 2. Trilha A — Deploy do backend (Railway)
+## 2. Trilha A — Deploy do backend (Railway) — ✅ concluída em 2026-07-08
 
-Já documentado em `../back/README.md` §"Deploy" e `../back/.status/queue.md`. Resta executar (ação do usuário, precisa de conta):
+**URL de produção:** `https://squadup-api.up.railway.app` — este é o valor que `EXPO_PUBLIC_API_URL`
+deve usar a partir da tarefa 13.2 (infraestrutura de API) e no fechamento 13.9 do front, e também
+o valor de `env` no perfil `preview` do `eas.json` na Trilha C.
+
+Passos originais, documentados em `../back/README.md` §"Deploy" e `../back/.status/queue.md`:
 
 1. Criar projeto no Railway a partir do repositório GitHub `squadup-back` (branch `dev`, depois de decidir se `main` também será promovida — ver dívida técnica em `../back/.status/queue.md`).
 2. Adicionar addon PostgreSQL.
 3. Configurar variáveis de ambiente: `SECRET_KEY` (gerar um valor forte, nunca o placeholder de dev), `ENVIRONMENT=production`, `CORS_ORIGINS` (só relevante se o front rodar como web/Expo web — apps mobile nativos não são bloqueados por CORS).
 4. Deploy dispara automaticamente via `Procfile` (`alembic upgrade head && uvicorn ...`) — já pronto, não precisa de configuração adicional.
 5. Validar: `GET /health` público responde 200; rodar manualmente `python -m app.seed` (via shell do Railway) se quiser dados de exemplo para demonstração na defesa.
-6. Anotar a URL pública gerada — é o valor de `EXPO_PUBLIC_API_URL` que o front vai usar (Trilha B/C).
+6. ~~Anotar a URL pública gerada~~ — ✅ feito: `squadup-api.up.railway.app`.
 
-**Decisão a fechar:** vale a pena popular o banco de produção com dados de seed para a demo da defesa (usuários, partidas, avaliações fictícias e coerentes), ou a demo será feita 100% ao vivo (cadastro/criação na hora)? Recomendação: seed + 1 fluxo ao vivo — reduz risco de algo falhar durante a apresentação.
+**Decisão a fechar:** vale a pena popular o banco de produção com dados de seed para a demo da defesa (usuários, partidas, avaliações fictícias e coerentes), ou a demo será feita 100% ao vivo (cadastro/criação na hora)? Recomendação: seed + 1 fluxo ao vivo — reduz risco de algo falhar durante a apresentação. (Ainda não confirmado se o passo 5 — `GET /health` e/ou `python -m app.seed` — já foi executado contra a URL de produção; validar antes de apontar o front para lá.)
 
 ---
 
@@ -41,7 +45,7 @@ Detalhamento tarefa-a-tarefa já existe em `.status/roadmap.md` §19 e `.status/
 
 1. **13.1–13.3 (fundação, sequencial):** tipos alinhados ao contrato real → cliente HTTP + adapters + storage seguro de token → React Query. Isso é pré-requisito de tudo abaixo.
 2. **13.4–13.8 (independentes entre si, podem ser paralelas ou em qualquer ordem):** Auth real, Matches reais, Mensagens reais, Avaliações reais, Denúncias reais. Sugestão de prioridade: **Auth primeiro** (destrava telas que exigem usuário logado), depois **Matches** (fluxo mais visado numa demo).
-3. **13.9 (fechamento):** teste manual ponta a ponta contra o backend local primeiro, depois contra a URL do Railway (Trilha A já concluída nesse ponto); ajustar `EXPO_PUBLIC_API_URL`.
+3. **13.9 (fechamento):** teste manual ponta a ponta contra o backend local primeiro, depois contra a URL de produção do Railway (`https://squadup-api.up.railway.app`, Trilha A já concluída); ajustar `EXPO_PUBLIC_API_URL`.
 
 Este é o maior bloco de trabalho restante do projeto — envolve reescrever a camada de dados dos 6 Contexts (`AuthContext`, `MatchesContext`, `MatchFiltersContext`, `MessagesContext`, `RatingsContext`, `ReportsContext`) por dentro, mantendo as interfaces públicas para não precisar tocar nas telas.
 
@@ -56,7 +60,7 @@ Junto disso, fechar a Fase 12 do front que ainda falta:
 Hoje não existe `eas.json` nem configuração de build no projeto. Para a defesa, recomenda-se um **APK Android via EAS Build** em vez de depender de Expo Go + rede durante a apresentação (menos pontos de falha ao vivo):
 
 1. `npx eas login` + `npx eas build:configure` (gera `eas.json`).
-2. Perfil de build `preview` (APK direto, sem passar pela Play Store) apontando para a URL de produção do Railway (`EXPO_PUBLIC_API_URL` via `eas.json` → `env`).
+2. Perfil de build `preview` (APK direto, sem passar pela Play Store) apontando para a URL de produção do Railway — `EXPO_PUBLIC_API_URL=https://squadup-api.up.railway.app` via `eas.json` → `env`.
 3. `npx eas build --platform android --profile preview`.
 4. Instalar o APK gerado num dispositivo Android para o dia da defesa (ou usar um emulador local como plano B).
 5. iOS: opcional — exige conta Apple Developer paga; só perseguir se for um requisito da banca (normalmente não é).

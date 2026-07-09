@@ -490,7 +490,11 @@ telas.
   `.env.example` versionado (mesmo padrão já usado em `../back`) — **atenção:** `localhost` não
   funciona a partir de um dispositivo físico ou emulador via Expo Go, que não alcançam o
   `localhost` da máquina de desenvolvimento; usar o IP da rede local (`http://192.168.x.x:8000`)
-  ou o túnel do Expo (`expo start --tunnel`) ao testar fora do `npm run web`.
+  ou o túnel do Expo (`expo start --tunnel`) ao testar fora do `npm run web`;
+- **Backend já deployado em produção** (2026-07-08): `https://squadup-api.up.railway.app` — é o
+  valor de `EXPO_PUBLIC_API_URL` para builds de apresentação/produção (13.9, Trilha C do
+  `plano-de-entrega.md`); ambiente local continua usando o IP de rede acima durante o
+  desenvolvimento das tarefas 13.4–13.8.
 
 ### 13.3 — React Query
 

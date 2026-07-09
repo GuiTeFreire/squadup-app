@@ -107,7 +107,7 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 | 13 | `MessagesContext` → React Query; parar de gerar `createdAt` no cliente (resolve D12); paginação no `MatchChatScreen` | 13.6 | ⚪ |
 | 14 | `RatingsContext` → React Query; adapter de achatamento de critérios; UI trata `averageRating` nulo | 13.7 | ⚪ |
 | 15 | `ReportsContext.updateReportStatus` migrado para ação (`archive`/`warn`/`ban`) em vez de status-alvo (D14) | 13.8 | ⚪ |
-| 16 | Teste manual ponta a ponta contra backend local; apontar `.env` para URL de produção; ajustar texto do TCC (decisão D-A) | 13.9 | ⚪ |
+| 16 | Teste manual ponta a ponta contra backend local; apontar `.env` para URL de produção (`https://squadup-api.up.railway.app`); ajustar texto do TCC (decisão D-A) | 13.9 | ⚪ |
 
 ---
 

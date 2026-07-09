@@ -289,7 +289,11 @@ o repositório responsável. As etapas foram transformadas em tarefas concretas 
 | 6 | Mensagens reais: histórico paginado, envio sem timestamp gerado no cliente | **Front** | Etapa 3, decisão D-D |
 | 7 | Avaliações reais: adapter de achatamento de critérios, tratamento de `average_rating` nulo | **Front** | Etapa 3, decisão D-B |
 | 8 | Denúncias reais: `ReportsContext` migrado para ação (`archive`/`warn`/`ban`) em vez de status-alvo | **Front** | Etapa 3 |
-| 9 | Hardening conjunto: teste manual ponta a ponta contra o backend local, apontar `.env` do front para a URL de produção decidida, ajustar texto do TCC conforme decisão D-A | **Ambos** | Etapas 4–8 |
+| 9 | Hardening conjunto: teste manual ponta a ponta contra o backend local, apontar `.env` do front para a URL de produção decidida (`https://squadup-api.up.railway.app`), ajustar texto do TCC conforme decisão D-A | **Ambos** | Etapas 4–8 |
+
+**URL de produção do backend (Railway):** `https://squadup-api.up.railway.app` — documentada em
+2026-07-08 (`.status/plano-de-entrega.md` §2). É o valor de `EXPO_PUBLIC_API_URL` para a Etapa 9
+acima e para o build de apresentação (EAS).
 
 Etapas 4–8 são independentes entre si (todas dependem só da 3) e podem ser feitas em qualquer
 ordem ou em paralelo — a ordem na tabela é só uma sugestão de prioridade (auth destrava tudo
