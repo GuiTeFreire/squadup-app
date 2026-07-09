@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import React from "react";
 
 import MatchCard from "../MatchCard";
-import type { Match } from "../../types";
+import type { MatchDetail } from "../../types";
 
 const BASE_ORGANIZER = {
   id: "u1",
@@ -16,7 +16,7 @@ const BASE_ORGANIZER = {
   isVerified: true,
 };
 
-const BASE_MATCH: Match = {
+const BASE_MATCH: MatchDetail = {
   id: "m1",
   sport: "football",
   title: "Pelada de domingo",
@@ -25,11 +25,14 @@ const BASE_MATCH: Match = {
   time: "09:00",
   maxParticipants: 10,
   level: "intermediate",
+  organizerId: BASE_ORGANIZER.id,
   organizer: BASE_ORGANIZER,
   participants: [
     { user: BASE_ORGANIZER, status: "confirmed" },
     { user: { ...BASE_ORGANIZER, id: "u2", name: "João Lima" }, status: "confirmed" },
   ],
+  confirmedCount: 2,
+  availableSlots: 8,
   status: "open",
   allowBeginners: false,
   requiresApproval: false,
@@ -94,11 +97,7 @@ describe("MatchCard", () => {
   });
 
   it("exibe 'Sem vagas' quando partida está lotada", () => {
-    const fullParticipants = Array.from({ length: 10 }, (_, i) => ({
-      user: { ...BASE_ORGANIZER, id: `u${i}` },
-      status: "confirmed" as const,
-    }));
-    render(<MatchCard match={{ ...BASE_MATCH, participants: fullParticipants }} />);
+    render(<MatchCard match={{ ...BASE_MATCH, confirmedCount: 10, availableSlots: 0 }} />);
     expect(screen.getByText(/Sem vagas/)).toBeTruthy();
   });
 });

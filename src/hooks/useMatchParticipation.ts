@@ -2,10 +2,10 @@ import { useCallback, useMemo } from "react";
 import { Alert } from "react-native";
 
 import { useMatchesContext } from "../contexts/MatchesContext";
-import type { Match, ParticipationStatus, User } from "../types";
+import type { MatchDetail, ParticipationStatus, PublicUser } from "../types";
 
 export interface UseMatchParticipationResult {
-  match: Match | null;
+  match: MatchDetail | null;
   userStatus: ParticipationStatus | null;
   join: () => void;
   cancel: () => void;
@@ -13,7 +13,7 @@ export interface UseMatchParticipationResult {
 
 export function useMatchParticipation(
   matchId: string,
-  currentUser: User
+  currentUser: PublicUser
 ): UseMatchParticipationResult {
   const { matches, updateParticipation } = useMatchesContext();
 

@@ -17,7 +17,10 @@ export type ReportReason =
 
 export type ReportStatus = "pending" | "archived" | "warned" | "banned";
 
-export interface User {
+export type UserRole = "user" | "admin";
+
+/** Dados públicos de qualquer usuário — equivalente a `PublicProfileRead` no backend. */
+export interface PublicUser {
   id: string;
   name: string;
   photoUrl?: string;
@@ -31,12 +34,19 @@ export interface User {
   isVerified: boolean;
 }
 
+/** Perfil do próprio usuário logado — equivalente a `MyProfileRead` no backend. */
+export interface MyProfile extends PublicUser {
+  email: string;
+  role: UserRole;
+}
+
 export interface Participant {
-  user: User;
+  user: PublicUser;
   status: ParticipationStatus;
 }
 
-export interface Match {
+/** Equivalente a `MatchRead` — shape devolvido por listagem e ações, sem expandir organizador/participantes. */
+export interface MatchSummary {
   id: string;
   sport: Sport;
   title: string;
@@ -46,11 +56,26 @@ export interface Match {
   maxParticipants: number;
   level: ExperienceLevel;
   description?: string;
-  organizer: User;
-  participants: Participant[];
+  organizerId: string;
+  confirmedCount: number;
+  availableSlots: number;
   status: MatchStatus;
   allowBeginners: boolean;
   requiresApproval: boolean;
+}
+
+/** Equivalente a `MatchDetailRead` — shape devolvido só por `GET /matches/{id}`. */
+export interface MatchDetail extends MatchSummary {
+  organizer: PublicUser;
+  participants: Participant[];
+}
+
+/** Referência leve a uma partida, embutida em Rating/Report — equivalente a `MatchRef` no backend. */
+export interface MatchRef {
+  id: string;
+  title: string;
+  sport: Sport;
+  date: string;
 }
 
 export interface RatingCriteria {
@@ -63,9 +88,9 @@ export interface RatingCriteria {
 
 export interface Rating {
   id: string;
-  ratedUser: User;
-  raterUser: User;
-  match: Match;
+  ratedUser: PublicUser;
+  raterUser: PublicUser;
+  match: MatchRef;
   criteria: RatingCriteria;
   comment?: string;
   createdAt: string;
@@ -73,9 +98,9 @@ export interface Rating {
 
 export interface Report {
   id: string;
-  reportedUser: User;
-  reporterUser: User;
-  match?: Match;
+  reportedUser: PublicUser;
+  reporterUser: PublicUser;
+  match?: MatchRef;
   reason: ReportReason;
   description: string;
   createdAt: string;

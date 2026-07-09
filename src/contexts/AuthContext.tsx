@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 
 import { CURRENT_USER } from "../mocks/users";
-import type { ExperienceLevel, Sport, User } from "../types";
+import type { ExperienceLevel, MyProfile, Sport } from "../types";
 
 interface ProfileData {
   favoriteSports: Sport[];
@@ -11,7 +11,7 @@ interface ProfileData {
 }
 
 interface AuthContextValue {
-  user: User | null;
+  user: MyProfile | null;
   isAuthenticated: boolean;
   pendingName: string;
   login: (email: string, password: string) => void;
@@ -23,23 +23,27 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<MyProfile | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pendingName, setPendingName] = useState("");
+  const [pendingEmail, setPendingEmail] = useState("");
 
   const login = (_email: string, _password: string) => {
     setUser(CURRENT_USER);
     setIsAuthenticated(true);
   };
 
-  const register = (name: string, _email: string, _password: string) => {
+  const register = (name: string, email: string, _password: string) => {
     setPendingName(name);
+    setPendingEmail(email);
   };
 
   const completeProfile = (data: ProfileData) => {
-    const newUser: User = {
+    const newUser: MyProfile = {
       id: `user-${Date.now()}`,
       name: pendingName,
+      email: pendingEmail,
+      role: "user",
       age: 25,
       location: data.location,
       favoriteSports: data.favoriteSports,
@@ -51,12 +55,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     setUser(newUser);
     setPendingName("");
+    setPendingEmail("");
     setIsAuthenticated(true);
   };
 
   const logout = () => {
     setUser(null);
     setPendingName("");
+    setPendingEmail("");
     setIsAuthenticated(false);
   };
 

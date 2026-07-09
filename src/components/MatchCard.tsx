@@ -3,19 +3,18 @@ import React, { memo } from "react";
 import { Text, View } from "react-native";
 
 import { colors, LEVEL_META, SPORT_META } from "../theme";
-import type { Match } from "../types";
+import type { MatchDetail } from "../types";
 import { formatMatchDate } from "../utils/date";
-import { getConfirmedCount } from "../hooks/useMatchFilters";
 import Avatar from "./Avatar";
 import Badge from "./Badge";
 import Card from "./Card";
 
 interface MatchCardProps {
-  match: Match;
+  match: MatchDetail;
   onPress?: () => void;
 }
 
-const statusLabel: Record<Match["status"], string | null> = {
+const statusLabel: Record<MatchDetail["status"], string | null> = {
   open: null,
   full: "Lotada",
   pending_approval: "Pendente",
@@ -51,7 +50,7 @@ function SlotsBar({ confirmed, max }: Readonly<{ confirmed: number; max: number 
 }
 
 function MatchCard({ match, onPress }: Readonly<MatchCardProps>) {
-  const confirmed = getConfirmedCount(match);
+  const confirmed = match.confirmedCount;
   const statusBadge = statusLabel[match.status];
   const isCancelled = match.status === "cancelled";
   const sportMeta = SPORT_META[match.sport];
