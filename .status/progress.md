@@ -865,3 +865,108 @@ regressão) · `npx expo export --platform web` gerou o bundle web sem erros (73
 - Próxima tarefa: item 3 da fila — `src/services/api/client.ts` (13.2, cliente HTTP tipado).
 - Nenhum bug pendente — parada é limpa, entre tarefas. Ver "Checkpointer" no fechamento desta
   sessão (mensagem final) para o ponto exato de retomada.
+
+---
+
+## Sessão 21 — 2026-07-08
+
+### Fase 13.2 — Camada de infraestrutura de API (itens 3–5 da fila)
+
+Branch `feat/api-contract-types` (mesma da sessão 20, ainda não mergeada). Objetivo: construir a
+infraestrutura de rede que todos os Contexts reais (13.4–13.8) vão consumir, sem tocar em nenhum
+Context ainda — só a base.
+
+**Item 3 — `src/services/api/client.ts`:**
+- Wrapper de `fetch` tipado (`apiClient.get/post/patch/delete`), classe `ApiError extends Error`
+  que faz parse do formato de erro real do backend (`{ detail: { code, message } }`), com
+  fallback `{ code: "UNKNOWN_ERROR" }` se o corpo não seguir o contrato.
+- `setAuthToken`/`getAuthToken` — token em memória; a persistência entre sessões é o item 5.
+- Base URL lida de `process.env.EXPO_PUBLIC_API_URL` (fallback `http://localhost:8000`); criado
+  `.env.example` na raiz (`.env` real já estava no `.gitignore`, nunca existiu no repo, então não
+  havia nenhum arquivo documentando as variáveis esperadas até agora).
+- 8 testes em `src/services/api/__tests__/client.test.ts` (mock de `globalThis.fetch`).
+
+**Item 4 — `src/services/adapters/`:**
+- Decisão de processo: em vez de confiar só no resumo do `backend-contract.md`, os schemas
+  Pydantic reais foram lidos direto de `../back/app/schemas/*.py` para garantir paridade exata de
+  campo a campo antes de escrever qualquer adapter.
+- `types.ts` define as interfaces `Api*` em `snake_case` espelhando os schemas reais
+  (`ApiPublicUser`, `ApiMyProfile`, `ApiParticipant`, `ApiMatchSummary`/`ApiMatchDetail`,
+  `ApiMatchRef`, `ApiRating`, `ApiReport`, `ApiMessage`).
+- Funções puras por entidade: `toPublicUser`/`toMyProfile` (`user.ts`),
+  `toMatchSummary`/`toMatchDetail`/`toParticipant`/`toMatchRef` (`match.ts`), `toRating`/
+  `toRatingPayload` (`rating.ts`, achata `RatingCriteria` para o `POST`), `toReport` (`report.ts`),
+  `toMessage` (`message.ts`).
+- **Duas decisões de conversão registradas como dívida técnica (D20/D21 em `queue.md`)** em vez de
+  resolvidas de fato, porque a correção completa é escopo de sub-fases futuras:
+  - `average_rating: null` (usuário sem avaliações) cai para `0` em `toPublicUser` — o tipo
+    `PublicUser.averageRating` continua `number`, então o `null` real do backend fica mascarado
+    até a 13.7 tratar isso na UI de verdade (D20).
+  - Horário do backend vem com segundos (`"09:00:00"`) e é cortado para `"09:00"` em
+    `toMatchSummary`, para casar com o formato dos mocks/telas — comportamento correto e
+    definitivo, não é dívida.
+  - `Message.createdAt`/`Rating.createdAt`/`Report.createdAt` recebem o ISO completo do servidor
+    sem reformatar. `MessageBubble` hoje imprime `message.createdAt` bruto na tela (formato
+    `"HH:mm"` do mock atual) — quando a 13.6 plugar mensagens reais, vai aparecer um ISO completo
+    ali até alguém adicionar a formatação (D21).
+- 17 testes novos em `src/services/adapters/__tests__/` (um arquivo por entidade).
+
+**Item 5 — `expo-secure-store` + `src/services/storage/tokenStorage.ts`:**
+- `npx expo install expo-secure-store` (registrou o config plugin em `app.json` automaticamente).
+- `tokenStorage.ts` expõe `saveTokens`/`getAccessToken`/`getRefreshToken`/`clearTokens`/
+  `restoreAuthToken`; `saveTokens`/`clearTokens`/`restoreAuthToken` já chamam `setAuthToken` do
+  `client.ts` por dentro, então a `AuthContext` da 13.4 só vai precisar chamar essas funções nos
+  momentos certos (login/refresh/logout/boot) sem repetir lógica de storage.
+- **Decisão de plataforma:** `expo-secure-store` é um no-op em `react-native-web` — o binário web
+  do pacote (`ExpoSecureStore.web.js`) exporta um objeto vazio, então qualquer chamada nativa
+  falharia silenciosamente ou lançaria em runtime no browser. Confirmado lendo o código-fonte do
+  pacote antes de decidir. Fallback: `sessionStorage` no web (limpa ao fechar a aba — aceitável
+  para a demo acadêmica, registrado como D22 porque significa que o login não sobrevive a um
+  fechar-e-abrir de aba no `npm run web`; no nativo via Expo Go/EAS o token vai para o
+  keychain/keystore de verdade, sem essa limitação).
+- 7 testes: `tokenStorage.test.ts` (branch nativo, mocka `expo-secure-store`) e
+  `tokenStorage.web.test.ts` (branch web, muta `Platform.OS` diretamente — não mocka o módulo
+  `react-native` inteiro, porque isso derruba o automock do Jest/RN e quebra com
+  `TurboModuleRegistry`/`DevMenu not found`; `isWeb()` foi escrito como função, não `const` de
+  módulo, justamente para dar para mutar `Platform.OS` em runtime de teste sem reset de módulo).
+
+### Fase 13.3 — React Query (item 6 da fila)
+
+- `npm install @tanstack/react-query` (`^5.101.2`).
+- `src/services/queryClient.ts` — uma instância única (`retry: 1`, `staleTime: 60_000`).
+- `src/services/queryKeys.ts` — convenção central de chaves (`me`, `matches(filters?)`,
+  `match(matchId)`, `messages(matchId)`, `userRatings(userId)`, `reports`) para as sub-fases
+  13.4–13.8 usarem sem reinventar o formato cada uma; tipada sobre `MatchFilters` já existente em
+  `MatchFiltersContext.tsx`.
+- `App.tsx` ganhou `<QueryClientProvider client={queryClient}>` envolvendo toda a árvore, por fora
+  de `SafeAreaProvider` e de todos os Contexts mockados (nenhum deles consome React Query ainda —
+  isso é só o terreno pronto, a migração real é 13.4+).
+- Primeiro teste do componente raiz: `__tests__/App.test.tsx` (smoke — renderiza `<App />` sem
+  lançar). Precisou de `jest.mock("../global.css", () => ({}))`, porque o Jest não sabe parsear
+  `@tailwind` do CSS importado por efeito colateral em `App.tsx`.
+- `src/services/__tests__/queryKeys.test.ts` — 4 testes cobrindo as 6 chaves.
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros (auto-fix aplicado só nos arquivos
+tocados, formatação — dívida D4, pré-existente) · `npm run test` 218/218 passando (era 181 no
+início da sessão; +37 testes novos) · `npx expo export --platform web` gerou o bundle sem erros,
+confirmado depois da mudança em `App.tsx` (componente raiz da árvore renderizada no `npm run web`).
+
+### Estado ao final da sessão 21
+
+- Branch `feat/api-contract-types`. 3 commits novos nesta sessão:
+  `feat(api): adiciona cliente HTTP tipado para a API do backend`,
+  `feat(api): adiciona camada de adapters snake_case -> camelCase`,
+  `feat(auth): adiciona storage seguro de token com expo-secure-store`,
+  `feat(api): instala e configura @tanstack/react-query`.
+- Sub-fases 13.2 e 13.3 **inteiramente concluídas** (itens 3–6 da fila). Fase 13 em 6/16.
+- Toda a infraestrutura de integração está pronta e testada: tipos (13.1), cliente HTTP, adapters,
+  storage seguro de token, React Query. Nenhum Context real ainda consome nada disso — a partir
+  daqui a fila entra em território de UI/produto (13.4, auth real).
+- Próxima tarefa: item 7 da fila — adicionar campo de **idade** ao fluxo de cadastro (D15, abre a
+  13.4). Pergunta em aberto ainda sem resposta do usuário: em qual tela o campo entra —
+  `RegisterScreen` (junto de nome/email/senha) ou `ProfileSetupScreen` (junto de esportes/nível/
+  localização)? Decidir isso é o primeiro passo da próxima sessão, antes de tocar em qualquer tela.
+- Nenhum bug pendente — parada é limpa, entre tarefas. Ver "Checkpointer" no fechamento desta
+  sessão (mensagem final) para o ponto exato de retomada.

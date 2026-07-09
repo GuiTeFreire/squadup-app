@@ -10,6 +10,8 @@ Protótipo navegável com dados mockados para apresentação acadêmica.
 - **NativeWind** v4 (Tailwind CSS para React Native)
 - **React Navigation** v6 (Stack + Bottom Tabs)
 - **@expo/vector-icons** — MaterialCommunityIcons para ícones vetoriais
+- **@tanstack/react-query** v5 — estado de servidor (configurado, ainda sem Context consumindo)
+- **expo-secure-store** — storage seguro de token (nativo; fallback `sessionStorage` no web)
 - **Jest** + React Native Testing Library
 - **ESLint** 9 (flat config) + **Prettier**
 
@@ -57,11 +59,17 @@ src/
 ├── mocks/        # Dados mockados (users, matches, messages, ratings, reports)
 ├── navigation/   # Navigators (AuthNavigator, AppNavigator, RootNavigator)
 ├── screens/      # Telas da aplicação
+├── services/     # Infraestrutura de integração com o backend (Fase 13)
+│                 #   api/client.ts — fetch tipado + ApiError + Bearer
+│                 #   adapters/    — conversão snake_case↔camelCase por entidade
+│                 #   storage/     — token seguro (expo-secure-store / sessionStorage no web)
+│                 #   queryClient.ts, queryKeys.ts — React Query
 ├── theme/        # Fonte única de verdade para cores, sombras e metadados de esporte/nível fora do NativeWind
 ├── types/        # Tipos TypeScript globais — alinhados ao contrato do backend (PublicUser/MyProfile,
 │                 #   MatchSummary/MatchDetail, MatchRef), ver .status/backend-contract.md
 └── utils/        # Funções utilitárias (date, reportLabels)
 __mocks__/        # Mocks Jest (expo-vector-icons)
+__tests__/        # Testes do componente raiz (App.tsx)
 ```
 
 ## Fluxo de navegação atual
@@ -125,8 +133,8 @@ O `ReportsContext` guarda as denúncias em memória (seed em `src/mocks/reports.
 | 10 | Denúncia e segurança | ✅ Concluída |
 | 11 | Moderação (opcional) | ✅ Concluída |
 | 12 | Revisão e polimento final | 🟡 **Em andamento** (6/8 — restam apenas testes em Expo Go e build de apresentação) |
-| 13 | Integração com o backend real | 🟡 **Em andamento** (2/16 — tipos alinhados ao contrato real; backend já deployado em `https://squadup-api.up.railway.app`) |
+| 13 | Integração com o backend real | 🟡 **Em andamento** (6/16 — tipos, cliente HTTP, adapters, storage seguro de token e React Query prontos; backend já deployado em `https://squadup-api.up.railway.app`) |
 
-181 testes passando · lint zerado · tsc zerado · 71/86 tarefas concluídas (83%)
+218 testes passando · lint zerado · tsc zerado · 75/86 tarefas concluídas (87%)
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

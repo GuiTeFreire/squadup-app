@@ -22,7 +22,7 @@
 
 **Progresso geral:** 75/86 tarefas concluídas (87%) · 218 testes passando · lint zerado · tsc zerado
 
-Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons)
+Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons) · @tanstack/react-query v5 · expo-secure-store (sessão 21)
 
 ---
 
