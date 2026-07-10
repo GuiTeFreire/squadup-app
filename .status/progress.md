@@ -1034,3 +1034,90 @@ formatação — D4) · `npm run test` 238/238 passando (era 218 no início da s
   grosso da 13.4 e a primeira vez que um Context real vai consumir `client.ts`/`tokenStorage.ts`.
 - Nenhum bug pendente — parada é limpa, entre tarefas. Ver "Checkpointer" no fechamento desta
   sessão (mensagem final) para o ponto exato de retomada.
+
+---
+
+## Sessão 23 — 2026-07-10
+
+### Fase 13.4 — `AuthContext` real (item 8 da fila, conclui a 13.4)
+
+Branch `feat/auth-real`, criada a partir de `dev` (que já tinha o merge de `feat/api-contract-types`
+das sessões 20–22 via PR #3). Objetivo: reescrever `AuthContext` por dentro para consumir a API real
+do backend, mantendo a assinatura pública (`login`, `register`, `completeProfile`, `logout`) para não
+alterar as telas de novo — só ganharam tratamento de loading/erro assíncrono, que antes não existia
+(o mock nunca falhava).
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/services/api/auth.ts` | `registerRequest`, `loginRequest`, `refreshRequest`, `logoutRequest` — wrappers finos sobre `apiClient` para os 4 endpoints de `/auth/*` usados nesta sub-fase |
+| `src/services/api/users.ts` | `fetchMyProfile` (`GET /users/me`), `updateMyProfile` (`PATCH /users/me`) |
+
+### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/services/api/client.ts` | Interceptor de refresh em 401: `setUnauthorizedHandler(fn)` — setter registrado pelo `AuthContext` no boot; um 401 fora de `/auth/{login,register,refresh,logout}` tenta `fn()` e repete a chamada original uma vez se um novo token voltar |
+| `src/contexts/AuthContext.tsx` | Reescrito por dentro — ver decisões abaixo. Novo campo `isBooting` na interface pública |
+| `src/navigation/RootNavigator.tsx` | `BootScreen` (spinner em `bg-secondary-900`) renderizado enquanto `isBooting`, antes de decidir entre `AuthNavigator`/`AppNavigator` |
+| `src/screens/LoginScreen.tsx` | `handleLogin` assíncrono; `ApiError` capturado e exibido no campo de senha |
+| `src/screens/ProfileSetupScreen.tsx` | `submitProfile` assíncrono (usado por "Concluir configuração" e "Pular por agora"); `ApiError`/erro genérico exibido acima do botão; prop `loading` nos dois botões |
+| `src/contexts/__tests__/AuthContext.test.tsx` | Reescrito — 10 testes (era 3), mockando `fetch`/`expo-secure-store` (não os módulos de serviço), mesmo padrão de `client.test.ts`/`tokenStorage.test.ts` |
+
+`src/screens/RegisterScreen.tsx` **não precisou mudar** — já passava `password` como 3º argumento
+para `register()`; só o `AuthContext` por trás passou a de fato guardá-lo.
+
+### Decisões não óbvias
+
+- **Boot usa `GET /users/me`, não `GET /auth/me`** (diverge do texto original do roadmap/
+  `backend-contract.md`): `/auth/me` devolve `UserRead`, que **não tem** `average_rating`/
+  `matches_played` — só `/users/me` devolve o `MyProfileRead` completo, que bate 1:1 com o tipo
+  `MyProfile` do front. Usar `/auth/me` exigiria mascarar esses dois campos com `0` só para o boot
+  fechar o tipo, empurrando um perfil incompleto pro resto do app. `/users/me` já faz a checagem de
+  token via `get_current_user` internamente, então cobre o mesmo caso de uso de "boot check" com um
+  dado melhor — mesma decisão de fundo que já gerou a D20 na sessão 21 (não mascarar dado real com
+  placeholder quando dá para evitar).
+- **`POST /auth/register` só é disparado dentro de `completeProfile`, não em `register()`** — o
+  backend exige `location` no payload (`RegisterRequest.location`, `min_length=1`), e `location` só
+  é coletado na tela seguinte (`ProfileSetupScreen`). `register()` continua 100% síncrono e local
+  (guarda nome/e-mail/senha/idade como pending, como já fazia); a sequência real de rede —
+  `POST /auth/register` → `POST /auth/login` → `PATCH /users/me` — só acontece dentro de
+  `completeProfile`, quando todos os campos obrigatórios finalmente existem juntos.
+- **`level` não existe no `RegisterRequest` do backend** (`app/schemas/auth.py` — só
+  `name/email/password/age/location/bio/favorite_sports`; o model `User` sempre nasce com
+  `level: BEGINNER` por default). `completeProfile` faz um `PATCH /users/me` logo após o login para
+  gravar o nível escolhido em `ProfileSetupScreen` — e a resposta desse PATCH já é o `MyProfileRead`
+  completo, evitando um `GET /users/me` extra só para essa autenticação.
+- **Interceptor de refresh sem import circular:** `client.ts` não importa `tokenStorage.ts` (que por
+  sua vez importa `setAuthToken` de `client.ts`). Em vez disso, `client.ts` expõe
+  `setUnauthorizedHandler(fn)`, e é o `AuthContext` (que já conhece os dois módulos) quem registra a
+  função de refresh no boot — o cliente HTTP só delega a decisão de "tentar renovar", nunca conhece
+  storage de token diretamente.
+- **Bug encontrado e corrigido na própria sessão:** `/auth/logout` não estava na lista de paths sem
+  retry (`AUTH_PATHS_WITHOUT_RETRY`). Um 401 em `POST /auth/logout` — cenário plausível, já que
+  logout manda o refresh token e ele pode já estar expirado/revogado — disparava uma tentativa extra
+  e inútil de `POST /auth/refresh` com esse mesmo refresh token inválido antes de desistir. Corrigido
+  adicionando `/auth/logout` ao set. Confirmado com teste dedicado (`toHaveBeenCalledTimes(1)`) que
+  falha sem a correção (2 chamadas) e passa com ela.
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros (auto-fix nos arquivos tocados,
+formatação CRLF→LF — dívida D4, pré-existente) · `npm run test` 245/245 passando (era 238 no início
+da sessão; +7 testes líquidos: 10 novos em `AuthContext.test.tsx` substituindo os 3 antigos).
+
+### Estado ao final da sessão 23
+
+- Branch `feat/auth-real`, criada a partir de `dev`. Commit pendente (ver seção de commit desta
+  mesma sessão de fechamento).
+- Item 8 da fila concluído — **Fase 13.4 (Auth real) inteiramente concluída** (itens 7 e 8). Fase 13
+  em 8/16.
+- Próxima tarefa: item 9 da fila — `MatchesContext`/`MatchFiltersContext` → React Query contra
+  `GET /matches`; adicionar filtros de **data** e **localização** (D18). Atenção: a listagem hoje é
+  tipada como `MatchDetail` (decisão D19, sessão 20) mas `GET /matches` real devolve `MatchSummary`
+  (sem `organizer`/`participants` expandidos) — a busca por nome do organizador em
+  `HomeScreen`/`useMatchFilters.applyFilters` vai quebrar em runtime se não for resolvida primeiro
+  (remover a busca por organizador da lista, ou pedir ao backend um campo `organizer_name` leve).
+- Nenhum bug pendente — parada é limpa, entre tarefas. Ver "Checkpointer" no fechamento desta sessão
+  (mensagem final) para o ponto exato de retomada.

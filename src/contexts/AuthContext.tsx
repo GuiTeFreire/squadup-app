@@ -1,6 +1,15 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
-import { CURRENT_USER } from "../mocks/users";
+import { toMyProfile } from "../services/adapters/user";
+import { loginRequest, logoutRequest, refreshRequest, registerRequest } from "../services/api/auth";
+import { setUnauthorizedHandler } from "../services/api/client";
+import { fetchMyProfile, updateMyProfile } from "../services/api/users";
+import {
+  clearTokens,
+  getRefreshToken,
+  restoreAuthToken,
+  saveTokens,
+} from "../services/storage/tokenStorage";
 import type { ExperienceLevel, MyProfile, Sport } from "../types";
 
 interface ProfileData {
@@ -13,11 +22,12 @@ interface ProfileData {
 interface AuthContextValue {
   user: MyProfile | null;
   isAuthenticated: boolean;
+  isBooting: boolean;
   pendingName: string;
-  login: (email: string, password: string) => void;
+  login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, age: number) => void;
-  completeProfile: (data: ProfileData) => void;
-  logout: () => void;
+  completeProfile: (data: ProfileData) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -25,54 +35,120 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<MyProfile | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isBooting, setIsBooting] = useState(true);
   const [pendingName, setPendingName] = useState("");
   const [pendingEmail, setPendingEmail] = useState("");
+  const [pendingPassword, setPendingPassword] = useState("");
   const [pendingAge, setPendingAge] = useState(0);
 
-  const login = (_email: string, _password: string) => {
-    setUser(CURRENT_USER);
+  const clearPendingState = () => {
+    setPendingName("");
+    setPendingEmail("");
+    setPendingPassword("");
+    setPendingAge(0);
+  };
+
+  useEffect(() => {
+    setUnauthorizedHandler(async () => {
+      const refreshToken = await getRefreshToken();
+      if (!refreshToken) return null;
+
+      try {
+        const tokens = await refreshRequest(refreshToken);
+        await saveTokens(tokens);
+        return tokens.accessToken;
+      } catch {
+        await clearTokens();
+        setUser(null);
+        setIsAuthenticated(false);
+        return null;
+      }
+    });
+
+    (async () => {
+      const token = await restoreAuthToken();
+      if (!token) {
+        setIsBooting(false);
+        return;
+      }
+
+      try {
+        const profile = await fetchMyProfile();
+        setUser(toMyProfile(profile));
+        setIsAuthenticated(true);
+      } catch {
+        await clearTokens();
+      } finally {
+        setIsBooting(false);
+      }
+    })();
+
+    return () => setUnauthorizedHandler(null);
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    const tokens = await loginRequest(email, password);
+    await saveTokens(tokens);
+    const profile = await fetchMyProfile();
+    setUser(toMyProfile(profile));
     setIsAuthenticated(true);
   };
 
-  const register = (name: string, email: string, _password: string, age: number) => {
+  const register = (name: string, email: string, password: string, age: number) => {
     setPendingName(name);
     setPendingEmail(email);
+    setPendingPassword(password);
     setPendingAge(age);
   };
 
-  const completeProfile = (data: ProfileData) => {
-    const newUser: MyProfile = {
-      id: `user-${Date.now()}`,
+  const completeProfile = async (data: ProfileData) => {
+    await registerRequest({
       name: pendingName,
       email: pendingEmail,
-      role: "user",
+      password: pendingPassword,
       age: pendingAge,
       location: data.location,
-      favoriteSports: data.favoriteSports,
-      level: data.level,
-      photoUrl: data.photoUrl,
-      averageRating: 0,
-      matchesPlayed: 0,
-      isVerified: false,
-    };
-    setUser(newUser);
-    setPendingName("");
-    setPendingEmail("");
-    setPendingAge(0);
+      favorite_sports: data.favoriteSports,
+    });
+
+    const tokens = await loginRequest(pendingEmail, pendingPassword);
+    await saveTokens(tokens);
+
+    // RegisterRequest não aceita `level` (backend sempre cria com o default BEGINNER) — o
+    // PATCH seguinte grava o nível escolhido e já devolve o MyProfileRead completo.
+    const profile = await updateMyProfile({ level: data.level, photo_url: data.photoUrl });
+    setUser(toMyProfile(profile));
+    clearPendingState();
     setIsAuthenticated(true);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const refreshToken = await getRefreshToken();
+    if (refreshToken) {
+      try {
+        await logoutRequest(refreshToken);
+      } catch {
+        // Refresh token já pode estar expirado/revogado — segue com o logout local mesmo assim.
+      }
+    }
+    await clearTokens();
     setUser(null);
-    setPendingName("");
-    setPendingEmail("");
-    setPendingAge(0);
+    clearPendingState();
     setIsAuthenticated(false);
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated, pendingName, login, register, completeProfile, logout }}
+      value={{
+        user,
+        isAuthenticated,
+        isBooting,
+        pendingName,
+        login,
+        register,
+        completeProfile,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>
