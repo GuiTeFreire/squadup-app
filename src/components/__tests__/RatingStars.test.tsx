@@ -35,4 +35,14 @@ describe("RatingStars", () => {
     render(<RatingStars rating={3.5} />);
     expect(screen.getByText("3.5")).toBeTruthy();
   });
+
+  it("shows 'Sem avaliações' instead of a numeric value when rating is null", () => {
+    render(<RatingStars rating={null} />);
+    expect(screen.getByText("Sem avaliações")).toBeTruthy();
+  });
+
+  it("hides the 'Sem avaliações' label when showValue is false and rating is null", () => {
+    render(<RatingStars rating={null} showValue={false} />);
+    expect(screen.queryByText("Sem avaliações")).toBeNull();
+  });
 });

@@ -13,8 +13,8 @@ import Input from "../components/Input";
 import RatingStars from "../components/RatingStars";
 import SectionCard from "../components/SectionCard";
 import StarRatingInput from "../components/StarRatingInput";
-import { useRatingsContext } from "../contexts/RatingsContext";
 import { useMatchDetail } from "../hooks/useMatchDetail";
+import { useSubmitRating } from "../hooks/useRatings";
 import type { AppRootStackParamList } from "../navigation/types";
 import { colors, LEVEL_META, shadows } from "../theme";
 import type { RatingCriteria } from "../types";
@@ -44,7 +44,7 @@ export default function RateUserScreen() {
   const insets = useSafeAreaInsets();
   const { matchId, userId } = route.params;
   const { match } = useMatchDetail(matchId);
-  const { submitRating } = useRatingsContext();
+  const { submitRating, isSubmitting } = useSubmitRating();
 
   const [criteria, setCriteria] = useState<RatingCriteria>(EMPTY_CRITERIA);
   const [comment, setComment] = useState("");
@@ -72,12 +72,16 @@ export default function RateUserScreen() {
       setError("Avalie todos os critérios antes de enviar.");
       return;
     }
-    submitRating(matchId, userId, criteria, comment.trim() || undefined);
-    Alert.alert(
-      "Avaliação enviada!",
-      `Sua avaliação de ${user.name} foi registrada com sucesso. Obrigado pelo feedback!`,
-      [{ text: "OK", onPress: () => navigation.goBack() }]
-    );
+    submitRating(matchId, userId, criteria, comment.trim() || undefined, {
+      onSuccess: () => {
+        Alert.alert(
+          "Avaliação enviada!",
+          `Sua avaliação de ${user.name} foi registrada com sucesso. Obrigado pelo feedback!`,
+          [{ text: "OK", onPress: () => navigation.goBack() }]
+        );
+      },
+      onError: () => setError("Não foi possível enviar a avaliação. Tente novamente."),
+    });
   }
 
   return (
@@ -164,7 +168,14 @@ export default function RateUserScreen() {
         className="absolute bottom-0 left-0 right-0 bg-white px-5 pt-4"
         style={[shadows.floating, { paddingBottom: Math.max(insets.bottom, 16) }]}
       >
-        <Button label="Enviar avaliação" icon="send" onPress={handleSubmit} size="lg" fullWidth />
+        <Button
+          label="Enviar avaliação"
+          icon="send"
+          onPress={handleSubmit}
+          size="lg"
+          fullWidth
+          loading={isSubmitting}
+        />
       </View>
     </View>
   );

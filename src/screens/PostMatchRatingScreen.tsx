@@ -9,9 +9,9 @@ import Avatar from "../components/Avatar";
 import EmptyState from "../components/EmptyState";
 import Header from "../components/Header";
 import RatingStars from "../components/RatingStars";
-import { useRatingsContext } from "../contexts/RatingsContext";
+import { useAuth } from "../contexts/AuthContext";
 import { useMatchDetail } from "../hooks/useMatchDetail";
-import { CURRENT_USER } from "../mocks/users";
+import { useHasRatedMap } from "../hooks/useRatings";
 import type { AppRootStackParamList } from "../navigation/types";
 import { colors, LEVEL_META, shadows } from "../theme";
 import type { Participant } from "../types";
@@ -72,20 +72,23 @@ export default function PostMatchRatingScreen() {
   const route = useRoute<Route>();
   const { matchId } = route.params;
   const { match } = useMatchDetail(matchId);
-  const { hasRated } = useRatingsContext();
+  const { user: currentUser } = useAuth();
 
   const otherParticipants = useMemo(
     () =>
       match
         ? match.participants.filter(
-            (p) => p.status === "confirmed" && p.user.id !== CURRENT_USER.id
+            (p) => p.status === "confirmed" && p.user.id !== currentUser?.id
           )
         : [],
-    [match]
+    [match, currentUser?.id]
   );
 
+  const ratedUserIds = useMemo(() => otherParticipants.map((p) => p.user.id), [otherParticipants]);
+  const hasRatedMap = useHasRatedMap(matchId, ratedUserIds);
+
   const allRated =
-    otherParticipants.length > 0 && otherParticipants.every((p) => hasRated(matchId, p.user.id));
+    otherParticipants.length > 0 && otherParticipants.every((p) => hasRatedMap[p.user.id]);
 
   if (!match) {
     return (
@@ -125,7 +128,7 @@ export default function PostMatchRatingScreen() {
             renderItem={({ item }) => (
               <ParticipantRow
                 participant={item}
-                alreadyRated={hasRated(matchId, item.user.id)}
+                alreadyRated={Boolean(hasRatedMap[item.user.id])}
                 onRate={() => navigation.navigate("RateUser", { matchId, userId: item.user.id })}
               />
             )}

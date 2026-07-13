@@ -5,7 +5,7 @@ import { Text, View } from "react-native";
 interface TrustBadgesProps {
   isVerified: boolean;
   matchesPlayed: number;
-  averageRating: number;
+  averageRating: number | null;
 }
 
 function TrustBadges({ isVerified, matchesPlayed, averageRating }: TrustBadgesProps) {
@@ -23,10 +23,12 @@ function TrustBadges({ isVerified, matchesPlayed, averageRating }: TrustBadgesPr
           {matchesPlayed} {matchesPlayed === 1 ? "partida" : "partidas"}
         </Text>
       </View>
-      <View className="flex-row items-center gap-1 bg-warning/10 rounded-full px-3 py-1.5">
-        <MaterialCommunityIcons name="star" size={14} color="#F59E0B" />
-        <Text className="text-xs font-semibold text-warning">{averageRating.toFixed(1)}</Text>
-      </View>
+      {averageRating !== null && (
+        <View className="flex-row items-center gap-1 bg-warning/10 rounded-full px-3 py-1.5">
+          <MaterialCommunityIcons name="star" size={14} color="#F59E0B" />
+          <Text className="text-xs font-semibold text-warning">{averageRating.toFixed(1)}</Text>
+        </View>
+      )}
     </View>
   );
 }

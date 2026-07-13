@@ -29,7 +29,7 @@ export interface PublicUser {
   bio?: string;
   favoriteSports: Sport[];
   level: ExperienceLevel;
-  averageRating: number;
+  averageRating: number | null;
   matchesPlayed: number;
   isVerified: boolean;
 }

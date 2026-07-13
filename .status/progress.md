@@ -1295,3 +1295,87 @@ seção de build desta sessão de fechamento).
   `POST /matches/{id}/ratings/{userId}` e `GET /users/{id}/ratings` (Fase 13.7), com adapter de
   achatamento de `RatingCriteria` e tratamento de `averageRating` nulo (D20).
 - Nenhum bug pendente — parada é limpa, entre tarefas.
+
+---
+
+## Sessão 26 — 2026-07-13
+
+### Fase 13.7 — Avaliações reais (item 14 da fila, conclui a 13.7)
+
+Branch `feat/ratings-real`, criada a partir de `dev`. O adapter `toRating`/`toRatingPayload`
+(`src/services/adapters/rating.ts`) já vinha achatando `RatingCriteria` corretamente desde uma
+sessão anterior — não precisou de mudança nesta sessão, só ganhou o service/hook que faltava para
+ser de fato usado contra a API real.
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/services/api/ratings.ts` | `fetchUserRatings(userId)` (`GET /users/{id}/ratings`), `postRating(matchId, ratedUserId, payload)` (`POST /matches/{id}/ratings/{userId}`) |
+| `src/hooks/useRatings.ts` | `useUserRatings(userId)` — query + `hasRated(matchId, ratedUserId)` derivado das ratings já buscadas; `useSubmitRating()` — mutation com callbacks `onSuccess`/`onError` por chamada, invalida `queryKeys.userRatings` no sucesso; `useHasRatedMap(matchId, userIds[])` — usa `useQueries` para checar "já avaliado" de vários participantes de uma vez sem violar as regras de hooks (substitui o padrão anterior de "um hook por linha de lista") |
+| `src/hooks/__tests__/useRatings.test.tsx` | Cobre leitura, `hasRated`, envio com sucesso/erro e o mapa de `useHasRatedMap`. Mock de `fetch` por rota (não por ordem de chamada) — necessário porque o boot do `AuthProvider` (`GET /users/me`) dispara concorrentemente com as queries do hook sob teste, e não há garantia de qual delas chega primeiro no mock global |
+
+### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/types/index.ts` | `PublicUser.averageRating` passa de `number` para `number \| null` — resolve **D20** |
+| `src/services/adapters/user.ts` | `toPublicUser` para de mascarar `average_rating: null` como `0`; propaga o `null` real |
+| `src/components/RatingStars.tsx` | Aceita `rating: number \| null`; quando `null`, mostra todas as estrelas vazias e o texto "Sem avaliações" (em vez do valor numérico) |
+| `src/components/TrustBadges.tsx` | `averageRating: number \| null`; o badge de nota some quando `null` em vez de mostrar "0.0" |
+| `src/screens/MyProfileScreen.tsx`, `src/screens/PublicProfileScreen.tsx` | `user.averageRating.toFixed(1)` → `user.averageRating?.toFixed(1) ?? "—"` no `StatsRow` |
+| `src/screens/RateUserScreen.tsx` | Troca `useRatingsContext().submitRating` por `useSubmitRating()`; `handleSubmit` passa callbacks `onSuccess` (mostra o `Alert` de sucesso) / `onError` (mostra erro inline); botão de envio usa `loading={isSubmitting}` |
+| `src/screens/PostMatchRatingScreen.tsx` | Troca `useRatingsContext().hasRated`/`CURRENT_USER` por `useAuth().user` + `useHasRatedMap(matchId, ratedUserIds)`; o "já avaliado" por participante e o banner "todos avaliados" agora vêm do mapa único, sem um hook por linha da `FlatList` |
+| `App.tsx` | `RatingsProvider` removido da árvore de providers |
+| `src/services/adapters/__tests__/user.test.ts`, `src/components/__tests__/RatingStars.test.tsx` | Novos casos cobrindo `average_rating: null` → `averageRating: null` (adapter) e a renderização "Sem avaliações" (componente) |
+
+### Arquivos removidos
+
+- `src/contexts/RatingsContext.tsx` — funcionalidade migrada integralmente para `useRatings.ts`.
+  `src/mocks/ratings.ts` **mantido** (usado por `MyProfileScreen`/`PublicProfileScreen`, que ainda
+  exibem `MOCK_RATINGS`/`MOCK_USERS` — essas duas telas não fazem parte do escopo da Fase 13.7,
+  que troca só o fluxo de **enviar/checar** avaliação, não a listagem de perfil; migrar essas
+  telas para dados reais de usuário fica para quando `MatchesContext`/`AuthContext` também
+  expuserem perfis públicos via React Query de forma mais ampla — não há tarefa na fila para
+  isso ainda, vale registrar como possível gap se a Fase 12 revisitar essas telas).
+
+### Decisões não óbvias
+
+- **`useHasRatedMap` via `useQueries`, não um `useUserRatings` por linha de `FlatList`** — a
+  implementação original migrada ingenuamente chamava o hook de leitura dentro do componente de
+  cada participante, o que teria funcionado na prática (cada linha é seu próprio componente,
+  então não viola regras de hooks), mas exigiria um `useEffect` extra por linha só para levantar
+  o resultado até o pai (para o banner "todos avaliados"). `useQueries` resolve isso num único
+  lugar, sem gambiarra de callback.
+- **Callbacks passados por chamada de `submitRating`, não fixos no hook** — diferente de
+  `useMessages` (fire-and-forget puro), `RateUserScreen` precisa mostrar um `Alert` de sucesso e
+  reagir a erro. Em vez de mudar a assinatura pública do hook para sempre exigir isso, os
+  callbacks são opcionais e passados por chamada — mantém `useSubmitRating()` simples de usar
+  onde erro não importa (não houve caso assim aqui, mas é o padrão mais flexível).
+- **Escopo da 13.7 não inclui `MyProfileScreen`/`PublicProfileScreen`** — essas telas continuam
+  lendo `MOCK_RATINGS`/`MOCK_USERS` porque exibir a lista de avaliações **recebidas** no perfil é
+  uma funcionalidade diferente de **enviar**/verificar uma avaliação específica numa partida (o
+  escopo real de `RatingsContext`). Migrar essas telas exigiria decidir de onde vem `PublicUser`
+  real fora do fluxo de partida — fora do que a fila (`.status/queue.md`, item 14) pedia.
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros (após `lint:fix` para CRLF→LF, D4
+pré-existente) · `npm run test` 252/252 passando (245 pré-existentes + 7 novos: 5 em
+`useRatings.test.tsx`, 2 em `RatingStars.test.tsx`) · `npx expo export` (ver seção de build desta
+sessão de fechamento).
+
+### Estado ao final da sessão 26
+
+- Branch `feat/ratings-real`, criada a partir de `dev`. Commit feito nesta sessão de fechamento
+  (ver histórico do git para o hash exato).
+- Item 14 da fila concluído — **Fase 13.7 (Avaliações reais) inteiramente concluída**. Fase 13 em
+  14/16.
+- Dívida D20 resolvida. Nenhuma dívida nova identificada nesta sessão (o gap de
+  `MyProfileScreen`/`PublicProfileScreen` ainda usarem mocks foi registrado acima como observação,
+  não como dívida numerada, porque nunca esteve no escopo da Fase 13 para essas duas telas
+  especificamente).
+- Próxima tarefa: item 15 da fila — `ReportsContext.updateReportStatus` migrado de status-alvo
+  para ação (`archive`/`warn`/`ban`), alinhado a `PATCH /reports/{id}` (Fase 13.8, resolve D14 —
+  único contrato genuinamente quebrado identificado na comparação com o backend).
+- Nenhum bug pendente — parada é limpa, entre tarefas.
