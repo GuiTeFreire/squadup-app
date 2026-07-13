@@ -5,7 +5,7 @@ import { Text, View } from "react-native";
 import { colors } from "../theme";
 
 interface RatingStarsProps {
-  rating: number;
+  rating: number | null;
   max?: number;
   showValue?: boolean;
   size?: "sm" | "md" | "lg";
@@ -29,11 +29,32 @@ function RatingStars({
   showValue = true,
   size = "md",
 }: Readonly<RatingStarsProps>) {
+  const px = starSize[size];
+
+  if (rating === null) {
+    return (
+      <View className="flex-row items-center gap-0.5">
+        {Array.from({ length: max }).map((_, i) => (
+          <MaterialCommunityIcons
+            key={`empty-${i}`}
+            name="star-outline"
+            size={px}
+            color={colors.neutral[300]}
+          />
+        ))}
+        {showValue ? (
+          <Text className={`ml-1 ${labelSize[size]} font-medium text-neutral-500`}>
+            Sem avaliações
+          </Text>
+        ) : null}
+      </View>
+    );
+  }
+
   const clamped = Math.min(Math.max(rating, 0), max);
   const fullStars = Math.floor(clamped);
   const hasHalf = clamped - fullStars >= 0.5;
   const emptyStars = max - fullStars - (hasHalf ? 1 : 0);
-  const px = starSize[size];
 
   return (
     <View className="flex-row items-center gap-0.5">

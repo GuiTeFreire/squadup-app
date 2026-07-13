@@ -10,7 +10,7 @@ Protótipo navegável com dados mockados para apresentação acadêmica.
 - **NativeWind** v4 (Tailwind CSS para React Native)
 - **React Navigation** v6 (Stack + Bottom Tabs)
 - **@expo/vector-icons** — MaterialCommunityIcons para ícones vetoriais
-- **@tanstack/react-query** v5 — estado de servidor (`AuthContext`, `MatchesContext`/detalhe de partida e o chat da partida já consomem; `RatingsContext`/`ReportsContext` ainda mockados)
+- **@tanstack/react-query** v5 — estado de servidor (`AuthContext`, `MatchesContext`/detalhe de partida, chat da partida e avaliações já consomem; só `ReportsContext` ainda mockado)
 - **expo-secure-store** — storage seguro de token (nativo; fallback `sessionStorage` no web)
 - **Jest** + React Native Testing Library
 - **ESLint** 9 (flat config) + **Prettier**
@@ -54,15 +54,16 @@ npm install
 src/
 ├── components/   # Componentes reutilizáveis (Button, Input, Card, Avatar, MatchCard, ParticipantList,
 │                 #   MessageBubble, StarRatingInput, SectionCard, Chip, SportTile, StatsRow, Skeleton…)
-├── contexts/     # Context API (AuthContext, MatchesContext, MatchFiltersContext, RatingsContext, ReportsContext)
-├── hooks/        # Hooks customizados (useMatchFilters, useMatchDetail, useMatchParticipation, useMessages)
+├── contexts/     # Context API (AuthContext, MatchesContext, MatchFiltersContext, ReportsContext)
+├── hooks/        # Hooks customizados (useMatchFilters, useMatchDetail, useMatchParticipation, useMessages, useRatings)
 ├── mocks/        # Dados mockados (users, matches, messages, ratings, reports)
 ├── navigation/   # Navigators (AuthNavigator, AppNavigator, RootNavigator)
 ├── screens/      # Telas da aplicação
 ├── services/     # Infraestrutura de integração com o backend (Fase 13)
 │                 #   api/client.ts — fetch tipado + ApiError + Bearer + interceptor de refresh em 401
-│                 #   api/auth.ts, api/users.ts, api/matches.ts, api/messages.ts — chamadas reais de
-│                 #   /auth/*, /users/*, /matches/* e /matches/{id}/messages
+│                 #   api/auth.ts, api/users.ts, api/matches.ts, api/messages.ts, api/ratings.ts —
+│                 #   chamadas reais de /auth/*, /users/*, /matches/*, /matches/{id}/messages e
+│                 #   /matches/{id}/ratings/{userId} · /users/{id}/ratings
 │                 #   adapters/    — conversão snake_case↔camelCase por entidade
 │                 #   storage/     — token seguro (expo-secure-store / sessionStorage no web)
 │                 #   queryClient.ts, queryKeys.ts — React Query
@@ -132,6 +133,15 @@ partida e aprovar participante pendente — chamam os endpoints reais correspond
 paginar por `skip` decrescente); enviar mensagem não gera timestamp no cliente, usa o
 `created_at` devolvido pelo backend no próximo fetch.
 
+## Avaliações pós-partida (reais desde a Fase 13.7)
+
+O hook `useRatings` (`useUserRatings`, `useSubmitRating`, `useHasRatedMap`) substitui o antigo
+`RatingsContext` contra `GET /users/{id}/ratings` e `POST /matches/{id}/ratings/{userId}`.
+`PostMatchRatingScreen` usa `useHasRatedMap` para checar, de uma vez, quais participantes o
+usuário logado já avaliou naquela partida; `RateUserScreen` envia a avaliação e invalida o cache
+da avaliação recebida pelo usuário-alvo. Usuários sem avaliações ainda mostram "Sem avaliações"
+em vez de "0.0" (`averageRating: number | null`, `RatingStars`/`TrustBadges` tratam o caso nulo).
+
 ## Cabeçalho das telas
 
 Todas as telas internas usam o componente compartilhado `src/components/Header.tsx`, que padroniza o cabeçalho escuro (`secondary-900`), o botão de voltar, o respiro de safe-area (`useSafeAreaInsets`) e variantes `compact`/`large` (a segunda usada pelas abas Home/Busca/Criar, que têm título grande e podem receber conteúdo extra como a barra de busca).
@@ -157,8 +167,8 @@ O `ReportsContext` guarda as denúncias em memória (seed em `src/mocks/reports.
 | 10 | Denúncia e segurança | ✅ Concluída |
 | 11 | Moderação (opcional) | ✅ Concluída |
 | 12 | Revisão e polimento final | 🟡 **Em andamento** (6/8 — restam apenas testes em Expo Go e build de apresentação) |
-| 13 | Integração com o backend real | 🟡 **Em andamento** (13/16 — fundação, Auth real (13.4), Matches reais (13.5) e Mensagens reais (13.6) concluídas; backend já deployado em `https://squadup-api.up.railway.app`) |
+| 13 | Integração com o backend real | 🟡 **Em andamento** (14/16 — fundação, Auth real (13.4), Matches reais (13.5), Mensagens reais (13.6) e Avaliações reais (13.7) concluídas; backend já deployado em `https://squadup-api.up.railway.app`) |
 
-245 testes passando · lint zerado · tsc zerado · 82/86 tarefas concluídas (95%)
+252 testes passando · lint zerado · tsc zerado · 83/86 tarefas concluídas (97%)
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

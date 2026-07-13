@@ -11,8 +11,7 @@ export function toPublicUser(api: ApiPublicUser): PublicUser {
     bio: api.bio ?? undefined,
     favoriteSports: api.favorite_sports,
     level: api.level,
-    // average_rating é null sem avaliações; UI trata averageRating nulo só na Fase 13.7 (D-B).
-    averageRating: api.average_rating ?? 0,
+    averageRating: api.average_rating,
     matchesPlayed: api.matches_played,
     isVerified: api.is_verified,
   };

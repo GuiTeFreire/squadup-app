@@ -95,7 +95,7 @@ export default function PublicProfileScreen() {
           <StatsRow
             stats={[
               { value: user.matchesPlayed, label: "Partidas" },
-              { value: user.averageRating.toFixed(1), label: "Avaliação" },
+              { value: user.averageRating?.toFixed(1) ?? "—", label: "Avaliação" },
               { value: userReviews.length, label: "Avaliações" },
             ]}
           />

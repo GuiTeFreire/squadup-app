@@ -39,10 +39,10 @@ describe("toPublicUser", () => {
     expect(result.bio).toBeUndefined();
   });
 
-  it("converte average_rating nulo (usuário sem avaliações) em 0", () => {
+  it("preserva average_rating nulo (usuário sem avaliações)", () => {
     const result = toPublicUser({ ...API_PUBLIC_USER, average_rating: null });
 
-    expect(result.averageRating).toBe(0);
+    expect(result.averageRating).toBeNull();
   });
 });
 

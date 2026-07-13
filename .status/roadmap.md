@@ -1,6 +1,6 @@
 # SquadUp — Roadmap Inicial do Front-end
 
-## Status de execução (atualizado em 2026-07-13, sessão 25)
+## Status de execução (atualizado em 2026-07-13, sessão 26)
 
 | Fase | Descrição | Status |
 |------|-----------|--------|
@@ -18,9 +18,9 @@
 | Fase 11 | Moderação (opcional) | 🟢 Concluída (3/3 tarefas — sessão 13) |
 | — | Redesign visual premium (theme module, elevação, cor por esporte) | 🟢 Concluído (transversal — sessão 16) |
 | Fase 12 | Revisão e polimento final | 🟡 Em andamento (6/8 — 12.1, 12.2, 12.4–12.7 concluídas, sessão 17) |
-| Fase 13 | Integração com o backend real | 🟡 Em andamento (13/16 — 13.1 sessão 20; 13.2/13.3 completas sessão 21; 13.4 concluída sessões 22–23; 13.5 concluída sessão 24; 13.6 concluída sessão 25) |
+| Fase 13 | Integração com o backend real | 🟡 Em andamento (14/16 — 13.1 sessão 20; 13.2/13.3 completas sessão 21; 13.4 concluída sessões 22–23; 13.5 concluída sessão 24; 13.6 concluída sessão 25; 13.7 concluída sessão 26) |
 
-**Progresso geral:** 82/86 tarefas concluídas (95%) · 245 testes passando · lint zerado · tsc zerado
+**Progresso geral:** 83/86 tarefas concluídas (97%) · 252 testes passando · lint zerado · tsc zerado
 
 Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons) · @tanstack/react-query v5 · expo-secure-store (sessão 21)
 
@@ -557,13 +557,17 @@ telas.
   exibe o que a API devolve, sem gerar nada;
 - ✅ D21 resolvida para `Message` no mesmo passe (`formatMessageTime`, `src/utils/date.ts`).
 
-### 13.7 — Avaliações reais
+### 13.7 — Avaliações reais — ✅ concluída (sessão 26)
 
-- `RatingsContext` → React Query contra `POST /matches/{id}/ratings/{userId}` e `GET /users/{id}/ratings`;
-- Adapter achata `RatingCriteria` em campos soltos ao enviar, e (se D-B for aplicado no backend)
-  reagrupa ao ler;
-- `RatingStars`/telas de perfil tratam `averageRating` nulo (usuário sem avaliações) em vez de
-  assumir sempre um número.
+- ✅ `RatingsContext` → novo `src/hooks/useRatings.ts` (`useUserRatings`, `useSubmitRating`,
+  `useHasRatedMap`) contra `POST /matches/{id}/ratings/{userId}` e `GET /users/{id}/ratings` —
+  Context removido, hook substitui integralmente (`RateUserScreen`, `PostMatchRatingScreen`);
+- ✅ Adapter (`src/services/adapters/rating.ts`) já achatava `RatingCriteria` em campos soltos ao
+  enviar e reagrupava ao ler — não precisou de mudança nesta sessão (D-B já estava aplicada);
+- ✅ `RatingStars`/`TrustBadges`/`MyProfileScreen`/`PublicProfileScreen` tratam `averageRating`
+  nulo (usuário sem avaliações) — resolve **D20**: o adapter (`toPublicUser`) não mascara mais
+  `average_rating: null` como `0`, o tipo `PublicUser.averageRating` virou `number | null`, e
+  `RatingStars` mostra "Sem avaliações" nesse caso em vez de "0.0".
 
 ### 13.8 — Denúncias reais
 
