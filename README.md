@@ -10,7 +10,7 @@ Protótipo navegável com dados mockados para apresentação acadêmica.
 - **NativeWind** v4 (Tailwind CSS para React Native)
 - **React Navigation** v6 (Stack + Bottom Tabs)
 - **@expo/vector-icons** — MaterialCommunityIcons para ícones vetoriais
-- **@tanstack/react-query** v5 — estado de servidor (configurado, ainda sem Context consumindo)
+- **@tanstack/react-query** v5 — estado de servidor (`AuthContext` e `MatchesContext`/detalhe de partida já consomem; `MessagesContext`/`RatingsContext`/`ReportsContext` ainda mockados)
 - **expo-secure-store** — storage seguro de token (nativo; fallback `sessionStorage` no web)
 - **Jest** + React Native Testing Library
 - **ESLint** 9 (flat config) + **Prettier**
@@ -55,16 +55,17 @@ src/
 ├── components/   # Componentes reutilizáveis (Button, Input, Card, Avatar, MatchCard, ParticipantList,
 │                 #   MessageBubble, StarRatingInput, SectionCard, Chip, SportTile, StatsRow, Skeleton…)
 ├── contexts/     # Context API (AuthContext, MatchesContext, MatchFiltersContext, MessagesContext, RatingsContext, ReportsContext)
-├── hooks/        # Hooks customizados (useMatchFilters, useMatchParticipation)
+├── hooks/        # Hooks customizados (useMatchFilters, useMatchDetail, useMatchParticipation)
 ├── mocks/        # Dados mockados (users, matches, messages, ratings, reports)
 ├── navigation/   # Navigators (AuthNavigator, AppNavigator, RootNavigator)
 ├── screens/      # Telas da aplicação
 ├── services/     # Infraestrutura de integração com o backend (Fase 13)
 │                 #   api/client.ts — fetch tipado + ApiError + Bearer + interceptor de refresh em 401
-│                 #   api/auth.ts, api/users.ts — chamadas reais de /auth/* e /users/* (AuthContext)
+│                 #   api/auth.ts, api/users.ts, api/matches.ts — chamadas reais de /auth/*, /users/* e /matches/*
 │                 #   adapters/    — conversão snake_case↔camelCase por entidade
 │                 #   storage/     — token seguro (expo-secure-store / sessionStorage no web)
 │                 #   queryClient.ts, queryKeys.ts — React Query
+├── test-utils/   # Helpers de teste (queryClientWrapper — QueryClientProvider de teste para hooks/telas com React Query)
 ├── theme/        # Fonte única de verdade para cores, sombras e metadados de esporte/nível fora do NativeWind
 ├── types/        # Tipos TypeScript globais — alinhados ao contrato do backend (PublicUser/MyProfile,
 │                 #   MatchSummary/MatchDetail, MatchRef), ver .status/backend-contract.md
@@ -112,6 +113,16 @@ O `AuthContext` consome a API real do backend (`../back`, FastAPI + JWT):
 - **Refresh automático** — um 401 em qualquer chamada autenticada tenta `POST /auth/refresh` e repete a chamada original uma vez
 - **Logout** — disponível na `HomeScreen`; chama `POST /auth/logout` com o refresh token antes de limpar o estado local
 
+## Partidas (reais desde a Fase 13.5)
+
+`MatchesContext`/`MatchFiltersContext` consomem `GET /matches` via React Query, com filtros de
+esporte, nível, data, localização e "só com vagas" (todos como query params reais do backend).
+A listagem devolve `MatchSummary` (sem organizador/participantes expandidos); `MatchDetailScreen`
+busca o `MatchDetail` completo sob demanda via `GET /matches/{id}` (hook `useMatchDetail`,
+reaproveitado por `MatchChatScreen`, `PostMatchRatingScreen` e `RateUserScreen`). Participação
+(`join`/`leave`), criação de partida (`POST /matches`) e as ações de organizador — encerrar
+partida e aprovar participante pendente — chamam os endpoints reais correspondentes.
+
 ## Cabeçalho das telas
 
 Todas as telas internas usam o componente compartilhado `src/components/Header.tsx`, que padroniza o cabeçalho escuro (`secondary-900`), o botão de voltar, o respiro de safe-area (`useSafeAreaInsets`) e variantes `compact`/`large` (a segunda usada pelas abas Home/Busca/Criar, que têm título grande e podem receber conteúdo extra como a barra de busca).
@@ -137,8 +148,8 @@ O `ReportsContext` guarda as denúncias em memória (seed em `src/mocks/reports.
 | 10 | Denúncia e segurança | ✅ Concluída |
 | 11 | Moderação (opcional) | ✅ Concluída |
 | 12 | Revisão e polimento final | 🟡 **Em andamento** (6/8 — restam apenas testes em Expo Go e build de apresentação) |
-| 13 | Integração com o backend real | 🟡 **Em andamento** (8/16 — fundação (tipos/cliente HTTP/adapters/storage/React Query) e Auth real (13.4) concluídas; backend já deployado em `https://squadup-api.up.railway.app`) |
+| 13 | Integração com o backend real | 🟡 **Em andamento** (12/16 — fundação, Auth real (13.4) e Matches reais (13.5) concluídas; backend já deployado em `https://squadup-api.up.railway.app`) |
 
-245 testes passando · lint zerado · tsc zerado · 77/86 tarefas concluídas (90%)
+239 testes passando · lint zerado · tsc zerado · 81/86 tarefas concluídas (94%)
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

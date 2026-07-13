@@ -3,18 +3,17 @@ import React, { memo } from "react";
 import { Text, View } from "react-native";
 
 import { colors, LEVEL_META, SPORT_META } from "../theme";
-import type { MatchDetail } from "../types";
+import type { MatchSummary } from "../types";
 import { formatMatchDate } from "../utils/date";
-import Avatar from "./Avatar";
 import Badge from "./Badge";
 import Card from "./Card";
 
 interface MatchCardProps {
-  match: MatchDetail;
+  match: MatchSummary;
   onPress?: () => void;
 }
 
-const statusLabel: Record<MatchDetail["status"], string | null> = {
+const statusLabel: Record<MatchSummary["status"], string | null> = {
   open: null,
   full: "Lotada",
   pending_approval: "Pendente",
@@ -115,12 +114,8 @@ function MatchCard({ match, onPress }: Readonly<MatchCardProps>) {
           <SlotsBar confirmed={confirmed} max={match.maxParticipants} />
         )}
 
-        {/* Footer: organizer + tags */}
+        {/* Footer: tags */}
         <View className="flex-row items-center gap-2 mt-3.5 pt-3.5 border-t border-neutral-100">
-          <Avatar name={match.organizer.name} photoUrl={match.organizer.photoUrl} size="xs" />
-          <Text className="text-xs font-medium text-neutral-500 flex-1" numberOfLines={1}>
-            {match.organizer.name}
-          </Text>
           {match.requiresApproval && (
             <View className="flex-row items-center gap-1 bg-secondary-100 rounded-full px-2.5 py-1">
               <MaterialCommunityIcons

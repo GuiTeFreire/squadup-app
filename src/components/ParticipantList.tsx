@@ -4,14 +4,17 @@ import { Pressable, Text, View } from "react-native";
 
 import type { Participant } from "../types";
 import Avatar from "./Avatar";
+import Button from "./Button";
 import RatingStars from "./RatingStars";
 
 interface ParticipantListProps {
   readonly participants: Participant[];
   readonly onPress?: (userId: string) => void;
+  /** Só o organizador pode aprovar — omitir esconde a ação (D17). */
+  readonly onApprove?: (userId: string) => void;
 }
 
-function ParticipantList({ participants, onPress }: ParticipantListProps) {
+function ParticipantList({ participants, onPress, onApprove }: ParticipantListProps) {
   const confirmed = participants.filter((p) => p.status === "confirmed");
   const pending = participants.filter((p) => p.status === "pending");
 
@@ -46,7 +49,9 @@ function ParticipantList({ participants, onPress }: ParticipantListProps) {
       {pending.map(({ user }) => (
         <View
           key={user.id}
-          className="flex-row items-center gap-3 py-3 border-b border-neutral-100 opacity-60"
+          className={`flex-row items-center gap-3 py-3 border-b border-neutral-100 ${
+            onApprove ? "" : "opacity-60"
+          }`}
         >
           <Avatar name={user.name} photoUrl={user.photoUrl} size="sm" />
           <View className="flex-1">
@@ -55,6 +60,9 @@ function ParticipantList({ participants, onPress }: ParticipantListProps) {
             </Text>
             <Text className="text-xs text-accent-600">Aguardando aprovação</Text>
           </View>
+          {onApprove && (
+            <Button label="Aprovar" size="sm" variant="ghost" onPress={() => onApprove(user.id)} />
+          )}
         </View>
       ))}
     </View>

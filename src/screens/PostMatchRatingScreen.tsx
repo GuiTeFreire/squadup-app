@@ -9,8 +9,8 @@ import Avatar from "../components/Avatar";
 import EmptyState from "../components/EmptyState";
 import Header from "../components/Header";
 import RatingStars from "../components/RatingStars";
-import { useMatchesContext } from "../contexts/MatchesContext";
 import { useRatingsContext } from "../contexts/RatingsContext";
+import { useMatchDetail } from "../hooks/useMatchDetail";
 import { CURRENT_USER } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
 import { colors, LEVEL_META, shadows } from "../theme";
@@ -71,10 +71,8 @@ export default function PostMatchRatingScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const { matchId } = route.params;
-  const { matches } = useMatchesContext();
+  const { match } = useMatchDetail(matchId);
   const { hasRated } = useRatingsContext();
-
-  const match = useMemo(() => matches.find((m) => m.id === matchId), [matches, matchId]);
 
   const otherParticipants = useMemo(
     () =>

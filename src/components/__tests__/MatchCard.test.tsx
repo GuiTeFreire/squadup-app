@@ -2,21 +2,9 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import React from "react";
 
 import MatchCard from "../MatchCard";
-import type { MatchDetail } from "../../types";
+import type { MatchSummary } from "../../types";
 
-const BASE_ORGANIZER = {
-  id: "u1",
-  name: "Ana Souza",
-  age: 28,
-  location: "Rio de Janeiro",
-  favoriteSports: ["volleyball" as const],
-  level: "intermediate" as const,
-  averageRating: 4.5,
-  matchesPlayed: 20,
-  isVerified: true,
-};
-
-const BASE_MATCH: MatchDetail = {
+const BASE_MATCH: MatchSummary = {
   id: "m1",
   sport: "football",
   title: "Pelada de domingo",
@@ -25,12 +13,7 @@ const BASE_MATCH: MatchDetail = {
   time: "09:00",
   maxParticipants: 10,
   level: "intermediate",
-  organizerId: BASE_ORGANIZER.id,
-  organizer: BASE_ORGANIZER,
-  participants: [
-    { user: BASE_ORGANIZER, status: "confirmed" },
-    { user: { ...BASE_ORGANIZER, id: "u2", name: "João Lima" }, status: "confirmed" },
-  ],
+  organizerId: "u1",
   confirmedCount: 2,
   availableSlots: 8,
   status: "open",
@@ -52,11 +35,6 @@ describe("MatchCard", () => {
   it("renderiza o horário", () => {
     render(<MatchCard match={BASE_MATCH} />);
     expect(screen.getByText(/09:00/)).toBeTruthy();
-  });
-
-  it("renderiza o nome do organizador", () => {
-    render(<MatchCard match={BASE_MATCH} />);
-    expect(screen.getByText("Ana Souza")).toBeTruthy();
   });
 
   it("renderiza informação de vagas confirmadas", () => {

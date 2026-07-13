@@ -1,11 +1,12 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import React from "react";
 import { Alert } from "react-native";
 
 import CreateMatchScreen from "../CreateMatchScreen";
 
 const mockNavigate = jest.fn();
-const mockAddMatch = jest.fn();
+const mockInvalidateMatches = jest.fn();
+const mockCreateMatch = jest.fn();
 
 jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -16,13 +17,18 @@ jest.mock("react-native-safe-area-context", () => ({
 }));
 
 jest.mock("../../contexts/MatchesContext", () => ({
-  useMatchesContext: () => ({ addMatch: mockAddMatch, matches: [] }),
+  useInvalidateMatches: () => mockInvalidateMatches,
+}));
+
+jest.mock("../../services/api/matches", () => ({
+  createMatch: (...args: unknown[]) => mockCreateMatch(...args),
 }));
 
 jest.spyOn(Alert, "alert");
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockCreateMatch.mockResolvedValue({ id: "match-new" });
 });
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -135,63 +141,88 @@ describe("CreateMatchScreen — validação", () => {
     expect(screen.getByText("Mínimo de 2 participantes")).toBeTruthy();
   });
 
-  it("não chama addMatch quando o formulário é inválido", () => {
+  it("não chama createMatch quando o formulário é inválido", () => {
     render(<CreateMatchScreen />);
     fireEvent.press(screen.getByText("Criar partida"));
-    expect(mockAddMatch).not.toHaveBeenCalled();
+    expect(mockCreateMatch).not.toHaveBeenCalled();
   });
 });
 
 // ─── Submissão válida ─────────────────────────────────────────────────────────
 
 describe("CreateMatchScreen — submissão válida", () => {
-  it("chama addMatch com os dados corretos", () => {
+  it("chama createMatch com os dados corretos", async () => {
     render(<CreateMatchScreen />);
     fillValidForm();
     fireEvent.press(screen.getByText("Criar partida"));
 
-    expect(mockAddMatch).toHaveBeenCalledTimes(1);
-    const match = mockAddMatch.mock.calls[0][0];
-    expect(match.sport).toBe("football");
-    expect(match.title).toBe("Pelada de teste no parque");
-    expect(match.location).toBe("Parque Ibirapuera");
-    expect(match.date).toBe("2026-06-01");
-    expect(match.time).toBe("18:00");
-    expect(match.maxParticipants).toBe(10);
-    expect(match.status).toBe("open");
-    expect(match.level).toBe("intermediate");
+    await waitFor(() => expect(mockCreateMatch).toHaveBeenCalledTimes(1));
+    const payload = mockCreateMatch.mock.calls[0][0];
+    expect(payload.sport).toBe("football");
+    expect(payload.title).toBe("Pelada de teste no parque");
+    expect(payload.location).toBe("Parque Ibirapuera");
+    expect(payload.date).toBe("2026-06-01");
+    expect(payload.time).toBe("18:00:00");
+    expect(payload.max_participants).toBe(10);
+    expect(payload.level).toBe("intermediate");
   });
 
-  it("converte data DD/MM/AAAA para YYYY-MM-DD corretamente", () => {
+  it("converte data DD/MM/AAAA para YYYY-MM-DD corretamente", async () => {
     render(<CreateMatchScreen />);
     fillValidForm();
     fireEvent.press(screen.getByText("Criar partida"));
 
-    const match = mockAddMatch.mock.calls[0][0];
-    expect(match.date).toBe("2026-06-01");
+    await waitFor(() => expect(mockCreateMatch).toHaveBeenCalledTimes(1));
+    const payload = mockCreateMatch.mock.calls[0][0];
+    expect(payload.date).toBe("2026-06-01");
   });
 
-  it("exibe Alert de sucesso após submissão válida", () => {
+  it("invalida o cache de partidas após sucesso", async () => {
     render(<CreateMatchScreen />);
     fillValidForm();
     fireEvent.press(screen.getByText("Criar partida"));
 
-    expect(Alert.alert).toHaveBeenCalledWith(
-      "Partida criada!",
-      expect.stringContaining("Pelada de teste no parque"),
-      expect.any(Array)
+    await waitFor(() => expect(mockInvalidateMatches).toHaveBeenCalledTimes(1));
+  });
+
+  it("exibe Alert de sucesso após submissão válida", async () => {
+    render(<CreateMatchScreen />);
+    fillValidForm();
+    fireEvent.press(screen.getByText("Criar partida"));
+
+    await waitFor(() =>
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Partida criada!",
+        expect.stringContaining("Pelada de teste no parque"),
+        expect.any(Array)
+      )
     );
   });
 
-  it("inclui o esporte e a data no Alert de sucesso", () => {
+  it("inclui o esporte e a data no Alert de sucesso", async () => {
     render(<CreateMatchScreen />);
     fillValidForm();
     fireEvent.press(screen.getByText("Criar partida"));
 
+    await waitFor(() => expect(Alert.alert).toHaveBeenCalled());
     const message = (Alert.alert as jest.Mock).mock.calls[0][1] as string;
     expect(message).toContain("Futebol");
     expect(message).toContain("01/06/2026");
     expect(message).toContain("18:00");
+  });
+
+  it("exibe Alert de erro quando createMatch falha", async () => {
+    mockCreateMatch.mockRejectedValueOnce(new Error("network error"));
+    render(<CreateMatchScreen />);
+    fillValidForm();
+    fireEvent.press(screen.getByText("Criar partida"));
+
+    await waitFor(() =>
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Não foi possível criar a partida",
+        expect.any(String)
+      )
+    );
   });
 });
 
@@ -222,23 +253,25 @@ describe("CreateMatchScreen — interações", () => {
     expect(screen.queryByText("Selecione uma modalidade esportiva")).toBeNull();
   });
 
-  it("addMatch recebe allowBeginners=true quando toggle ativado", () => {
+  it("createMatch recebe allow_beginners=true quando toggle ativado", async () => {
     render(<CreateMatchScreen />);
     fillValidForm();
     fireEvent.press(screen.getByLabelText("Permitir iniciantes"));
     fireEvent.press(screen.getByText("Criar partida"));
 
-    const match = mockAddMatch.mock.calls[0][0];
-    expect(match.allowBeginners).toBe(true);
+    await waitFor(() => expect(mockCreateMatch).toHaveBeenCalledTimes(1));
+    const payload = mockCreateMatch.mock.calls[0][0];
+    expect(payload.allow_beginners).toBe(true);
   });
 
-  it("addMatch recebe requiresApproval=true quando toggle ativado", () => {
+  it("createMatch recebe requires_approval=true quando toggle ativado", async () => {
     render(<CreateMatchScreen />);
     fillValidForm();
     fireEvent.press(screen.getByLabelText("Exigir aprovação do organizador"));
     fireEvent.press(screen.getByText("Criar partida"));
 
-    const match = mockAddMatch.mock.calls[0][0];
-    expect(match.requiresApproval).toBe(true);
+    await waitFor(() => expect(mockCreateMatch).toHaveBeenCalledTimes(1));
+    const payload = mockCreateMatch.mock.calls[0][0];
+    expect(payload.requires_approval).toBe(true);
   });
 });

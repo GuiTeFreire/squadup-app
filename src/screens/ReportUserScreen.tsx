@@ -12,12 +12,11 @@ import Chip from "../components/Chip";
 import Header from "../components/Header";
 import Input from "../components/Input";
 import SectionCard from "../components/SectionCard";
-import { useMatchesContext } from "../contexts/MatchesContext";
 import { useReportsContext } from "../contexts/ReportsContext";
 import { CURRENT_USER, MOCK_USERS } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
 import { colors, shadows } from "../theme";
-import type { ReportReason } from "../types";
+import type { MatchRef, ReportReason } from "../types";
 import { formatMatchDate } from "../utils/date";
 
 type Nav = NativeStackNavigationProp<AppRootStackParamList>;
@@ -38,7 +37,6 @@ export default function ReportUserScreen() {
   const route = useRoute<Route>();
   const insets = useSafeAreaInsets();
   const { userId } = route.params;
-  const { matches } = useMatchesContext();
   const { addReport } = useReportsContext();
 
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
@@ -47,10 +45,9 @@ export default function ReportUserScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const user = useMemo(() => MOCK_USERS.find((u) => u.id === userId) ?? null, [userId]);
-  const userMatches = useMemo(
-    () => matches.filter((m) => m.participants.some((p) => p.user.id === userId)),
-    [matches, userId]
-  );
+  // Sem endpoint para "partidas em comum com userId" (D23, .status/queue.md) — picker de
+  // partida relacionada fica vazio até ReportsContext migrar para a API real (Fase 13.8).
+  const userMatches: MatchRef[] = [];
 
   if (!user) {
     return (
@@ -70,15 +67,16 @@ export default function ReportUserScreen() {
       setError("Selecione o motivo da denúncia.");
       return;
     }
+    const now = new Date();
     const relatedMatch = userMatches.find((m) => m.id === selectedMatchId);
     addReport({
-      id: `report-${Date.now()}`,
+      id: `report-${now.getTime()}`,
       reportedUser: user!,
       reporterUser: CURRENT_USER,
       match: relatedMatch,
       reason: selectedReason as ReportReason,
       description,
-      createdAt: new Date().toISOString(),
+      createdAt: now.toISOString(),
       status: "pending",
     });
     Alert.alert(

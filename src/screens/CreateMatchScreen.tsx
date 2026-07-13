@@ -8,11 +8,11 @@ import Button from "../components/Button";
 import Chip from "../components/Chip";
 import Header from "../components/Header";
 import Input from "../components/Input";
-import { useMatchesContext } from "../contexts/MatchesContext";
-import { CURRENT_USER } from "../mocks/users";
+import { useInvalidateMatches } from "../contexts/MatchesContext";
 import type { AppTabParamList } from "../navigation/types";
+import { createMatch } from "../services/api/matches";
 import { colors, LEVEL_META, SPORT_META } from "../theme";
-import type { ExperienceLevel, MatchDetail, Sport } from "../types";
+import type { ExperienceLevel, Sport } from "../types";
 
 type Nav = BottomTabNavigationProp<AppTabParamList>;
 
@@ -70,7 +70,8 @@ function ToggleRow({
 
 export default function CreateMatchScreen() {
   const navigation = useNavigation<Nav>();
-  const { addMatch } = useMatchesContext();
+  const invalidateMatches = useInvalidateMatches();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [sport, setSport] = useState<Sport | null>(null);
   const [title, setTitle] = useState("");
@@ -139,40 +140,40 @@ export default function CreateMatchScreen() {
     return valid;
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!validate()) return;
 
     const [day, month, year] = date.split("/");
     const isoDate = `${year}-${month}-${day}`;
-
     const max = Number.parseInt(maxParticipants, 10);
-    const newMatch: MatchDetail = {
-      id: `match-${Date.now()}`,
-      sport: sport!,
-      title: title.trim(),
-      location: location.trim(),
-      date: isoDate,
-      time: time.trim(),
-      maxParticipants: max,
-      level,
-      description: description.trim() || undefined,
-      organizerId: CURRENT_USER.id,
-      organizer: CURRENT_USER,
-      participants: [{ user: CURRENT_USER, status: "confirmed" }],
-      confirmedCount: 1,
-      availableSlots: max - 1,
-      status: "open",
-      allowBeginners,
-      requiresApproval,
-    };
 
-    addMatch(newMatch);
+    setIsSubmitting(true);
+    try {
+      await createMatch({
+        sport: sport!,
+        title: title.trim(),
+        location: location.trim(),
+        date: isoDate,
+        time: `${time.trim()}:00`,
+        max_participants: max,
+        level,
+        description: description.trim() || undefined,
+        allow_beginners: allowBeginners,
+        requires_approval: requiresApproval,
+      });
 
-    Alert.alert(
-      "Partida criada!",
-      `"${newMatch.title}" foi criada com sucesso.\n${SPORT_META[sport!].label} · ${date} às ${time}`,
-      [{ text: "Ver partidas", onPress: () => navigation.navigate("Home") }]
-    );
+      invalidateMatches();
+
+      Alert.alert(
+        "Partida criada!",
+        `"${title.trim()}" foi criada com sucesso.\n${SPORT_META[sport!].label} · ${date} às ${time}`,
+        [{ text: "Ver partidas", onPress: () => navigation.navigate("Home") }]
+      );
+    } catch {
+      Alert.alert("Não foi possível criar a partida", "Tente novamente em instantes.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -340,6 +341,8 @@ export default function CreateMatchScreen() {
             variant="primary"
             size="lg"
             fullWidth
+            loading={isSubmitting}
+            disabled={isSubmitting}
           />
         </View>
       </ScrollView>

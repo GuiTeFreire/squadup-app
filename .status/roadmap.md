@@ -1,6 +1,6 @@
 # SquadUp — Roadmap Inicial do Front-end
 
-## Status de execução (atualizado em 2026-07-02, sessão 17)
+## Status de execução (atualizado em 2026-07-13, sessão 24)
 
 | Fase | Descrição | Status |
 |------|-----------|--------|
@@ -18,9 +18,9 @@
 | Fase 11 | Moderação (opcional) | 🟢 Concluída (3/3 tarefas — sessão 13) |
 | — | Redesign visual premium (theme module, elevação, cor por esporte) | 🟢 Concluído (transversal — sessão 16) |
 | Fase 12 | Revisão e polimento final | 🟡 Em andamento (6/8 — 12.1, 12.2, 12.4–12.7 concluídas, sessão 17) |
-| Fase 13 | Integração com o backend real | 🟡 Em andamento (8/16 — 13.1 sessão 20; 13.2/13.3 completas sessão 21; 13.4 concluída sessões 22–23) |
+| Fase 13 | Integração com o backend real | 🟡 Em andamento (12/16 — 13.1 sessão 20; 13.2/13.3 completas sessão 21; 13.4 concluída sessões 22–23; 13.5 concluída sessão 24) |
 
-**Progresso geral:** 77/86 tarefas concluídas (90%) · 245 testes passando · lint zerado · tsc zerado
+**Progresso geral:** 81/86 tarefas concluídas (94%) · 239 testes passando · lint zerado · tsc zerado
 
 Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons) · @tanstack/react-query v5 · expo-secure-store (sessão 21)
 
