@@ -1,6 +1,6 @@
-import type { User } from "../types";
+import type { MyProfile, PublicUser } from "../types";
 
-export const MOCK_USERS: User[] = [
+export const MOCK_USERS: PublicUser[] = [
   {
     id: "user-1",
     name: "Guilherme Freire",
@@ -75,4 +75,8 @@ export const MOCK_USERS: User[] = [
   },
 ];
 
-export const CURRENT_USER = MOCK_USERS[0];
+export const CURRENT_USER: MyProfile = {
+  ...MOCK_USERS[0],
+  email: "guilherme.freire@email.com",
+  role: "user",
+};

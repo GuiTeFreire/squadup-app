@@ -8,11 +8,11 @@
 > manter atualizado sempre que um schema mudar de qualquer um dos dois lados (regra do
 > `CLAUDE.md`, seção 1).
 >
-> **Atualização (2026-07-08, confirmação pós-Fase 12 do backend):** D-B, D-C e D-D (seção 7)
-> foram implementadas e confirmadas contra o `/openapi.json` gerado localmente na branch
-> `feature/fase-12-contrato` (commit `46ca52c`). As seções 2.1, 2.4, 2.5 e 2.6 abaixo ainda
-> descrevem o estado *anterior* a essa mudança (mantido como histórico da comparação original)
-> — o estado *atual* confirmado é:
+> **Atualização (2026-07-08, confirmação pós-Fase 12 do backend):** a Etapa 1 do plano mestre
+> (§6) — pré-requisito da Fase 13 deste repositório — está **100% concluída** em `../back`,
+> confirmada contra o `/openapi.json` gerado localmente na branch `feature/fase-12-contrato`
+> (commit `46ca52c`). D-B, D-C e D-D (§6) foram todas resolvidas a favor da recomendação
+> registrada aqui:
 > - **D-B (aplicada):** `RatingRead.rated_user` agora é `PublicProfileRead` (objeto completo),
 >   não mais só `rated_user_id`.
 > - **D-C (aplicada):** novo schema `MatchRef` (`id, title, sport, date`) substitui `match_id`
@@ -22,8 +22,14 @@
 >   `Message(type=system, text="Partida criada. Bem-vindos!")` ao criar a partida — o front pode
 >   parar de simular essa mensagem em `src/mocks/messages.ts` ao integrar de fato.
 >
-> Nenhuma outra seção deste documento (Match summary/detail, Auth, ação de moderação por verbo,
-> `average_rating` nulo, etc.) mudou — seguem válidas como estavam.
+> As três discrepâncias que este documento apontava como "⚠️" nas seções 2.4/2.5/2.6 não
+> existem mais no contrato real; os parágrafos correspondentes abaixo foram atualizados in-loco
+> (marcados "✅ resolvido"), mantendo o texto original de cada discrepância para preservar o
+> histórico de por que cada decisão foi tomada. Também nasceu um endpoint novo
+> (`POST /auth/logout-all`, §2.7) que não existia quando esta comparação foi escrita. Nenhuma
+> outra seção deste documento (Match summary/detail, Auth, ação de moderação por verbo,
+> `average_rating` nulo, etc.) mudou além disso. **Conclusão prática: nada bloqueia mais o
+> início da Fase 13** (`.status/roadmap.md` §19 / `.status/queue.md`).
 
 Backend lido em: `app/models/*.py`, `app/schemas/*.py`, `app/routers/*.py`, `app/main.py`.
 
@@ -119,12 +125,14 @@ para quem for tocar no backend, não afeta o front.
 | `created_at: datetime` (ISO, gerado pelo servidor) | `createdAt: string` (só `"HH:mm"`, gerado no cliente em `MessagesContext.sendMessage`) | ⚠️ **contrato quebrado** — front nunca deveria gerar o timestamp; ao integrar, `sendMessage` deve enviar só `{ text }` e usar o `created_at` que volta na resposta do `POST` (já é o desenho do backend: "timestamp gerado pelo servidor"). Isso também resolve a D12 (`.status/queue.md`) de vez |
 | `type` (`message`\|`system`) | idêntico | ✅ paridade de valores, mas... |
 
-**Gap real:** o backend não tem nenhum serviço que gere mensagens `type: "system""`
-automaticamente (ex.: "Partida criada por X. Bem-vindos!", presente nos mocks
-`src/mocks/messages.ts`). O enum existe (`MessageType.SYSTEM`) mas nada em
-`app/services/message_service.py` o emite. Ou o backend precisa ganhar esse comportamento
-(ex.: inserir uma mensagem de sistema ao criar a partida), ou o front deve parar de assumir
-que essas mensagens vêm da API.
+**Gap real — ✅ resolvido em 2026-07-08 (decisão D-D aplicada no backend):** este parágrafo
+descrevia um estado em que o backend não emitia mensagens de sistema. Isso mudou:
+`app/services/match_service.py::create_match` agora insere automaticamente uma
+`Message(type=system, sender=organizador, text="Partida criada. Bem-vindos!")` ao criar a
+partida — escopo mínimo, conforme a recomendação D-D (§6): só no evento de criação, sem
+replicar as demais variações que hoje só existem em `src/mocks/messages.ts`. Ao integrar, o
+front só precisa exibir a mensagem que a própria API já devolve no histórico — não é preciso
+gerar nada no cliente.
 
 Falta também paginação no front: `GET /matches/{id}/messages` aceita `skip`/`limit` (máx.
 100); `MatchChatScreen`/`MessagesContext` hoje carregam a lista inteira do mock de uma vez.
@@ -135,8 +143,8 @@ Falta também paginação no front: `GET /matches/{id}/messages` aceita `skip`/`
 |---|---|---|
 | `punctuality/respect/behavior/presence/overall` **campos soltos** no topo do schema | agrupados em `criteria: RatingCriteria` | precisa adapter (achatar ao enviar, agrupar ao ler) |
 | `rater: PublicProfileRead` | `raterUser: User` | rename simples |
-| `rated_user_id: string` (só ID) | `ratedUser: User` (objeto completo) | ⚠️ backend não expande o avaliado — front precisa resolver via contexto já conhecido (é a própria tela de perfil sendo visualizada) |
-| `match_id: string` (só ID) | `match: Match` (objeto completo) | ⚠️ backend não expande a partida — se a UI precisa mostrar título/data da partida avaliada, vai precisar de um fetch adicional por `match_id`, ou pedir ao backend para expandir |
+| `rated_user: PublicProfileRead` (objeto completo — ver nota) | `ratedUser: User` (objeto completo) | ✅ **resolvido em 2026-07-08** — decisão D-B (§6) aplicada: o backend passou a expandir `rated_user` (era só `rated_user_id`). `RatingRead` agora tem paridade de shape total com o que este documento recomendava; não precisa mais de resolução via contexto |
+| `match: MatchRef` (`id, title, sport, date` — ver nota) | `match: Match` (objeto completo) | ✅ **resolvido em 2026-07-08** — decisão D-C (§6) aplicada: novo schema `MatchRef` embutido em `RatingRead.match` (era só `match_id`). Não é o `Match` completo, mas cobre exatamente o caso de uso citado ("avaliação referente à partida X, em 25/05") sem N+1 request |
 | endpoint: `POST /matches/{match_id}/ratings/{user_id}` | `RatingsContext.submitRating(matchId, ratedUserId, criteria, comment)` | assinatura já compatível com os path params — bom |
 | endpoint: `GET /users/{user_id}/ratings` (avaliações **recebidas**) | front lê de `MOCK_RATINGS` global e filtra em memória | precisa migrar para fetch por usuário |
 
@@ -147,7 +155,7 @@ Falta também paginação no front: `GET /matches/{id}/messages` aceita `skip`/`
 | `reason` (`ReportReason`, 7 valores) | idêntico | ✅ paridade total |
 | `status` (`ReportStatus`, 4 valores) | idêntico | ✅ paridade total |
 | `reported_user`/`reporter` (objetos completos em `ReportRead`) | `reportedUser`/`reporterUser` | rename simples (`reporter` → `reporterUser`) |
-| `match_id: string \| null` (só ID) | `match?: Match` (objeto completo) | ⚠️ mesma limitação do Rating — backend não expande a partida |
+| `match: MatchRef \| null` (era `match_id: string \| null`) | `match?: Match` (objeto completo) | ✅ **resolvido em 2026-07-08** — mesma decisão D-C aplicada aqui também: `ReportRead.match` agora é `MatchRef \| null` em vez de só o ID |
 | `ReportCreate.reported_user_id` (reporter vem do JWT, não do payload) | `ReportUserScreen` monta o `Report` inteiro no cliente | ok, é o esperado — ajustar ao trocar por chamada real |
 | **`PATCH /reports/{id}` espera `{ action: "archive"\|"warn"\|"ban" }`** (`ReportAction`) | `updateReportStatus(reportId, status)` manda um **`ReportStatus`** direto (`pending`\|`archived`\|`warned`\|`banned`) | 🔴 **quebra de contrato real, não só nomenclatura** — o backend não aceita "setar status pending" (não existe ação para isso) nem entende `ReportStatus` como payload. `AdminDashboardScreen`/`ReportDetailScreen` precisam migrar para trabalhar em termos de **ação** (`archive`/`warn`/`ban`), não de status-alvo, antes de apontar para a API real |
 
@@ -164,6 +172,7 @@ sem token, sem chamada de rede. Backend já tem fluxo JWT completo com refresh r
 | `POST /auth/refresh` (rotação: token usado é invalidado) | inexistente | precisa de interceptor de refresh automático quando integrar |
 | `POST /auth/logout` revoga o refresh token no servidor | `logout()` só reseta estado local | ao integrar, precisa chamar o endpoint antes de limpar o estado |
 | `GET /auth/me` | sem equivalente (React state já guarda o "usuário atual" localmente) | vira o boot da sessão (restaurar usuário a partir do token salvo) |
+| **`POST /auth/logout-all`** (novo, adicionado em 2026-07-08) — autenticado via `Authorization: Bearer <access_token>` (não recebe `refresh_token` no corpo), revoga **todos** os refresh tokens ativos do usuário de uma vez, `204` | sem equivalente | endpoint novo, não coberto pelo `logout()` simples de 13.4. Não é obrigatório para o MVP (o fluxo básico de logout usa `POST /auth/logout` normalmente), mas é a peça que falta para uma futura tela de "gerenciar sessões"/"sair de todos os dispositivos" (ex.: em `MyProfileScreen`, ação de segurança em caso de suspeita de conta comprometida) — considerar ao planejar 13.4 se esse caso de uso entrar no escopo |
 
 ---
 
@@ -264,29 +273,27 @@ o repositório responsável. As etapas foram transformadas em tarefas concretas 
   trabalho futuro (ajustar só o texto do TCC) **ou** investir tempo em implementar de verdade
   antes da defesa. Recomendação: manter como trabalho futuro — o cronograma do próprio TCC não
   reserva tempo para isso, e nenhum caso de uso priorizado depende disso.
-- **D-B (contrato, backend):** `RatingRead` expande `rater` (`PublicProfileRead`) mas não
-  `rated_user` (só `rated_user_id`) — assimetria em relação ao padrão que o próprio backend já
-  estabeleceu para `Message.sender`/`Participant.user` ("Lições da Fase 8", `back/.status/queue.md`).
-  Recomendação: expandir `rated_user` também, por consistência e para permitir telas futuras
-  que listem avaliações fora do contexto de um perfil já carregado.
-- **D-C (contrato, backend):** `Rating`/`Report` só referenciam `Match` por `match_id`, sem
-  nome/data. Decidir se vale a pena um `MatchRef` leve (`id, title, sport, date`) embutido nos
-  dois `Read` schemas, para o front não precisar de uma segunda chamada só para mostrar "avaliação
-  referente à partida X, em 25/05". Recomendação: adicionar `MatchRef` — é pequeno e evita N+1
-  requests do front quando `PublicProfileScreen`/`ReportDetailScreen` renderizarem listas.
-- **D-D (produto, backend):** o backend não gera mensagens `type: system` (ex.: "Partida criada
-  por X, bem-vindos!") em nenhum evento — o enum existe, mas nada o emite. Decidir se isso é
-  uma feature real (o serviço de match/participante passa a inserir uma `Message` de sistema em
-  eventos-chave) ou se é retirado do escopo do protótipo (o front para de simular essas
-  mensagens ao trocar para dados reais). Recomendação: escopo mínimo — emitir só ao **criar a
-  partida**; não vale a pena replicar todas as variações que hoje só existem no mock
-  (`src/mocks/messages.ts`).
+- **D-B (contrato, backend) — ✅ resolvida em 2026-07-08, aplicada como recomendado:**
+  `RatingRead` expandia `rater` (`PublicProfileRead`) mas não `rated_user` (só
+  `rated_user_id`) — assimetria em relação ao padrão que o próprio backend já estabeleceu para
+  `Message.sender`/`Participant.user` ("Lições da Fase 8", `back/.status/queue.md`). O backend
+  passou a expandir `rated_user` também. Ver §2.5 atualizado.
+- **D-C (contrato, backend) — ✅ resolvida em 2026-07-08, aplicada como recomendado:**
+  `Rating`/`Report` só referenciavam `Match` por `match_id`, sem nome/data. O backend ganhou um
+  `MatchRef` leve (`id, title, sport, date`) embutido em `RatingRead.match` e `ReportRead.match`,
+  evitando N+1 requests do front quando `PublicProfileScreen`/`ReportDetailScreen` renderizarem
+  listas. Ver §2.5/§2.6 atualizados.
+- **D-D (produto, backend) — ✅ resolvida em 2026-07-08, aplicada como recomendado:**
+  o backend não gerava mensagens `type: system` em nenhum evento — o enum existia, mas nada o
+  emitia. Aplicado no escopo mínimo recomendado: `create_match` agora emite automaticamente uma
+  `Message` de sistema só ao **criar a partida** (não replica as demais variações do mock). Ver
+  §2.4 atualizado.
 
 ### Etapas de execução (ordem de dependência)
 
-| # | Etapa | Repositório | Depende de |
-|---|---|---|---|
-| 1 | Refinamentos de consistência do contrato (D-B, D-C, D-D) + fechar Fase 11 (CORS produção, hospedagem, purge de refresh tokens) | **Backend** | Decisões acima |
+| # | Etapa | Repositório | Depende de | Status |
+|---|---|---|---|---|
+| 1 | Refinamentos de consistência do contrato (D-B, D-C, D-D) + fechar Fase 11/12 (CORS produção, hospedagem, purge de refresh tokens, logout de todos os dispositivos) | **Backend** | Decisões acima | ✅ **Concluída em 2026-07-08** — `../back/.status/roadmap.md` Fase 11 e 12 ambas 🟢. Nada bloqueia mais o início da Etapa 2 |
 | 2 | Tipos TS alinhados ao contrato real (`PublicUser`/`MyProfile`, `MatchSummary`/`MatchDetail`) | **Front** | Etapa 1 (schemas finais) |
 | 3 | Camada de adapters (`src/services/adapters/`) + cliente HTTP tipado (`src/services/api/`) + storage seguro de token | **Front** | Etapa 2 |
 | 4 | Auth real: campo de idade no cadastro, fluxo register→login, `AuthContext` por trás da mesma interface pública, mas com API real | **Front** | Etapa 3 |
@@ -294,7 +301,11 @@ o repositório responsável. As etapas foram transformadas em tarefas concretas 
 | 6 | Mensagens reais: histórico paginado, envio sem timestamp gerado no cliente | **Front** | Etapa 3, decisão D-D |
 | 7 | Avaliações reais: adapter de achatamento de critérios, tratamento de `average_rating` nulo | **Front** | Etapa 3, decisão D-B |
 | 8 | Denúncias reais: `ReportsContext` migrado para ação (`archive`/`warn`/`ban`) em vez de status-alvo | **Front** | Etapa 3 |
-| 9 | Hardening conjunto: teste manual ponta a ponta contra o backend local, apontar `.env` do front para a URL de produção decidida, ajustar texto do TCC conforme decisão D-A | **Ambos** | Etapas 4–8 |
+| 9 | Hardening conjunto: teste manual ponta a ponta contra o backend local, apontar `.env` do front para a URL de produção decidida (`https://squadup-api.up.railway.app`), ajustar texto do TCC conforme decisão D-A | **Ambos** | Etapas 4–8 |
+
+**URL de produção do backend (Railway):** `https://squadup-api.up.railway.app` — documentada em
+2026-07-08 (`.status/plano-de-entrega.md` §2). É o valor de `EXPO_PUBLIC_API_URL` para a Etapa 9
+acima e para o build de apresentação (EAS).
 
 Etapas 4–8 são independentes entre si (todas dependem só da 3) e podem ser feitas em qualquer
 ordem ou em paralelo — a ordem na tabela é só uma sugestão de prioridade (auth destrava tudo
@@ -310,5 +321,12 @@ que exige usuário logado; matches é o fluxo mais visado na demo).
   partir de uma listagem vai quebrar em runtime ao trocar o mock pela API real, sem erro de
   tipo nenhum se os tipos não forem ajustados antes.
 - **Único contrato genuinamente incompatível (não é só nomenclatura):** ação de moderação de
-  denúncia — front manda status-alvo, backend espera verbo de ação.
-- **Único campo obrigatório sem input no front:** idade no cadastro.
+  denúncia — front manda status-alvo, backend espera verbo de ação. (D14, ainda pendente no
+  front — não depende de nada novo do backend.)
+- **Único campo obrigatório sem input no front:** idade no cadastro. (D15, ainda pendente no
+  front.)
+- **Atualização de 2026-07-08:** as três discrepâncias de contrato que dependiam do backend
+  (D-B/rated_user, D-C/MatchRef, D-D/mensagem de sistema) **foram todas resolvidas** — ver nota
+  no topo do documento e §2.4/2.5/2.6. Os pontos que restam em aberto (D14, D15, e os itens
+  13.1–13.9 do roadmap) são 100% trabalho do front; a Etapa 1 do plano mestre (pré-requisito de
+  backend) está encerrada.

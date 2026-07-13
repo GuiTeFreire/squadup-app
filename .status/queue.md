@@ -1,5 +1,7 @@
 # SquadUp — Fila de Tarefas Front-end
 
+> **Plano de entrega final (app + backend + TCC):** ver [`plano-de-entrega.md`](plano-de-entrega.md) (2026-07-08) — cobre deploy do backend, Fase 13 de integração, build/demo do app, estrutura de assets do TCC e os gaps de conteúdo da monografia. Consultar antes de priorizar a próxima tarefa.
+
 ## Legenda
 - ⚪ A fazer
 - 🟡 Em andamento
@@ -60,10 +62,14 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 | D12 | Timestamp de mensagem do chat usa hora real | Baixa | `MessagesContext.sendMessage` (`src/contexts/MessagesContext.tsx`) grava `createdAt: new Date().toLocaleTimeString(...)` para mensagens novas, enquanto o histórico mockado em `src/mocks/messages.ts` usa horários fictícios fixos — uma mensagem enviada durante a demo pode aparecer com horário "menor" que mensagens antigas da conversa, quebrando a ordem cronológica visual. Cosmético; considerar mockar um relógio fixo ou aceitar como comportamento esperado de protótipo. Descoberto na sessão 17. |
 | D13 | Selo de verificado sem texto alternativo para leitor de tela | Baixa | O ícone `check-decagram` (usuário verificado) aparece sozinho, sem `accessibilityLabel`, em `ParticipantList.tsx`, `MatchDetailScreen.tsx`, `PublicProfileScreen.tsx`, `MyProfileScreen.tsx`, `RateUserScreen.tsx` e `PostMatchRatingScreen.tsx` — leitores de tela não anunciam essa informação. Nice-to-have, não bloqueante para a apresentação. Descoberto na auditoria de acessibilidade da sessão 17 (12.4). |
 | D14 | `ReportsContext.updateReportStatus` manda status-alvo, backend espera ação | Média | Backend (`PATCH /reports/{id}`) espera `{ action: "archive"\|"warn"\|"ban" }`; front manda `ReportStatus` direto. Único ponto de **quebra de contrato real** (não é só nomenclatura) encontrado na comparação com `../back`. Ver `.status/backend-contract.md` §2.6. Corrigir antes de plugar a API real de denúncias. |
-| D15 | Cadastro de usuário não coleta `age`, campo obrigatório no backend | Média | `POST /auth/register` exige `age: int` (`gt=0`); nem `RegisterScreen` nem `ProfileSetupScreen` coletam idade hoje — `AuthContext.completeProfile` hardcoda `age: 25`. Ver `.status/backend-contract.md` §2.7. |
+| D15 | Cadastro de usuário não coleta `age`, campo obrigatório no backend | ~~Média~~ **Resolvida** | Sessão 22: o campo "Data de nascimento" de `RegisterScreen` (existia na UI, mas era validado e depois **descartado** — nunca chegava a `register()`) passou a ser usado de verdade: `src/utils/date.ts` ganhou `parseBirthDate`/`calculateAge`, e `RegisterScreen` calcula a idade a partir da data informada e **exige 18+** (`MINIMUM_AGE`) — decisão de produto do usuário (não só satisfazer o schema do backend, é regra de segurança do app: partidas com desconhecidos). `register()` ganhou o 4º parâmetro `age: number` (computado, não digitado); `AuthContext` guarda em `pendingAge` e `completeProfile` usa esse valor em vez do `age: 25` hardcoded. 17 testes novos (`RegisterScreen.test.tsx`, `AuthContext.test.tsx`, `utils/__tests__/date.test.ts`). Ver `.status/backend-contract.md` §2.7. |
 | D16 | `types.Match` único vs `MatchRead`/`MatchDetailRead` separados no backend | Média | Backend só expande `organizer`/`participants` no endpoint de detalhe; a listagem (`GET /matches`) devolve `organizer_id` e `confirmed_count`/`available_slots` prontos, sem array de participantes. Código que hoje lê `match.participants`/`match.organizer.name` a partir de uma lista vai quebrar silenciosamente ao trocar o mock pela API. Ver `.status/backend-contract.md` §2.2 para o plano de split em `MatchSummary`/`MatchDetail`. |
 | D17 | Faltam ações de organizador: encerrar partida e aprovar participante pendente | Baixa | Backend já expõe `POST /matches/{id}/close` e `POST /matches/{id}/participants/{user_id}/approve`, mas não há UI para nenhuma das duas — `MatchDetailScreen`/`ParticipantList` só exibem, não moderam. Bloqueia o fluxo real de avaliação pós-partida (exige partida `closed`). Ver `.status/backend-contract.md` §2.2. |
 | D18 | Filtros de partida não cobrem `date`/`location`, que o backend já suporta | Baixa | `GET /matches` aceita `date` e `location` como query params; `FiltersScreen`/`MatchFiltersContext` só implementam `sport`/`level`/`onlyAvailable`. Também é escopo original do `vision.md` (filtro por localização). Ver `.status/backend-contract.md` §4. |
+| D19 | `MatchesContext`/`useMatchFilters`/`MatchCard` tipados sobre `MatchDetail`, não `MatchSummary` | Média | Decisão deliberada da sessão 20 (13.1): os mocks sempre vêm com `organizer`/`participants` completos, então tipar a listagem como `MatchDetail` evitou regredir a busca por nome do organizador em `HomeScreen`/`SearchScreen` (`useMatchFilters.applyFilters` usa `match.organizer.name`). Quando a 13.5 trocar `MatchesContext` por `GET /matches` real, a listagem **não vai trazer** o objeto `organizer` (só `organizerId`, ver `.status/backend-contract.md` §2.2) — a busca por organizador vai quebrar em runtime sem erro de tipo. Resolver então: remover a busca por organizador da lista, ou o backend expor um campo `organizer_name` leve no `MatchRead`. |
+| D20 | `toPublicUser` (`src/services/adapters/user.ts`) transforma `average_rating: null` em `0` | Média | Backend devolve `null` quando o usuário não tem avaliações ainda (`PublicProfileRead.average_rating: float \| null`); o tipo `PublicUser.averageRating` continua `number` (nunca `null`) desde a 13.1, então o adapter mascara o `null` com `0` só para o tipo fechar. Efeito visual: um usuário sem avaliações vai mostrar "0 ⭐" em vez de "sem avaliações ainda" até a 13.7 tratar isso de fato (mudar o tipo para `number \| null` e ajustar `RatingStars`/telas de perfil). Descoberto/decidido na sessão 21. |
+| D21 | `Message.createdAt`/`Rating.createdAt`/`Report.createdAt` (adapters) recebem o ISO completo do backend sem reformatar | Baixa | `toMessage`/`toRating`/`toReport` (`src/services/adapters/`) passam `created_at` adiante como veio (ex.: `"2026-07-08T20:00:00Z"`). Para `Rating`/`Report` isso já é o padrão atual (`formatDate`/`formatReportDate` formatam na tela). Para `Message`, porém, `MessageBubble.tsx` imprime `message.createdAt` bruto sem passar por formatador nenhum — hoje funciona porque o mock usa strings `"HH:mm"` fixas; quando a 13.6 plugar `GET /matches/{id}/messages` de verdade, vai aparecer o ISO completo na bolha de chat até alguém adicionar a formatação em `MessageBubble` ou no adapter. Resolver junto da 13.6 (que já vai tocar `MessagesContext`/`MatchChatScreen` por outro motivo — D12). |
+| D22 | `tokenStorage` usa `sessionStorage` no web, que não sobrevive a fechar a aba | Baixa | `expo-secure-store` é um no-op em `react-native-web` (`ExpoSecureStore.web.js` exporta objeto vazio) — sem alternativa nativa de "storage seguro" real no browser. `src/services/storage/tokenStorage.ts` cai para `sessionStorage` nesse caso, o que é aceitável para a demo acadêmica (`npm run web`) mas significa que o usuário é deslogado ao fechar/reabrir a aba (diferente do nativo, onde o keychain/keystore persiste entre sessões do app). Sem ação necessária a menos que a apresentação dependa de sessão persistente no browser — se depender, considerar `localStorage` (persiste mais, mas é menos seguro ainda) como troca consciente. Descoberto na sessão 21 (item 5, 13.2). |
 
 ---
 
@@ -82,19 +88,21 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 
 > Plano mestre completo, decisões de arquitetura (D-A a D-D) e por que cada item existe estão
 > em `.status/backend-contract.md` §6. Esta fila só lista o "o quê"; o "por quê" fica lá para
-> não duplicar manutenção. **Pré-requisito:** Etapa 1 do plano mestre concluída no backend
-> (`../back/.status/roadmap.md`, Fase 12) — sem isso, os tipos/adapters do front (13.1–13.2)
-> seriam construídos sobre um contrato ainda instável.
+> não duplicar manutenção. **Pré-requisito:** Etapa 1 do plano mestre no backend
+> (`../back/.status/roadmap.md`, Fase 12) — **✅ concluída em 2026-07-08** (D-B/D-C/D-D
+> aplicadas, CORS de produção, hospedagem decidida, purge de refresh tokens e
+> `POST /auth/logout-all` implementados — ver `.status/backend-contract.md` para o detalhe
+> atualizado). **A fila abaixo pode começar agora**, o contrato já está estável.
 
 | # | Tarefa | Sub-fase | Status |
 |---|--------|----------|--------|
-| 1 | Dividir `types.User` em `PublicUser`/`MyProfile`; dividir `types.Match` em `MatchSummary`/`MatchDetail` | 13.1 | ⚪ |
-| 2 | Ajustar `Rating`/`Report` aos shapes reais (`rater`, `match_id`) conforme decisão D-B/D-C do backend | 13.1 | ⚪ |
-| 3 | Criar `src/services/api/client.ts` (fetch tipado + parse de erro `{code,message}` + Bearer) | 13.2 | ⚪ |
-| 4 | Criar `src/services/adapters/` (conversão `snake_case↔camelCase`, achatamento de `RatingCriteria`) | 13.2 | ⚪ |
-| 5 | Instalar `expo-secure-store` e criar módulo de storage seguro de token | 13.2 | ⚪ |
-| 6 | Instalar e configurar `@tanstack/react-query` (`QueryClientProvider` em `App.tsx`) | 13.3 | ⚪ |
-| 7 | Adicionar campo de **idade** ao fluxo de cadastro (D15 — obrigatório no backend, sem input hoje) | 13.4 | ⚪ |
+| 1 | Dividir `types.User` em `PublicUser`/`MyProfile`; dividir `types.Match` em `MatchSummary`/`MatchDetail` | 13.1 | 🟢 (`feat/api-contract-types`, sessão 20) |
+| 2 | Ajustar `Rating`/`Report` aos shapes reais (`rater`, `match_id`) conforme decisão D-B/D-C do backend | 13.1 | 🟢 (`feat/api-contract-types`, sessão 20) |
+| 3 | Criar `src/services/api/client.ts` (fetch tipado + parse de erro `{code,message}` + Bearer) | 13.2 | 🟢 (`feat/api-contract-types`, sessão 21) |
+| 4 | Criar `src/services/adapters/` (conversão `snake_case↔camelCase`, achatamento de `RatingCriteria`) | 13.2 | 🟢 (`feat/api-contract-types`, sessão 21) |
+| 5 | Instalar `expo-secure-store` e criar módulo de storage seguro de token | 13.2 | 🟢 (`feat/api-contract-types`, sessão 21) |
+| 6 | Instalar e configurar `@tanstack/react-query` (`QueryClientProvider` em `App.tsx`) | 13.3 | 🟢 (`feat/api-contract-types`, sessão 21) |
+| 7 | Adicionar campo de **idade** ao fluxo de cadastro (D15 — obrigatório no backend, sem input hoje) | 13.4 | 🟢 (`feat/api-contract-types`, sessão 22) |
 | 8 | Reescrever `AuthContext` por dentro (register→login em sequência, token no storage seguro, refresh automático em 401, boot via `GET /auth/me`) | 13.4 | ⚪ |
 | 9 | `MatchesContext`/`MatchFiltersContext` → React Query contra `GET /matches`; adicionar filtros de **data** e **localização** (D18) | 13.5 | ⚪ |
 | 10 | `MatchDetailScreen` busca `MatchDetail` sob demanda; `CreateMatchScreen` envia só o payload de criação | 13.5 | ⚪ |
@@ -103,12 +111,15 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 | 13 | `MessagesContext` → React Query; parar de gerar `createdAt` no cliente (resolve D12); paginação no `MatchChatScreen` | 13.6 | ⚪ |
 | 14 | `RatingsContext` → React Query; adapter de achatamento de critérios; UI trata `averageRating` nulo | 13.7 | ⚪ |
 | 15 | `ReportsContext.updateReportStatus` migrado para ação (`archive`/`warn`/`ban`) em vez de status-alvo (D14) | 13.8 | ⚪ |
-| 16 | Teste manual ponta a ponta contra backend local; apontar `.env` para URL de produção; ajustar texto do TCC (decisão D-A) | 13.9 | ⚪ |
+| 16 | Teste manual ponta a ponta contra backend local; apontar `.env` para URL de produção (`https://squadup-api.up.railway.app`); ajustar texto do TCC (decisão D-A) | 13.9 | ⚪ |
 
 ---
 
 ## Bloqueadores e observações
 
+- **Sessão 22 (2026-07-08):** Item 7 da fila concluído (abre a 13.4). Decisão do usuário: idade entra em `RegisterScreen`, não em `ProfileSetupScreen` — e não é digitada direto, é **calculada a partir da data de nascimento**, com regra de negócio de 18+ (segurança do app, não só o `gt=0` do backend). Primeira tentativa da sessão foi um campo "Idade" numérico solto; o usuário corrigiu para usar data de nascimento + cálculo, e o campo "Data de nascimento" que já existia na tela (mas nunca era usado) virou o campo real. Novo `parseBirthDate`/`calculateAge` em `src/utils/date.ts`. `register()` ganhou 4º parâmetro `age: number` (computado); `AuthContext` guarda em `pendingAge` e `completeProfile` usa esse valor em vez do `age: 25` hardcoded. D15 resolvida. 17 testes novos (`RegisterScreen.test.tsx`, `AuthContext.test.tsx`, `date.test.ts` — nenhum dos três tinha teste antes). Suíte total 238/238, lint e `tsc --noEmit` zerados, `expo export --platform web` confirmado. Próxima tarefa: item 8 (reescrever `AuthContext` por dentro para chamar `POST /auth/register`→`POST /auth/login`, storage seguro de token, refresh automático, boot via `GET /auth/me` — o grosso da 13.4).
+- **Sessão 21 (2026-07-08):** Itens 3–6 da fila concluídos — sub-fases **13.2 e 13.3 inteiramente concluídas**. Criados `src/services/api/client.ts` (cliente HTTP tipado + `ApiError`), `src/services/adapters/` (conversão `snake_case↔camelCase` por entidade, lida direto de `../back/app/schemas`), `src/services/storage/tokenStorage.ts` (`expo-secure-store` no nativo, `sessionStorage` no web) e `src/services/queryClient.ts`/`queryKeys.ts` + `QueryClientProvider` em `App.tsx`. 37 testes novos (suíte total 181→218). Três decisões de conversão ficaram registradas como dívidas técnicas novas — D20, D21, D22 (ver tabela abaixo). Detalhes completos (por item, com trechos de código e por quê de cada decisão) em `progress.md`, sessão 21. Próxima tarefa: item 7 (campo de idade no cadastro, D15 — abre a 13.4, auth real) — decisão pendente: `RegisterScreen` ou `ProfileSetupScreen`?
+- **Sessão 20 (2026-07-08):** Fase 13.1 concluída (itens 1–2 da fila) na branch `feat/api-contract-types`. `types.User`→`PublicUser`/`MyProfile`, `types.Match`→`MatchSummary`/`MatchDetail`, novo `MatchRef` em `Rating`/`Report`. `npx tsc --noEmit` guiou o ajuste de 11 arquivos (mocks, contexts, hooks, `MatchCard`, `CreateMatchScreen`, 2 testes) até zero erros; `npm run lint`/`npm run test` (181/181) e `npx expo export --platform web` também zerados. Decisão de escopo registrada como D19: listagem continua tipada como `MatchDetail` (não `MatchSummary`) para não perder a busca por organizador — vai precisar de ajuste na 13.5, quando a listagem passar a vir de `GET /matches` de verdade. Efeito colateral positivo: `AuthContext.register` parou de descartar o e-mail digitado. Detalhes completos em `progress.md`, sessão 20. Próxima tarefa: item 3 da fila (`src/services/api/client.ts`, 13.2).
 - **Sessão 17 (2026-07-02):** Fase 12 avançou para 6/8 (12.2, 12.4, 12.5, 12.6 e 12.7 concluídas — 12.1 já vinha da sessão 15). Zero erros de console, `npm run lint`/`npx tsc --noEmit`/`npm run test` (181/181) zerados. Duas auditorias corrigiram problemas reais de acessibilidade (contraste de cor, label do card de partida) e de coerência dos dados mockados (avaliações datadas antes da partida acontecer). Três achados não bloqueantes viraram dívidas técnicas D11–D13 (ver tabela acima). Restam 12.3 (Expo Go — requer dispositivo/emulador do usuário) e 12.8 (build de apresentação). Detalhes tarefa-a-tarefa em `progress.md`, sessão 17.
 - **Sessão 16 (2026-07-02):** redesign visual premium completo (transversal). Módulo `src/theme/index.ts` (`colors`, `shadows`, `SPORT_META`, `LEVEL_META`) é a fonte única de verdade para estilos fora do NativeWind — usar **sempre** em vez de hex hardcoded. Componentes novos: `SectionCard`, `Chip`, `SportTile`, `StatsRow`, `Skeleton`/`MatchCardSkeleton`. Emojis eliminados da UI (só permanecem em conteúdo de mensagens mockadas). Detalhes completos em `progress.md`, sessão 16.
 - **Sessão 15 (2026-07-02):** `src/components/Header.tsx` foi reescrito e agora é usado por 13+ telas via `useSafeAreaInsets` — qualquer teste novo que renderize uma tela com `<Header>` precisa mockar `react-native-safe-area-context` (ver `Header.test.tsx`/`PublicProfileScreen.test.tsx` como referência). Detalhes completos em `progress.md`, sessão 15.
@@ -124,7 +135,7 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 
 ## Progresso geral
 
-**Total de tarefas:** 70
-**Concluídas:** 69 (fases numeradas + 12.1, 12.2, 12.4, 12.5, 12.6, 12.7) + refinamento visual transversal
+**Total de tarefas:** 86 (70 do protótipo + 16 da fila de integração, Fase 13)
+**Concluídas:** 76 (69 do protótipo + refinamento visual transversal + itens 1–7 da Fase 13, sessões 20–22)
 **Em andamento:** 0
-**A fazer:** 2 (Fase 12: 12.3 requer dispositivo/emulador do usuário; 12.8 build de apresentação)
+**A fazer:** 10 (Fase 12: 12.3 requer dispositivo/emulador do usuário, 12.8 build de apresentação; Fase 13: itens 8–16)
