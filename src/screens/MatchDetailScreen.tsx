@@ -82,12 +82,23 @@ export default function MatchDetailScreen() {
   const route = useRoute<Route>();
   const insets = useSafeAreaInsets();
   const { matchId } = route.params;
-  const { match, userStatus, join, cancel } = useMatchParticipation(matchId, CURRENT_USER);
+  const { match, userStatus, isLoading, join, cancel, close, approve } = useMatchParticipation(
+    matchId,
+    CURRENT_USER
+  );
 
   const confirmedCount = useMemo(
     () => (match ? match.participants.filter((p) => p.status === "confirmed").length : 0),
     [match]
   );
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-secondary-50">
+        <Text className="text-neutral-500">Carregando partida...</Text>
+      </View>
+    );
+  }
 
   if (!match) {
     return (
@@ -102,6 +113,8 @@ export default function MatchDetailScreen() {
   const nonOpenStatus = match.status !== "open" ? statusLabel[match.status] : null;
   const sportMeta = SPORT_META[match.sport];
   const bottomPadding = Math.max(insets.bottom, 16);
+  const isOrganizer = match.organizer.id === CURRENT_USER.id;
+  const canClose = isOrganizer && !isMatchOver;
 
   let bottomAction: React.ReactNode;
   if (isMatchOver) {
@@ -133,6 +146,7 @@ export default function MatchDetailScreen() {
           fullWidth
         />
         <Button label="Cancelar participação" onPress={cancel} variant="ghost" fullWidth />
+        {canClose && <Button label="Encerrar partida" onPress={close} variant="danger" fullWidth />}
       </View>
     );
   } else if (userStatus === "pending") {
@@ -259,6 +273,7 @@ export default function MatchDetailScreen() {
             <ParticipantList
               participants={match.participants}
               onPress={(userId) => navigation.navigate("PublicProfile", { userId })}
+              onApprove={isOrganizer ? approve : undefined}
             />
           </SectionCard>
         </View>

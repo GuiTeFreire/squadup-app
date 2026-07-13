@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { FlatList, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -55,18 +55,11 @@ export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
   const [searchText, setSearchText] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const { filters, setFilters, activeFilterCount } = useMatchFiltersContext();
-  const { matches } = useMatchesContext();
+  const { matches, isLoading } = useMatchesContext();
   const filteredMatches = useMatchFilters(matches, searchText);
 
   const firstName = CURRENT_USER.name.split(" ")[0];
-
-  // Simula o fetch inicial para exibir o skeleton screen (protótipo sem backend)
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 700);
-    return () => clearTimeout(timer);
-  }, []);
 
   function selectSport(sport: Sport | null) {
     setFilters({ ...filters, sport });

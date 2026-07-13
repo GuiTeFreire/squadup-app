@@ -6,12 +6,16 @@ export interface MatchFilters {
   sport: Sport | null;
   level: ExperienceLevel | null;
   onlyAvailable: boolean;
+  date: string | null;
+  location: string | null;
 }
 
 const DEFAULT_FILTERS: MatchFilters = {
   sport: null,
   level: null,
   onlyAvailable: false,
+  date: null,
+  location: null,
 };
 
 interface MatchFiltersContextValue {
@@ -29,7 +33,14 @@ export function MatchFiltersProvider({ children }: { children: React.ReactNode }
   const clearFilters = useCallback(() => setFilters(DEFAULT_FILTERS), []);
 
   const activeFilterCount = useMemo(
-    () => [filters.sport, filters.level, filters.onlyAvailable || null].filter(Boolean).length,
+    () =>
+      [
+        filters.sport,
+        filters.level,
+        filters.onlyAvailable || null,
+        filters.date,
+        filters.location,
+      ].filter(Boolean).length,
     [filters]
   );
 

@@ -6,7 +6,13 @@ describe("queryKeys", () => {
   });
 
   it("matches() embute o objeto de filtros inteiro na chave", () => {
-    const filters = { sport: "football" as const, level: null, onlyAvailable: false };
+    const filters = {
+      sport: "football" as const,
+      level: null,
+      onlyAvailable: false,
+      date: null,
+      location: null,
+    };
     expect(queryKeys.matches(filters)).toEqual(["matches", filters]);
     expect(queryKeys.matches()).toEqual(["matches", undefined]);
   });

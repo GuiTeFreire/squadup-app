@@ -2,7 +2,7 @@
 
 > Criado em 2026-07-08, a partir da leitura de `TCC.tex` (front), `.status/{vision,roadmap,queue,backend-contract}.md` (front) e `../back/.status/{vision,roadmap,queue}.md` (back). Documento vivo — atualizar conforme as trilhas avançam, mesmo padrão dos outros arquivos em `.status/`.
 >
-> **Onde estamos:** o backend (`../back`) está com as Fases 1–12 concluídas, testado (113 testes, 99% cobertura) e **já deployado em produção no Railway**: `https://squadup-api.up.railway.app` (documentado em 2026-07-08 — ver §2). O front (`../front`) tem o protótipo visual 100% pronto (Fases 1–11 concluídas, Fase 12 em 6/8) mas **ainda não consome a API real** — é 100% mockado. A Fase 13 (integração real) é 0/16 e é o maior bloco de trabalho que resta; agora já tem uma URL de produção real para apontar (`EXPO_PUBLIC_API_URL`), não só `localhost`. O `TCC.tex` está escrito como um **anteprojeto** (tempo futuro, "será implementado"), não como a monografia final — falta reescrever boa parte para refletir o que foi de fato construído, e os assets (prints, bibliografia) hoje só existem no Overleaf, fora do repositório.
+> **Onde estamos (atualizado em 2026-07-13, sessão 24):** o backend (`../back`) está com as Fases 1–12 concluídas, testado (113 testes, 99% cobertura) e **já deployado em produção no Railway**: `https://squadup-api.up.railway.app` (documentado em 2026-07-08 — ver §2). O front (`../front`) tem o protótipo visual 100% pronto (Fases 1–11 concluídas, Fase 12 em 6/8) e **já consome a API real para autenticação e partidas** — a Fase 13 (integração real) está em 12/16: fundação (13.1–13.3), Auth real (13.4) e Matches reais (13.5, sessão 24) concluídas. Restam mensagens (13.6), avaliações (13.7), denúncias (13.8) e o fechamento ponta a ponta (13.9) — os três Contexts restantes (`MessagesContext`, `RatingsContext`, `ReportsContext`) ainda são 100% mockados. O `TCC.tex` está escrito como um **anteprojeto** (tempo futuro, "será implementado"), não como a monografia final — falta reescrever boa parte para refletir o que foi de fato construído, e os assets (prints, bibliografia) hoje só existem no Overleaf, fora do repositório.
 
 ---
 
@@ -43,8 +43,8 @@ Passos originais, documentados em `../back/README.md` §"Deploy" e `../back/.sta
 
 Detalhamento tarefa-a-tarefa já existe em `.status/roadmap.md` §19 e `.status/backend-contract.md` §6 (16 tarefas, 13.1–13.9). Aqui só a visão executiva e a ordem sugerida:
 
-1. **13.1–13.3 (fundação, sequencial):** tipos alinhados ao contrato real → cliente HTTP + adapters + storage seguro de token → React Query. Isso é pré-requisito de tudo abaixo.
-2. **13.4–13.8 (independentes entre si, podem ser paralelas ou em qualquer ordem):** Auth real, Matches reais, Mensagens reais, Avaliações reais, Denúncias reais. Sugestão de prioridade: **Auth primeiro** (destrava telas que exigem usuário logado), depois **Matches** (fluxo mais visado numa demo).
+1. **13.1–13.3 (fundação, sequencial):** tipos alinhados ao contrato real → cliente HTTP + adapters + storage seguro de token → React Query. ✅ Concluído (sessões 20–21).
+2. **13.4–13.8 (independentes entre si, podem ser paralelas ou em qualquer ordem):** Auth real, Matches reais, Mensagens reais, Avaliações reais, Denúncias reais. **Auth real ✅ concluída** (sessões 22–23) e **Matches reais ✅ concluída** (sessão 24, branch `feat/matches-real`) — restam Mensagens (13.6), Avaliações (13.7) e Denúncias (13.8).
 3. **13.9 (fechamento):** teste manual ponta a ponta contra o backend local primeiro, depois contra a URL de produção do Railway (`https://squadup-api.up.railway.app`, Trilha A já concluída); ajustar `EXPO_PUBLIC_API_URL`.
 
 Este é o maior bloco de trabalho restante do projeto — envolve reescrever a camada de dados dos 6 Contexts (`AuthContext`, `MatchesContext`, `MatchFiltersContext`, `MessagesContext`, `RatingsContext`, `ReportsContext`) por dentro, mantendo as interfaces públicas para não precisar tocar nas telas.

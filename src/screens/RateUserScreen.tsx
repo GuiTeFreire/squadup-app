@@ -13,8 +13,8 @@ import Input from "../components/Input";
 import RatingStars from "../components/RatingStars";
 import SectionCard from "../components/SectionCard";
 import StarRatingInput from "../components/StarRatingInput";
-import { useMatchesContext } from "../contexts/MatchesContext";
 import { useRatingsContext } from "../contexts/RatingsContext";
+import { useMatchDetail } from "../hooks/useMatchDetail";
 import type { AppRootStackParamList } from "../navigation/types";
 import { colors, LEVEL_META, shadows } from "../theme";
 import type { RatingCriteria } from "../types";
@@ -43,14 +43,13 @@ export default function RateUserScreen() {
   const route = useRoute<Route>();
   const insets = useSafeAreaInsets();
   const { matchId, userId } = route.params;
-  const { matches } = useMatchesContext();
+  const { match } = useMatchDetail(matchId);
   const { submitRating } = useRatingsContext();
 
   const [criteria, setCriteria] = useState<RatingCriteria>(EMPTY_CRITERIA);
   const [comment, setComment] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const match = matches.find((m) => m.id === matchId);
   const user = match?.participants.find((p) => p.user.id === userId)?.user;
 
   if (!match || !user) {

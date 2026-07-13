@@ -7,8 +7,8 @@ import { FlatList, KeyboardAvoidingView, Platform, Text, View } from "react-nati
 import ChatInput from "../components/ChatInput";
 import Header from "../components/Header";
 import MessageBubble from "../components/MessageBubble";
-import { useMatchesContext } from "../contexts/MatchesContext";
 import { useMessagesContext } from "../contexts/MessagesContext";
+import { useMatchDetail } from "../hooks/useMatchDetail";
 import { CURRENT_USER } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
 import type { Message } from "../types";
@@ -21,10 +21,9 @@ export default function MatchChatScreen() {
   const route = useRoute<Route>();
   const { matchId } = route.params;
 
-  const { matches } = useMatchesContext();
+  const { match } = useMatchDetail(matchId);
   const { getMessages, sendMessage } = useMessagesContext();
 
-  const match = matches.find((m) => m.id === matchId);
   const messages = getMessages(matchId);
 
   const handleSend = useCallback(

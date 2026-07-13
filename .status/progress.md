@@ -1121,3 +1121,99 @@ da sessão; +7 testes líquidos: 10 novos em `AuthContext.test.tsx` substituindo
   (remover a busca por organizador da lista, ou pedir ao backend um campo `organizer_name` leve).
 - Nenhum bug pendente — parada é limpa, entre tarefas. Ver "Checkpointer" no fechamento desta sessão
   (mensagem final) para o ponto exato de retomada.
+
+---
+
+## Sessão 24 — 2026-07-13
+
+### Fase 13.5 — Matches reais (itens 9–12 da fila, conclui a 13.5)
+
+Branch `feat/matches-real`, criada a partir de `dev`. Os itens 9–12 foram implementados juntos,
+numa única sessão — a D19 (registrada na sessão 20) já previa que separá-los era inviável: assim
+que `MatchesContext` passasse a devolver `MatchSummary` real (sem `organizer`/`participants`),
+toda tela que lia esses campos a partir da listagem quebraria em runtime sem erro de tipo. Item 9
+sozinho não tinha como ficar "meio pronto" sem deixar o app num estado inconsistente.
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/services/api/matches.ts` | `fetchMatches(filters)` (`GET /matches` com query string `sport/level/date/location/has_open_slots`), `fetchMatchDetail(id)` (`GET /matches/{id}`), `createMatch(payload)` (`POST /matches`), `joinMatch`/`leaveMatch`/`closeMatch`/`approveParticipant` (ações de partida) |
+| `src/hooks/useMatchDetail.ts` | Hook compartilhado — `useQuery` contra `queryKeys.match(matchId)` retornando `MatchDetail` via `toMatchDetail(await fetchMatchDetail(matchId))`. Extraído de `useMatchParticipation` para ser reaproveitado por telas que só precisam ler o detalhe (sem participar) |
+| `src/test-utils/queryClientWrapper.tsx` | `createTestQueryClient()`/`createQueryWrapper()` — primeiro helper de teste para React Query do projeto (`retry: false, staleTime: 0`), usado pelos testes novos de `useMatchParticipation` e `MatchDetailScreen` |
+
+### Arquivos modificados (produção)
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/contexts/MatchFiltersContext.tsx` | `MatchFilters` ganhou `date: string \| null` e `location: string \| null` (D18); `activeFilterCount` conta os dois novos campos |
+| `src/contexts/MatchesContext.tsx` | Reescrito: `useQuery` contra `queryKeys.matches(filters)` chamando `fetchMatches` + `toMatchSummary`; lê `filters` via `useMatchFiltersContext()` internamente (deixou de receber prop) — exige que `MatchFiltersProvider` envolva `MatchesProvider`. `addMatch`/`updateParticipation` (client-side) removidos; expõe `matches: MatchSummary[]`, `isLoading`, `refetch`. Novo export `useInvalidateMatches()` (invalida `["matches"]` no `QueryClient`) |
+| `App.tsx` | Reordenado: `MatchFiltersProvider` agora envolve `MatchesProvider` (antes era o contrário) |
+| `src/hooks/useMatchFilters.ts` | `applyFilters` migrado para `MatchSummary`; busca por texto não checa mais `match.organizer.name` (D19) — só título e local |
+| `src/hooks/useMatchParticipation.ts` | Reescrito sobre `useMatchDetail` + ações reais: `join`→`POST /matches/{id}/join`, `cancel`→`POST /matches/{id}/leave`, novo `close`→`POST /matches/{id}/close`, novo `approve(userId)`→`POST /matches/{id}/participants/{userId}/approve`. Todas invalidam `queryKeys.match(matchId)` e `["matches"]` após sucesso; falhas mostram `Alert.alert` |
+| `src/components/MatchCard.tsx` | Prop `match` migrada para `MatchSummary`; footer de organizador (avatar + nome) removido — `MatchSummary` não tem esse campo |
+| `src/components/ParticipantList.tsx` | Nova prop opcional `onApprove?: (userId: string) => void` — quando presente, cada participante `pending` ganha um botão "Aprovar" (some o `opacity-60`) |
+| `src/screens/HomeScreen.tsx` | Removido o timer fake de loading (`setTimeout` de 700ms); `isLoading` agora vem de verdade do `useMatchesContext()` (React Query) |
+| `src/screens/FiltersScreen.tsx` | Novos campos "Data" (`DD/MM/AAAA` com validação, convertido para ISO) e "Localização" (texto livre) |
+| `src/screens/MatchDetailScreen.tsx` | `isLoading` tratado com tela própria; novo botão "Encerrar partida" (só quando `isOrganizer && !isMatchOver`); `ParticipantList` recebe `onApprove` só quando `isOrganizer` |
+| `src/screens/CreateMatchScreen.tsx` | `handleSubmit` assíncrono chamando `createMatch()` de verdade (antes só montava um `MatchDetail` local e chamava `addMatch`); `useInvalidateMatches()` no sucesso; `isSubmitting`/`loading`/`disabled` no botão; `Alert` de erro em caso de falha de rede |
+| `src/screens/MatchChatScreen.tsx`, `PostMatchRatingScreen.tsx`, `RateUserScreen.tsx` | Migradas de `useMatchesContext().matches.find(...)` (que devolvia `MatchDetail` do mock) para `useMatchDetail(matchId)` — essas telas leem `match.participants`, que só existe no detalhe, não na listagem |
+| `src/screens/ReportUserScreen.tsx` | `userMatches` (picker de "partida relacionada") virou array vazio hardcoded — não há endpoint de "partidas em comum com userId" no backend (**D23**, nova). Também corrigido de passagem: `Date.now()`/`new Date()` chamados 2x dentro de `handleSubmit` viraram uma variável `now` única (lint novo `react-hooks/purity`, pré-existente, não introduzido nesta sessão — ver "Achado tangencial" abaixo) |
+
+### Decisões não óbvias
+
+- **`MatchFiltersProvider` agora precisa envolver `MatchesProvider`** (`App.tsx`): `MatchesContext`
+  lê os filtros via `useMatchFiltersContext()` internamente em vez de receber como prop — mesmo
+  padrão que `HomeScreen`/`SearchScreen` já usavam (dois hooks separados), só que agora dentro do
+  próprio Context. Inverter a ordem dos providers foi mais simples que continuar passando `filters`
+  como prop explícita.
+- **D19 resolvida removendo a busca por organizador, não pedindo campo novo ao backend** — das duas
+  opções que a D19 deixava em aberto (remover a busca vs. backend expor `organizer_name` leve),
+  esta sessão escolheu a primeira: menos escopo, e o nome do organizador nunca foi um filtro
+  citado no `vision.md` (só esporte/local/horário/nível).
+  não foi solicitado ao usuário, mas justificável porque manter uma segunda chamada de API só para
+  popular um campo de busca secundário adicionaria uma dependência de rede desnecessária ao filtro
+  client-side.
+- **`useMatchDetail` extraído como hook próprio**, não deixado só dentro de `useMatchParticipation`
+  — quatro telas (`MatchChatScreen`, `PostMatchRatingScreen`, `RateUserScreen`,
+  `MatchDetailScreen` via `useMatchParticipation`) precisavam do mesmo `GET /matches/{id}` mas só
+  uma delas (`MatchDetailScreen`) precisa das ações de participação. Extrair evitou 4 cópias do
+  mesmo `useQuery`.
+- **D23 (nova):** `ReportUserScreen` perdeu a lista de "partidas em comum com o usuário denunciado"
+  porque essa informação só existia porque o mock global trazia todos os participantes de toda
+  partida em memória — não existe endpoint real equivalente. Registrada como dívida em vez de
+  resolvida nesta sessão porque resolver de verdade provavelmente exige um endpoint novo no
+  backend (fora do escopo do front) — decisão para a Fase 13.8, quando `ReportsContext` for
+  migrado.
+
+### Achado tangencial (não relacionado à Fase 13.5)
+
+Rodar `npm install` nesta sessão (TypeScript não estava instalado localmente ainda) trouxe uma
+versão mais nova de `eslint-plugin-react-hooks` que passou a aplicar a regra `react-hooks/purity`
+("Cannot call impure function during render"). Ela acusou `Date.now()`/`new Date()` chamados duas
+vezes dentro de `ReportUserScreen.handleSubmit` — código **pré-existente**, de antes desta sessão,
+não causado por nenhuma mudança da Fase 13.5. Corrigido trivialmente (uma variável `now` capturada
+uma vez) para manter `npm run lint` zerado, mas vale registrar que a causa é o upgrade de
+dependência, não a integração de matches.
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros (após corrigir o achado tangencial acima
+e rodar `lint:fix` para CRLF→LF, dívida D4 pré-existente) · `npm run test` 239/239 passando (era
+245 no início da sessão; saldo líquido negativo de 6 porque os testes de organizador em
+`MatchCard.test.tsx`/`ReportUserScreen.test.tsx` — que dependiam de campos que não existem mais em
+`MatchSummary` — foram removidos, não substituídos 1:1).
+
+### Estado ao final da sessão 24
+
+- Branch `feat/matches-real`, criada a partir de `dev`. Commit pendente (ver seção de commit desta
+  mesma sessão de fechamento).
+- Itens 9–12 da fila concluídos — **Fase 13.5 (Matches reais) inteiramente concluída**. Fase 13 em
+  12/16.
+- Nova dívida técnica: **D23** (`ReportUserScreen` sem picker de partida relacionada — falta
+  endpoint no backend). D19 marcada como resolvida.
+- Próxima tarefa: item 13 da fila — `MessagesContext` → React Query contra
+  `GET/POST /matches/{id}/messages` (resolve D12 — timestamp de mensagem gerado no cliente),
+  com paginação em `MatchChatScreen` (`skip`/`limit`, máx. 100 por página, backend já suporta).
+- Nenhum bug pendente — parada é limpa, entre tarefas. Ver "Checkpointer" no fechamento desta sessão
+  (mensagem final) para o ponto exato de retomada.

@@ -17,19 +17,19 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
         <AuthProvider>
-          <MatchesProvider>
-            <RatingsProvider>
-              <ReportsProvider>
-                <MessagesProvider>
-                  <MatchFiltersProvider>
+          <RatingsProvider>
+            <ReportsProvider>
+              <MessagesProvider>
+                <MatchFiltersProvider>
+                  <MatchesProvider>
                     {/* Headers e heros são dark slate — status bar sempre clara */}
                     <StatusBar style="light" />
                     <RootNavigator />
-                  </MatchFiltersProvider>
-                </MessagesProvider>
-              </ReportsProvider>
-            </RatingsProvider>
-          </MatchesProvider>
+                  </MatchesProvider>
+                </MatchFiltersProvider>
+              </MessagesProvider>
+            </ReportsProvider>
+          </RatingsProvider>
         </AuthProvider>
       </SafeAreaProvider>
     </QueryClientProvider>

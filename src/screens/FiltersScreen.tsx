@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 
 import Button from "../components/Button";
 import Chip from "../components/Chip";
+import Input from "../components/Input";
 import type { MatchFilters } from "../contexts/MatchFiltersContext";
 import { useMatchFiltersContext } from "../contexts/MatchFiltersContext";
 import { colors, LEVEL_META, shadows, SPORT_META } from "../theme";
@@ -12,6 +13,20 @@ import type { ExperienceLevel, Sport } from "../types";
 
 const SPORTS: Sport[] = ["football", "futsal", "volleyball", "basketball", "tennis"];
 const LEVELS: ExperienceLevel[] = ["beginner", "intermediate", "advanced"];
+const DATE_RE = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+
+function isoToDisplayDate(iso: string | null): string {
+  if (!iso) return "";
+  const [year, month, day] = iso.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function displayToIsoDate(display: string): string | null {
+  const match = DATE_RE.exec(display);
+  if (!match) return null;
+  const [, day, month, year] = match;
+  return `${year}-${month}-${day}`;
+}
 
 function SectionLabel({ children }: Readonly<{ children: string }>) {
   return <Text className="text-sm font-bold text-secondary-900 mb-3">{children}</Text>;
@@ -22,6 +37,8 @@ export default function FiltersScreen() {
   const { filters, setFilters, clearFilters } = useMatchFiltersContext();
 
   const [local, setLocal] = useState<MatchFilters>({ ...filters });
+  const [dateText, setDateText] = useState(isoToDisplayDate(filters.date));
+  const [dateError, setDateError] = useState("");
 
   function toggleSport(sport: Sport) {
     setLocal((prev) => ({ ...prev, sport: prev.sport === sport ? null : sport }));
@@ -31,19 +48,45 @@ export default function FiltersScreen() {
     setLocal((prev) => ({ ...prev, level: prev.level === level ? null : level }));
   }
 
+  function handleDateChange(text: string) {
+    setDateText(text);
+    if (!text) {
+      setDateError("");
+      setLocal((prev) => ({ ...prev, date: null }));
+      return;
+    }
+    const iso = displayToIsoDate(text);
+    if (iso) {
+      setDateError("");
+      setLocal((prev) => ({ ...prev, date: iso }));
+    } else {
+      setDateError("Use o formato DD/MM/AAAA");
+    }
+  }
+
   function handleApply() {
+    if (dateText && !displayToIsoDate(dateText)) {
+      setDateError("Use o formato DD/MM/AAAA");
+      return;
+    }
     setFilters(local);
     navigation.goBack();
   }
 
   function handleClear() {
     clearFilters();
-    setLocal({ sport: null, level: null, onlyAvailable: false });
+    setLocal({ sport: null, level: null, onlyAvailable: false, date: null, location: null });
+    setDateText("");
+    setDateError("");
   }
 
-  const localActiveCount = [local.sport, local.level, local.onlyAvailable || null].filter(
-    Boolean
-  ).length;
+  const localActiveCount = [
+    local.sport,
+    local.level,
+    local.onlyAvailable || null,
+    local.date,
+    local.location,
+  ].filter(Boolean).length;
 
   let applyLabel = "Aplicar filtros";
   if (localActiveCount === 1) applyLabel = "Aplicar 1 filtro";
@@ -104,6 +147,34 @@ export default function FiltersScreen() {
               onPress={() => toggleLevel(level)}
             />
           ))}
+        </View>
+
+        {/* Date */}
+        <SectionLabel>Data</SectionLabel>
+        <View className="mb-6">
+          <Input
+            value={dateText}
+            onChangeText={handleDateChange}
+            error={dateError}
+            placeholder="DD/MM/AAAA"
+            keyboardType="number-pad"
+            maxLength={10}
+            leftIcon="calendar-blank-outline"
+          />
+        </View>
+
+        {/* Location */}
+        <SectionLabel>Localização</SectionLabel>
+        <View className="mb-6">
+          <Input
+            value={local.location ?? ""}
+            onChangeText={(text) =>
+              setLocal((prev) => ({ ...prev, location: text.trim() ? text : null }))
+            }
+            placeholder="Ex: Botafogo"
+            autoCapitalize="words"
+            leftIcon="map-marker-outline"
+          />
         </View>
 
         {/* Only available */}

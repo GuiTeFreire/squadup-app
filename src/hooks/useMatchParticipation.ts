@@ -1,23 +1,28 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { Alert } from "react-native";
 
-import { useMatchesContext } from "../contexts/MatchesContext";
+import { approveParticipant, closeMatch, joinMatch, leaveMatch } from "../services/api/matches";
+import { queryKeys } from "../services/queryKeys";
 import type { MatchDetail, ParticipationStatus, PublicUser } from "../types";
+import { useMatchDetail } from "./useMatchDetail";
 
 export interface UseMatchParticipationResult {
   match: MatchDetail | null;
   userStatus: ParticipationStatus | null;
-  join: () => void;
+  isLoading: boolean;
+  join: () => Promise<void>;
   cancel: () => void;
+  close: () => void;
+  approve: (userId: string) => Promise<void>;
 }
 
 export function useMatchParticipation(
   matchId: string,
   currentUser: PublicUser
 ): UseMatchParticipationResult {
-  const { matches, updateParticipation } = useMatchesContext();
-
-  const match = useMemo(() => matches.find((m) => m.id === matchId) ?? null, [matches, matchId]);
+  const queryClient = useQueryClient();
+  const { match, isLoading } = useMatchDetail(matchId);
 
   const userStatus = useMemo((): ParticipationStatus | null => {
     if (!match) return null;
@@ -26,11 +31,20 @@ export function useMatchParticipation(
     return found.status;
   }, [match, currentUser.id]);
 
-  const join = useCallback(() => {
+  const invalidate = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: queryKeys.match(matchId) });
+    void queryClient.invalidateQueries({ queryKey: ["matches"] });
+  }, [queryClient, matchId]);
+
+  const join = useCallback(async () => {
     if (!match) return;
-    const next: ParticipationStatus = match.requiresApproval ? "pending" : "confirmed";
-    updateParticipation(matchId, currentUser, next);
-  }, [match, matchId, currentUser, updateParticipation]);
+    try {
+      await joinMatch(matchId);
+      invalidate();
+    } catch {
+      Alert.alert("Não foi possível participar", "Tente novamente em instantes.");
+    }
+  }, [match, matchId, invalidate]);
 
   const cancel = useCallback(() => {
     Alert.alert("Cancelar participação", "Tem certeza que deseja cancelar?", [
@@ -38,10 +52,47 @@ export function useMatchParticipation(
       {
         text: "Sim, cancelar",
         style: "destructive",
-        onPress: () => updateParticipation(matchId, currentUser, "cancelled"),
+        onPress: async () => {
+          try {
+            await leaveMatch(matchId);
+            invalidate();
+          } catch {
+            Alert.alert("Não foi possível cancelar", "Tente novamente em instantes.");
+          }
+        },
       },
     ]);
-  }, [matchId, currentUser, updateParticipation]);
+  }, [matchId, invalidate]);
 
-  return { match, userStatus, join, cancel };
+  const close = useCallback(() => {
+    Alert.alert("Encerrar partida", "Tem certeza que deseja encerrar esta partida?", [
+      { text: "Não", style: "cancel" },
+      {
+        text: "Sim, encerrar",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await closeMatch(matchId);
+            invalidate();
+          } catch {
+            Alert.alert("Não foi possível encerrar", "Tente novamente em instantes.");
+          }
+        },
+      },
+    ]);
+  }, [matchId, invalidate]);
+
+  const approve = useCallback(
+    async (userId: string) => {
+      try {
+        await approveParticipant(matchId, userId);
+        invalidate();
+      } catch {
+        Alert.alert("Não foi possível aprovar", "Tente novamente em instantes.");
+      }
+    },
+    [matchId, invalidate]
+  );
+
+  return { match, userStatus, isLoading, join, cancel, close, approve };
 }

@@ -2,12 +2,10 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import React from "react";
 import { Alert } from "react-native";
 
-import { MOCK_MATCHES } from "../../mocks/matches";
 import ReportUserScreen from "../ReportUserScreen";
 
 const mockGoBack = jest.fn();
 const mockUseRoute = jest.fn();
-const mockUseMatchesContext = jest.fn();
 const mockAddReport = jest.fn();
 
 jest.mock("@react-navigation/native", () => ({
@@ -19,10 +17,6 @@ jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
 }));
 
-jest.mock("../../contexts/MatchesContext", () => ({
-  useMatchesContext: () => mockUseMatchesContext(),
-}));
-
 jest.mock("../../contexts/ReportsContext", () => ({
   useReportsContext: () => ({ addReport: mockAddReport }),
 }));
@@ -31,8 +25,7 @@ jest.spyOn(Alert, "alert");
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockUseRoute.mockReturnValue({ params: { userId: "user-3" } }); // Rafael Santos — está em match-1
-  mockUseMatchesContext.mockReturnValue({ matches: MOCK_MATCHES });
+  mockUseRoute.mockReturnValue({ params: { userId: "user-3" } }); // Rafael Santos
 });
 
 // ─── Renderização ─────────────────────────────────────────────────────────────
@@ -65,15 +58,7 @@ describe("ReportUserScreen — renderização", () => {
     expect(screen.getByText(/revisadas pela equipe do SquadUp/)).toBeTruthy();
   });
 
-  it("exibe seção de partida relacionada quando usuário tem partidas", () => {
-    render(<ReportUserScreen />);
-    // Rafael (user-3) está em match-1 "Pelada de domingo na arena"
-    expect(screen.getByLabelText("Nenhuma partida")).toBeTruthy();
-    expect(screen.getByLabelText("Pelada de domingo na arena")).toBeTruthy();
-  });
-
-  it("não exibe seção de partida relacionada quando usuário não tem partidas", () => {
-    mockUseMatchesContext.mockReturnValueOnce({ matches: [] });
+  it("não exibe seção de partida relacionada (D23 — sem endpoint de partidas em comum)", () => {
     render(<ReportUserScreen />);
     expect(screen.queryByLabelText("Nenhuma partida")).toBeNull();
   });
@@ -138,23 +123,6 @@ describe("ReportUserScreen — navegação", () => {
     render(<ReportUserScreen />);
     fireEvent.press(screen.getByLabelText("Voltar"));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-});
-
-// ─── Partida relacionada ──────────────────────────────────────────────────────
-
-describe("ReportUserScreen — partida relacionada", () => {
-  it("chip Nenhuma está selecionado por padrão", () => {
-    render(<ReportUserScreen />);
-    const noneChip = screen.getByLabelText("Nenhuma partida");
-    expect(noneChip.props.accessibilityState.selected).toBe(true);
-  });
-
-  it("selecionar uma partida marca o chip como selecionado", () => {
-    render(<ReportUserScreen />);
-    const matchChip = screen.getByLabelText("Pelada de domingo na arena");
-    fireEvent.press(matchChip);
-    expect(matchChip.props.accessibilityState.selected).toBe(true);
   });
 });
 
