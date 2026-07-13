@@ -2,13 +2,20 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useCallback } from "react";
-import { FlatList, KeyboardAvoidingView, Platform, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  View,
+} from "react-native";
 
 import ChatInput from "../components/ChatInput";
 import Header from "../components/Header";
 import MessageBubble from "../components/MessageBubble";
-import { useMessagesContext } from "../contexts/MessagesContext";
 import { useMatchDetail } from "../hooks/useMatchDetail";
+import { useMessages } from "../hooks/useMessages";
 import { CURRENT_USER } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
 import type { Message } from "../types";
@@ -22,15 +29,13 @@ export default function MatchChatScreen() {
   const { matchId } = route.params;
 
   const { match } = useMatchDetail(matchId);
-  const { getMessages, sendMessage } = useMessagesContext();
-
-  const messages = getMessages(matchId);
+  const { messages, isFetchingMore, hasMore, loadMore, sendMessage } = useMessages(matchId);
 
   const handleSend = useCallback(
     (text: string) => {
-      sendMessage(matchId, text);
+      sendMessage(text);
     },
-    [matchId, sendMessage]
+    [sendMessage]
   );
 
   const renderItem = useCallback(
@@ -66,6 +71,15 @@ export default function MatchChatScreen() {
         inverted
         contentContainerStyle={{ paddingVertical: 12 }}
         showsVerticalScrollIndicator={false}
+        onEndReached={hasMore ? loadMore : undefined}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={
+          isFetchingMore ? (
+            <View className="py-3" style={{ transform: [{ scaleY: -1 }] }}>
+              <ActivityIndicator />
+            </View>
+          ) : null
+        }
         ListEmptyComponent={
           <View
             className="flex-1 items-center justify-center py-16"

@@ -1,6 +1,6 @@
 # SquadUp — Roadmap Inicial do Front-end
 
-## Status de execução (atualizado em 2026-07-13, sessão 24)
+## Status de execução (atualizado em 2026-07-13, sessão 25)
 
 | Fase | Descrição | Status |
 |------|-----------|--------|
@@ -18,9 +18,9 @@
 | Fase 11 | Moderação (opcional) | 🟢 Concluída (3/3 tarefas — sessão 13) |
 | — | Redesign visual premium (theme module, elevação, cor por esporte) | 🟢 Concluído (transversal — sessão 16) |
 | Fase 12 | Revisão e polimento final | 🟡 Em andamento (6/8 — 12.1, 12.2, 12.4–12.7 concluídas, sessão 17) |
-| Fase 13 | Integração com o backend real | 🟡 Em andamento (12/16 — 13.1 sessão 20; 13.2/13.3 completas sessão 21; 13.4 concluída sessões 22–23; 13.5 concluída sessão 24) |
+| Fase 13 | Integração com o backend real | 🟡 Em andamento (13/16 — 13.1 sessão 20; 13.2/13.3 completas sessão 21; 13.4 concluída sessões 22–23; 13.5 concluída sessão 24; 13.6 concluída sessão 25) |
 
-**Progresso geral:** 81/86 tarefas concluídas (94%) · 239 testes passando · lint zerado · tsc zerado
+**Progresso geral:** 82/86 tarefas concluídas (95%) · 245 testes passando · lint zerado · tsc zerado
 
 Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons) · @tanstack/react-query v5 · expo-secure-store (sessão 21)
 
@@ -543,12 +543,19 @@ telas.
 - Adicionar UI de **aprovar solicitação pendente** para o organizador (lista de `pending` com ação
   por item), chamando `POST /matches/{id}/participants/{userId}/approve` (D17).
 
-### 13.6 — Mensagens reais
+### 13.6 — Mensagens reais — ✅ concluída (sessão 25)
 
-- `MessagesContext` → React Query (`GET`/`POST /matches/{id}/messages`);
-- `sendMessage` para de gerar `createdAt` no cliente — usa o valor devolvido pelo `POST` (resolve D12);
-- `MatchChatScreen` ganha paginação (`skip`/`limit`, máx. 100 por página) em vez de carregar tudo de uma vez;
-- Comportamento de mensagens de sistema decidido conforme D-D do backend (`backend-contract.md` §6).
+- ✅ `MessagesContext` → `useMessages` (React Query: `useInfiniteQuery` + `useMutation` contra
+  `GET`/`POST /matches/{id}/messages`) — Context removido, hook substitui integralmente;
+- ✅ `sendMessage` parou de gerar `createdAt` no cliente — envia só `{ text }` e invalida a
+  query, usando o `created_at` devolvido pelo próximo `GET` (resolve D12);
+- ✅ `MatchChatScreen` ganhou paginação incremental (`onEndReached` na `FlatList` invertida).
+  **Ajuste em relação ao desenho original:** o backend ordena a listagem em ordem crescente e
+  não expõe contagem total, então a paginação usa `limit` crescente a partir de `skip=0` (até o
+  teto de 100), não `skip` decrescente — ver comentário em `src/hooks/useMessages.ts`;
+- ✅ Comportamento de mensagens de sistema já resolvido no backend (D-D, sessão 18) — o front só
+  exibe o que a API devolve, sem gerar nada;
+- ✅ D21 resolvida para `Message` no mesmo passe (`formatMessageTime`, `src/utils/date.ts`).
 
 ### 13.7 — Avaliações reais
 

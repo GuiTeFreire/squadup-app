@@ -22,6 +22,12 @@ export function parseBirthDate(input: string): Date | null {
   return isRealDate ? date : null;
 }
 
+/** Formata um timestamp ISO (`created_at` do backend) para `HH:mm` em exibição de chat. */
+export function formatMessageTime(isoString: string): string {
+  const date = new Date(isoString);
+  return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
 export function calculateAge(birthDate: Date, referenceDate: Date = new Date()): number {
   let age = referenceDate.getFullYear() - birthDate.getFullYear();
   const birthdayAlreadyHappenedThisYear =

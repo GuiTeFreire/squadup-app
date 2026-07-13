@@ -1217,3 +1217,81 @@ e rodar `lint:fix` para CRLF→LF, dívida D4 pré-existente) · `npm run test` 
   com paginação em `MatchChatScreen` (`skip`/`limit`, máx. 100 por página, backend já suporta).
 - Nenhum bug pendente — parada é limpa, entre tarefas. Ver "Checkpointer" no fechamento desta sessão
   (mensagem final) para o ponto exato de retomada.
+
+---
+
+## Sessão 25 — 2026-07-13
+
+### Fase 13.6 — Mensagens reais (item 13 da fila, conclui a 13.6)
+
+Branch `feat/messages-real`, criada a partir de `dev`. Alinhamento prévio confirmado contra
+`plano-de-entrega.md` (Trilha B, item 2) antes de iniciar — sem conflito, dentro do cronograma
+aprovado ("Ago 2 – Set 2: mensagens/avaliações/denúncias").
+
+Descoberta que mudou o desenho original da tarefa: o backend (`app/services/message_service.py`)
+ordena `GET /matches/{id}/messages` em ordem **crescente** (`order_by(Message.created_at)`, mais
+antiga primeiro) e não expõe contagem total de mensagens. Isso inviabiliza paginação reversa
+clássica por `skip` decrescente (não dá para calcular o offset da "última página" sem saber o
+total). Resolvido com `useInfiniteQuery` buscando sempre do início (`skip=0`) com um `limit`
+crescente a cada "carregar mais" (30 → 60 → 90 → teto de 100 do backend) — troca eficiência de
+rede por corretude, aceitável dado o volume esperado de mensagens por partida num protótipo
+acadêmico.
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/services/api/messages.ts` | `fetchMessages(matchId, {skip, limit})` (`GET /matches/{id}/messages`), `postMessage(matchId, text)` (`POST /matches/{id}/messages`, envia só `{ text }` — timestamp gerado pelo servidor) |
+| `src/hooks/useMessages.ts` | Substitui `MessagesContext` por completo. `useInfiniteQuery` contra `queryKeys.messages(matchId)` (limit crescente, ver acima) + `useMutation` para `sendMessage` (invalida a query no sucesso). Resultado já inverte a ordem para a `FlatList` invertida (`messages[0]` = mais recente) |
+| `src/hooks/__tests__/useMessages.test.ts` | Cobre inversão de ordem, rota `GET`/`POST` corretas, payload só com `text`, e no-op ao enviar texto vazio/espaços |
+
+### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/screens/MatchChatScreen.tsx` | Troca `useMessagesContext()` por `useMessages(matchId)`; `FlatList` ganha `onEndReached`/`onEndReachedThreshold` (dispara `loadMore` ao rolar para o topo visual = histórico mais antigo, correto numa lista invertida) e `ListFooterComponent` com `ActivityIndicator` durante `isFetchingMore` |
+| `src/utils/date.ts` | Novo `formatMessageTime(isoString)` — formata o `created_at` ISO do backend em `HH:mm` para exibição |
+| `src/components/MessageBubble.tsx` | Passa a formatar `message.createdAt` (agora ISO completo, não mais `"HH:mm"` fixo do mock) via `formatMessageTime` — resolve **D21** |
+| `src/components/__tests__/MessageBubble.test.tsx`, `src/utils/__tests__/date.test.ts` | Fixtures migradas de `"HH:mm"` fixo para ISO real; assert de horário passa a comparar contra `formatMessageTime(...)` em vez de string literal |
+| `App.tsx` | `MessagesProvider` removido da árvore de providers (Context deletado) |
+
+### Arquivos removidos
+
+- `src/contexts/MessagesContext.tsx` — funcionalidade migrada integralmente para `useMessages`.
+  `src/mocks/messages.ts` **mantido** (ainda não é o momento de remover mocks — `RatingsContext`/
+  `ReportsContext` seguem mockados; a remoção de mocks é tarefa da 13.9, só depois que os 3
+  Contexts restantes migrarem).
+
+### Decisões não óbvias
+
+- **Paginação por limit crescente, não por skip decrescente** — única forma correta de paginar
+  "carregar mensagens mais antigas" sem um endpoint de contagem total. Documentado em comentário
+  no próprio `useMessages.ts` para não parecer um bug na próxima leitura do código.
+- **D12 resolvida por completo**: `sendMessage` não gera mais `createdAt` no cliente — o hook só
+  envia `{ text }` e invalida a query, deixando o próximo fetch trazer o `created_at` real do
+  servidor (em vez de otimisticamente inserir a mensagem local, que exigiria reconciliar o ID
+  temporário depois — trade-off aceito: um pequeno delay perceptível entre enviar e ver a
+  mensagem aparecer, contra simplicidade e corretude do timestamp).
+- **D21 resolvida junto** (não estava no escopo original da 13.6, mas era o mesmo arquivo/mesmo
+  motivo): `MessageBubble` já precisava lidar com ISO real por causa da migração, então formatar
+  ali mesmo evitou deixar a dívida para depois.
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros (após `lint:fix` para CRLF→LF, D4
+pré-existente — nenhuma mudança de conteúdo real nos arquivos só normalizados, confirmado via
+`git diff --ignore-space-at-eol`) · `npm run test` 245/245 passando (234 pré-existentes + 11
+novos em `useMessages.test.ts`, líquido: suite cresceu, nada quebrou) · `npx expo export` (ver
+seção de build desta sessão de fechamento).
+
+### Estado ao final da sessão 25
+
+- Branch `feat/messages-real`, criada a partir de `dev`. Commit feito nesta sessão de fechamento
+  (ver histórico do git para o hash exato).
+- Item 13 da fila concluído — **Fase 13.6 (Mensagens reais) inteiramente concluída**. Fase 13 em
+  13/16.
+- Dívidas D12 e D21 resolvidas. Nenhuma dívida nova identificada nesta sessão.
+- Próxima tarefa: item 14 da fila — `RatingsContext` → React Query contra
+  `POST /matches/{id}/ratings/{userId}` e `GET /users/{id}/ratings` (Fase 13.7), com adapter de
+  achatamento de `RatingCriteria` e tratamento de `averageRating` nulo (D20).
+- Nenhum bug pendente — parada é limpa, entre tarefas.
