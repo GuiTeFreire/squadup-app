@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 
 import { shadows } from "../theme";
 import type { Message } from "../types";
+import { formatMessageTime } from "../utils/date";
 import Avatar from "./Avatar";
 
 interface MessageBubbleProps {
@@ -28,7 +29,9 @@ function MessageBubble({ message, isOwn }: Readonly<MessageBubbleProps>) {
           <View className="bg-primary-500 rounded-3xl rounded-br-md px-4 py-2.5">
             <Text className="text-white text-sm leading-5">{message.text}</Text>
           </View>
-          <Text className="text-xs text-neutral-500 mt-1 text-right">{message.createdAt}</Text>
+          <Text className="text-xs text-neutral-500 mt-1 text-right">
+            {formatMessageTime(message.createdAt)}
+          </Text>
         </View>
       </View>
     );
@@ -45,7 +48,9 @@ function MessageBubble({ message, isOwn }: Readonly<MessageBubbleProps>) {
         >
           <Text className="text-secondary-900 text-sm leading-5">{message.text}</Text>
         </View>
-        <Text className="text-xs text-neutral-500 mt-1 ml-1">{message.createdAt}</Text>
+        <Text className="text-xs text-neutral-500 mt-1 ml-1">
+          {formatMessageTime(message.createdAt)}
+        </Text>
       </View>
     </View>
   );

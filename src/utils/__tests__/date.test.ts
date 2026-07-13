@@ -1,4 +1,4 @@
-import { calculateAge, parseBirthDate } from "../date";
+import { calculateAge, formatMessageTime, parseBirthDate } from "../date";
 
 describe("parseBirthDate", () => {
   it("converte DD/MM/AAAA válido em Date", () => {
@@ -52,5 +52,19 @@ describe("calculateAge", () => {
     const eighteenYearsAgo = new Date();
     eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
     expect(calculateAge(eighteenYearsAgo)).toBe(18);
+  });
+});
+
+describe("formatMessageTime", () => {
+  it("formata um timestamp ISO em HH:mm", () => {
+    const iso = new Date(2026, 6, 8, 9, 5).toISOString();
+    expect(formatMessageTime(iso)).toMatch(/^\d{2}:\d{2}$/);
+  });
+
+  it("preserva a hora e o minuto do timestamp local", () => {
+    const date = new Date(2026, 6, 8, 14, 30);
+    expect(formatMessageTime(date.toISOString())).toBe(
+      date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    );
   });
 });

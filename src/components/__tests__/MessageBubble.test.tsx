@@ -3,6 +3,11 @@ import React from "react";
 
 import MessageBubble from "../MessageBubble";
 import type { Message } from "../../types";
+import { formatMessageTime } from "../../utils/date";
+
+const ISO_09_10 = new Date(2026, 6, 8, 9, 10).toISOString();
+const ISO_09_15 = new Date(2026, 6, 8, 9, 15).toISOString();
+const ISO_09_00 = new Date(2026, 6, 8, 9, 0).toISOString();
 
 const BASE_USER_MESSAGE: Message = {
   id: "msg-1",
@@ -11,7 +16,7 @@ const BASE_USER_MESSAGE: Message = {
   senderName: "Ana Lima",
   senderPhotoUrl: "https://i.pravatar.cc/150?img=5",
   text: "Galera, confirmem presença!",
-  createdAt: "09:10",
+  createdAt: ISO_09_10,
   type: "message",
 };
 
@@ -21,7 +26,7 @@ const OWN_MESSAGE: Message = {
   senderId: "user-1",
   senderName: "Guilherme Freire",
   text: "Estarei lá!",
-  createdAt: "09:15",
+  createdAt: ISO_09_15,
 };
 
 const SYSTEM_MESSAGE: Message = {
@@ -30,7 +35,7 @@ const SYSTEM_MESSAGE: Message = {
   senderId: "system",
   senderName: "Sistema",
   text: "Partida amanhã às 09:00! ⚽",
-  createdAt: "09:00",
+  createdAt: ISO_09_00,
   type: "system",
 };
 
@@ -48,7 +53,7 @@ describe("MessageBubble", () => {
 
     it("renderiza o horário da mensagem", () => {
       render(<MessageBubble message={BASE_USER_MESSAGE} isOwn={false} />);
-      expect(screen.getByText("09:10")).toBeTruthy();
+      expect(screen.getByText(formatMessageTime(ISO_09_10))).toBeTruthy();
     });
   });
 
@@ -60,7 +65,7 @@ describe("MessageBubble", () => {
 
     it("renderiza o horário da mensagem", () => {
       render(<MessageBubble message={OWN_MESSAGE} isOwn={true} />);
-      expect(screen.getByText("09:15")).toBeTruthy();
+      expect(screen.getByText(formatMessageTime(ISO_09_15))).toBeTruthy();
     });
 
     it("não renderiza o nome do remetente na própria mensagem", () => {
@@ -82,7 +87,7 @@ describe("MessageBubble", () => {
 
     it("não renderiza horário em mensagem de sistema", () => {
       render(<MessageBubble message={SYSTEM_MESSAGE} isOwn={false} />);
-      expect(screen.queryByText("09:00")).toBeNull();
+      expect(screen.queryByText(formatMessageTime(ISO_09_00))).toBeNull();
     });
   });
 });

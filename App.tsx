@@ -6,7 +6,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "./src/contexts/AuthContext";
 import { MatchesProvider } from "./src/contexts/MatchesContext";
 import { MatchFiltersProvider } from "./src/contexts/MatchFiltersContext";
-import { MessagesProvider } from "./src/contexts/MessagesContext";
 import { RatingsProvider } from "./src/contexts/RatingsContext";
 import { ReportsProvider } from "./src/contexts/ReportsContext";
 import RootNavigator from "./src/navigation/RootNavigator";
@@ -19,15 +18,13 @@ export default function App() {
         <AuthProvider>
           <RatingsProvider>
             <ReportsProvider>
-              <MessagesProvider>
-                <MatchFiltersProvider>
-                  <MatchesProvider>
-                    {/* Headers e heros são dark slate — status bar sempre clara */}
-                    <StatusBar style="light" />
-                    <RootNavigator />
-                  </MatchesProvider>
-                </MatchFiltersProvider>
-              </MessagesProvider>
+              <MatchFiltersProvider>
+                <MatchesProvider>
+                  {/* Headers e heros são dark slate — status bar sempre clara */}
+                  <StatusBar style="light" />
+                  <RootNavigator />
+                </MatchesProvider>
+              </MatchFiltersProvider>
             </ReportsProvider>
           </RatingsProvider>
         </AuthProvider>
