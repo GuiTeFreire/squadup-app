@@ -9,6 +9,7 @@ import Button from "../components/Button";
 import Input from "../components/Input";
 import { useAuth } from "../contexts/AuthContext";
 import type { AuthStackParamList } from "../navigation/types";
+import { ApiError } from "../services/api/client";
 
 type LoginNavProp = NativeStackNavigationProp<AuthStackParamList, "Login">;
 
@@ -26,7 +27,7 @@ export default function LoginScreen() {
   const [passwordError, setPasswordError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     let valid = true;
 
     if (!validateEmail(email)) {
@@ -46,10 +47,15 @@ export default function LoginScreen() {
     if (!valid) return;
 
     setLoading(true);
-    setTimeout(() => {
-      login(email, password);
+    try {
+      await login(email, password);
+    } catch (err) {
+      setPasswordError(
+        err instanceof ApiError ? err.message : "Não foi possível entrar. Tente novamente."
+      );
+    } finally {
       setLoading(false);
-    }, 600);
+    }
   };
 
   return (

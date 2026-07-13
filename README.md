@@ -60,7 +60,8 @@ src/
 ├── navigation/   # Navigators (AuthNavigator, AppNavigator, RootNavigator)
 ├── screens/      # Telas da aplicação
 ├── services/     # Infraestrutura de integração com o backend (Fase 13)
-│                 #   api/client.ts — fetch tipado + ApiError + Bearer
+│                 #   api/client.ts — fetch tipado + ApiError + Bearer + interceptor de refresh em 401
+│                 #   api/auth.ts, api/users.ts — chamadas reais de /auth/* e /users/* (AuthContext)
 │                 #   adapters/    — conversão snake_case↔camelCase por entidade
 │                 #   storage/     — token seguro (expo-secure-store / sessionStorage no web)
 │                 #   queryClient.ts, queryKeys.ts — React Query
@@ -77,6 +78,7 @@ __tests__/        # Testes do componente raiz (App.tsx)
 ```
 App
 └── RootNavigator
+    ├── BootScreen     (enquanto restaura sessão salva via GET /users/me)
     ├── AuthNavigator  (não autenticado)
     │   ├── WelcomeScreen
     │   ├── LoginScreen
@@ -100,13 +102,15 @@ App
         └── ReportDetailScreen    ← detalhes da denúncia + ações administrativas
 ```
 
-## Autenticação (mock)
+## Autenticação (real desde a Fase 13.4)
 
-Não há backend. O `AuthContext` simula:
+O `AuthContext` consome a API real do backend (`../back`, FastAPI + JWT):
 
-- **Login** — qualquer e-mail válido + senha ≥ 6 chars autentica como `Guilherme Freire`
-- **Cadastro** → `RegisterScreen` → `ProfileSetupScreen` → cria novo perfil em memória
-- **Logout** — disponível na `HomeScreen`
+- **Login** → `POST /auth/login` + `GET /users/me`; token salvo via `expo-secure-store` (nativo) ou `sessionStorage` (web)
+- **Cadastro** → `RegisterScreen` (nome/e-mail/senha/data de nascimento) → `ProfileSetupScreen` (esportes/nível/localização) → só então `POST /auth/register` → `POST /auth/login` → `PATCH /users/me` (grava o nível escolhido)
+- **Boot** — ao abrir o app, `GET /users/me` com o token salvo restaura a sessão antes de decidir entre `AuthNavigator`/`AppNavigator` (`BootScreen`)
+- **Refresh automático** — um 401 em qualquer chamada autenticada tenta `POST /auth/refresh` e repete a chamada original uma vez
+- **Logout** — disponível na `HomeScreen`; chama `POST /auth/logout` com o refresh token antes de limpar o estado local
 
 ## Cabeçalho das telas
 
@@ -133,8 +137,8 @@ O `ReportsContext` guarda as denúncias em memória (seed em `src/mocks/reports.
 | 10 | Denúncia e segurança | ✅ Concluída |
 | 11 | Moderação (opcional) | ✅ Concluída |
 | 12 | Revisão e polimento final | 🟡 **Em andamento** (6/8 — restam apenas testes em Expo Go e build de apresentação) |
-| 13 | Integração com o backend real | 🟡 **Em andamento** (7/16 — tipos, cliente HTTP, adapters, storage seguro de token e React Query prontos; campo de idade no cadastro adicionado; backend já deployado em `https://squadup-api.up.railway.app`) |
+| 13 | Integração com o backend real | 🟡 **Em andamento** (8/16 — fundação (tipos/cliente HTTP/adapters/storage/React Query) e Auth real (13.4) concluídas; backend já deployado em `https://squadup-api.up.railway.app`) |
 
-238 testes passando · lint zerado · tsc zerado · 76/86 tarefas concluídas (88%)
+245 testes passando · lint zerado · tsc zerado · 77/86 tarefas concluídas (90%)
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

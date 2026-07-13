@@ -8,6 +8,7 @@ import Button from "../components/Button";
 import Chip from "../components/Chip";
 import Input from "../components/Input";
 import { useAuth } from "../contexts/AuthContext";
+import { ApiError } from "../services/api/client";
 import { colors, LEVEL_META, SPORT_META } from "../theme";
 import type { ExperienceLevel, Sport } from "../types";
 
@@ -21,11 +22,29 @@ export default function ProfileSetupScreen() {
   const [level, setLevel] = useState<ExperienceLevel | null>(null);
   const [location, setLocation] = useState("");
   const [locationError, setLocationError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const toggleSport = (sport: Sport) => {
     setSelectedSports((prev) =>
       prev.includes(sport) ? prev.filter((s) => s !== sport) : [...prev, sport]
     );
+  };
+
+  const submitProfile = async (data: Parameters<typeof completeProfile>[0]) => {
+    setSubmitError("");
+    setLoading(true);
+    try {
+      await completeProfile(data);
+    } catch (err) {
+      setSubmitError(
+        err instanceof ApiError
+          ? err.message
+          : "Não foi possível concluir o cadastro. Tente novamente."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleComplete = () => {
@@ -35,7 +54,7 @@ export default function ProfileSetupScreen() {
     }
     setLocationError("");
 
-    completeProfile({
+    submitProfile({
       favoriteSports: selectedSports,
       level: level ?? "beginner",
       location: location.trim(),
@@ -132,23 +151,29 @@ export default function ProfileSetupScreen() {
         />
       </View>
 
+      {submitError ? (
+        <Text className="mb-4 text-sm text-error text-center">{submitError}</Text>
+      ) : null}
+
       <Button
         label="Concluir configuração"
         onPress={handleComplete}
         variant="primary"
         size="lg"
         fullWidth
+        loading={loading}
       />
 
       <View className="mt-4">
         <Button
           label="Pular por agora"
           onPress={() =>
-            completeProfile({ favoriteSports: [], level: "beginner", location: "Rio de Janeiro" })
+            submitProfile({ favoriteSports: [], level: "beginner", location: "Rio de Janeiro" })
           }
           variant="ghost"
           size="md"
           fullWidth
+          loading={loading}
         />
       </View>
     </ScrollView>
