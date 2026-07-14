@@ -1379,3 +1379,83 @@ sessão de fechamento).
   para ação (`archive`/`warn`/`ban`), alinhado a `PATCH /reports/{id}` (Fase 13.8, resolve D14 —
   único contrato genuinamente quebrado identificado na comparação com o backend).
 - Nenhum bug pendente — parada é limpa, entre tarefas.
+
+---
+
+## Sessão 27 — 2026-07-14
+
+### Fase 13.8 — Denúncias reais (item 15 da fila, conclui a 13.8)
+
+Branch `feat/reports-real`, criada a partir de `dev` (após o merge do PR #7 de `feat/ratings-real`).
+Resolve **D14**, o único contrato genuinamente quebrado identificado na comparação com o backend
+(`.status/backend-contract.md` §2.6): o front mandava um `ReportStatus` direto para
+`updateReportStatus`, mas `PATCH /reports/{id}` real espera `{ action: "archive"|"warn"|"ban" }`.
+
+### Arquivos criados
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/services/api/reports.ts` | `fetchReports()` (`GET /reports`), `createReport(payload)` (`POST /reports`), `updateReportAction(reportId, action)` (`PATCH /reports/{id}`) — `ReportAction = "archive" \| "warn" \| "ban"` |
+| `src/hooks/useReports.ts` | `useReports()` — query simples de todas as denúncias; `useCreateReport()` — mutation com callbacks `onSuccess`/`onError` por chamada, invalida `queryKeys.reports()` no sucesso; `useUpdateReportAction()` — mesma forma, para a ação de moderação |
+| `src/hooks/__tests__/useReports.test.tsx` | Cobre leitura, criação (sucesso/erro) e atualização de ação, seguindo o mesmo padrão de mock de `fetch` por rota usado em `useRatings.test.tsx` |
+
+### Arquivos modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/services/adapters/report.ts` | Ganhou `ReportCreatePayload` (`reported_user_id`, `match_id?`, `reason`, `description`) — `toReport` não mudou, o adapter de leitura já estava correto desde a comparação de contrato da sessão 18 |
+| `src/screens/AdminDashboardScreen.tsx` | Troca `useReportsContext().reports` por `useReports().reports` |
+| `src/screens/ReportDetailScreen.tsx` | `ACTIONS` migrado de `{ status, label, message }` para `{ action, label, message }`; `handleAction` chama `updateReportAction(reportId, action, { onSuccess: () => navigation.goBack() })` em vez de mutar estado local e navegar incondicionalmente |
+| `src/screens/ReportUserScreen.tsx` | Troca `useReportsContext().addReport` por `useCreateReport().submitReport`; monta só o payload de criação esperado pelo backend (reporter vem do JWT, não é mais montado no cliente); botão de envio ganha `loading={isSubmitting}`; erro de rede exibido inline (mesmo padrão de `RateUserScreen`) |
+| `App.tsx` | `ReportsProvider` removido da árvore de providers |
+| `src/screens/__tests__/AdminDashboardScreen.test.tsx`, `ReportDetailScreen.test.tsx`, `ReportUserScreen.test.tsx` | Reescritos para mockar `fetch` (via `createQueryWrapper`) em vez de `jest.mock("../../contexts/ReportsContext")` |
+
+### Arquivos removidos
+
+- `src/contexts/ReportsContext.tsx` — funcionalidade migrada integralmente para `useReports.ts`.
+  `src/mocks/reports.ts` **mantido** como fixture de teste, mesmo padrão de `messages`/`ratings`
+  (só será removido na 13.9, quando não houver mais nenhum Context mockado no projeto).
+
+### Decisões não óbvias
+
+- **D23 (picker de "partida relacionada" em `ReportUserScreen`) segue em aberto** — a Fase 13.5
+  já havia zerado esse array (`userMatches: MatchRef[] = []`) por falta de um endpoint
+  "partidas em comum com o usuário X" no backend. A Fase 13.8 não resolve isso: migrar
+  `ReportsContext` para a API real não cria esse endpoint, então o comportamento observável
+  (seção "Partida relacionada" nunca aparece) continua igual. D23 permanece como dívida aberta,
+  não como algo que "seria automaticamente resolvido" pela sub-fase — só um novo endpoint no
+  backend resolve de fato.
+- **Botão de ação usa `Button.loading`, não um estado de disabled manual** — mesmo padrão já
+  estabelecido em `RateUserScreen` (Fase 13.7): callbacks opcionais por chamada de mutation em vez
+  de mudar a assinatura pública do hook, mantendo `useCreateReport()`/`useUpdateReportAction()`
+  simples de usar em qualquer tela futura que precise do mesmo fluxo.
+- **CRLF→LF (D4) tocou ~13 arquivos fora do escopo desta sessão** — rodar `npm run lint:fix`
+  também normalizou arquivos de sessões anteriores (`RatingStars.tsx`, `user.ts`, `types/index.ts`
+  etc.) que ainda tinham CRLF puro. Confirmado via `git diff --ignore-space-at-eol` que não havia
+  mudança de conteúdo real — esses arquivos foram deixados de fora do commit da Fase 13.8 (ficam
+  como diff pendente no working tree, ver Checkpoint da sessão) para não misturar uma limpeza de
+  line-ending genérica com uma mudança de feature específica.
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros (após `lint:fix` para CRLF→LF, D4
+pré-existente — nenhuma mudança de conteúdo real nos arquivos só normalizados, confirmado via
+`git diff --ignore-space-at-eol`) · `npm run test` 256/256 passando (252 pré-existentes + 4 novos
+em `useReports.test.tsx`) · `npx expo export` (ver seção de build desta sessão de fechamento).
+
+### Estado ao final da sessão 27
+
+- Branch `feat/reports-real`, criada a partir de `dev`. Commit `ef67176` — escopo da Fase 13.8
+  apenas (o diff de CRLF→LF em arquivos de sessões anteriores foi deixado fora do commit,
+  intencionalmente, ver decisão acima).
+- Item 15 da fila concluído — **Fase 13.8 (Denúncias reais) inteiramente concluída**. Fase 13 em
+  15/16.
+- Dívida D14 resolvida. Nenhuma dívida nova identificada nesta sessão (D23 permanece em aberto,
+  sem mudança de status — ver decisão acima).
+- Próxima tarefa: item 16 da fila — teste manual ponta a ponta contra o backend local, depois
+  contra a URL de produção do Railway; apontar `EXPO_PUBLIC_API_URL` para
+  `https://squadup-api.up.railway.app`; ajustar o texto do TCC conforme a decisão D-A (Fase 13.9,
+  última tarefa da Fase 13 — ver `.status/backend-contract.md` §6 para o detalhe completo).
+- Nenhum bug pendente — parada é limpa, entre tarefas. Ver Checkpoint no fim do `queue.md`/mensagem
+  de fechamento desta sessão para o estado exato do working tree (diff de CRLF pendente, não
+  commitado).
