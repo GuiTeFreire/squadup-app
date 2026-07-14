@@ -8,27 +8,27 @@ import Avatar from "../components/Avatar";
 import Button from "../components/Button";
 import Header from "../components/Header";
 import SectionCard from "../components/SectionCard";
-import { useReportsContext } from "../contexts/ReportsContext";
+import { useReports, useUpdateReportAction } from "../hooks/useReports";
 import type { AppRootStackParamList } from "../navigation/types";
-import type { ReportStatus } from "../types";
+import type { ReportAction } from "../services/api/reports";
 import { REASON_LABELS, STATUS_COLORS, STATUS_LABELS } from "../utils/reportLabels";
 
 type Nav = NativeStackNavigationProp<AppRootStackParamList>;
 type Route = RouteProp<AppRootStackParamList, "ReportDetail">;
 
-const ACTIONS: ReadonlyArray<{ status: ReportStatus; label: string; message: string }> = [
+const ACTIONS: ReadonlyArray<{ action: ReportAction; label: string; message: string }> = [
   {
-    status: "archived",
+    action: "archive",
     label: "Arquivar denúncia",
     message: "A denúncia será arquivada sem punição ao usuário.",
   },
   {
-    status: "warned",
+    action: "warn",
     label: "Advertir usuário",
     message: "O usuário receberá uma advertência formal.",
   },
   {
-    status: "banned",
+    action: "ban",
     label: "Banir usuário",
     message: "O usuário será banido da plataforma.",
   },
@@ -46,7 +46,8 @@ export default function ReportDetailScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const { reportId } = route.params;
-  const { reports, updateReportStatus } = useReportsContext();
+  const { reports } = useReports();
+  const { updateReportAction } = useUpdateReportAction();
 
   const report = useMemo(() => reports.find((r) => r.id === reportId) ?? null, [reports, reportId]);
 
@@ -58,15 +59,14 @@ export default function ReportDetailScreen() {
     );
   }
 
-  function handleAction(status: ReportStatus, label: string, message: string) {
+  function handleAction(action: ReportAction, label: string, message: string) {
     Alert.alert(label, message, [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Confirmar",
-        style: status === "banned" ? "destructive" : "default",
+        style: action === "ban" ? "destructive" : "default",
         onPress: () => {
-          updateReportStatus(reportId, status);
-          navigation.goBack();
+          updateReportAction(reportId, action, { onSuccess: () => navigation.goBack() });
         },
       },
     ]);
@@ -140,12 +140,12 @@ export default function ReportDetailScreen() {
 
           <View className="gap-3 mt-1">
             <Text className="text-sm font-bold text-secondary-900">Ações administrativas</Text>
-            {ACTIONS.map(({ status, label, message }) => (
+            {ACTIONS.map(({ action, label, message }) => (
               <Button
-                key={status}
+                key={action}
                 label={label}
-                onPress={() => handleAction(status, label, message)}
-                variant={status === "banned" ? "danger" : "secondary"}
+                onPress={() => handleAction(action, label, message)}
+                variant={action === "ban" ? "danger" : "secondary"}
                 fullWidth
               />
             ))}

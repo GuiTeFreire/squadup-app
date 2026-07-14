@@ -18,9 +18,9 @@
 | Fase 11 | Moderação (opcional) | 🟢 Concluída (3/3 tarefas — sessão 13) |
 | — | Redesign visual premium (theme module, elevação, cor por esporte) | 🟢 Concluído (transversal — sessão 16) |
 | Fase 12 | Revisão e polimento final | 🟡 Em andamento (6/8 — 12.1, 12.2, 12.4–12.7 concluídas, sessão 17) |
-| Fase 13 | Integração com o backend real | 🟡 Em andamento (14/16 — 13.1 sessão 20; 13.2/13.3 completas sessão 21; 13.4 concluída sessões 22–23; 13.5 concluída sessão 24; 13.6 concluída sessão 25; 13.7 concluída sessão 26) |
+| Fase 13 | Integração com o backend real | 🟡 Em andamento (15/16 — 13.1 sessão 20; 13.2/13.3 completas sessão 21; 13.4 concluída sessões 22–23; 13.5 concluída sessão 24; 13.6 concluída sessão 25; 13.7 concluída sessão 26; 13.8 concluída sessão 27) |
 
-**Progresso geral:** 83/86 tarefas concluídas (97%) · 252 testes passando · lint zerado · tsc zerado
+**Progresso geral:** 84/86 tarefas concluídas (98%) · 256 testes passando · lint zerado · tsc zerado
 
 Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons) · @tanstack/react-query v5 · expo-secure-store (sessão 21)
 
@@ -569,14 +569,18 @@ telas.
   `average_rating: null` como `0`, o tipo `PublicUser.averageRating` virou `number | null`, e
   `RatingStars` mostra "Sem avaliações" nesse caso em vez de "0.0".
 
-### 13.8 — Denúncias reais
+### 13.8 — Denúncias reais — ✅ concluída (sessão 27)
 
-- `ReportsContext.updateReportStatus(reportId, status)` → `updateReportStatus(reportId, action)`,
-  onde `action` é `"archive" | "warn" | "ban"`, alinhado a `PATCH /reports/{id}` (D14 — único
-  contrato genuinamente quebrado encontrado na comparação);
-- `AdminDashboardScreen`/`ReportDetailScreen` atualizados para os três verbos de ação;
-- `ReportUserScreen` envia só `{ reported_user_id, match_id?, reason, description }` via
-  `POST /reports` (reporter vem do JWT).
+- ✅ `ReportsContext` removido; novo `src/hooks/useReports.ts` (`useReports`, `useCreateReport`,
+  `useUpdateReportAction`) contra `GET /reports`, `POST /reports` e `PATCH /reports/{id}`;
+- ✅ `updateReportAction(reportId, action)`, onde `action` é `"archive" | "warn" | "ban"`, alinhado
+  a `PATCH /reports/{id}` (resolve **D14** — único contrato genuinamente quebrado encontrado na
+  comparação);
+- ✅ `AdminDashboardScreen`/`ReportDetailScreen` atualizados para os três verbos de ação;
+- ✅ `ReportUserScreen` envia só `{ reported_user_id, match_id?, reason, description }` via
+  `POST /reports` (reporter vem do JWT), com estado de loading (`isSubmitting`) e erro de rede
+  tratado na UI;
+- `src/mocks/reports.ts` mantido como fixture de testes (mesmo padrão de `messages`/`ratings`).
 
 ### 13.9 — Hardening conjunto e fechamento
 

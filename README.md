@@ -10,7 +10,7 @@ Protótipo navegável com dados mockados para apresentação acadêmica.
 - **NativeWind** v4 (Tailwind CSS para React Native)
 - **React Navigation** v6 (Stack + Bottom Tabs)
 - **@expo/vector-icons** — MaterialCommunityIcons para ícones vetoriais
-- **@tanstack/react-query** v5 — estado de servidor (`AuthContext`, `MatchesContext`/detalhe de partida, chat da partida e avaliações já consomem; só `ReportsContext` ainda mockado)
+- **@tanstack/react-query** v5 — estado de servidor (auth, partidas, chat, avaliações e denúncias já consomem a API real; nenhum Context mockado restante)
 - **expo-secure-store** — storage seguro de token (nativo; fallback `sessionStorage` no web)
 - **Jest** + React Native Testing Library
 - **ESLint** 9 (flat config) + **Prettier**
@@ -54,16 +54,17 @@ npm install
 src/
 ├── components/   # Componentes reutilizáveis (Button, Input, Card, Avatar, MatchCard, ParticipantList,
 │                 #   MessageBubble, StarRatingInput, SectionCard, Chip, SportTile, StatsRow, Skeleton…)
-├── contexts/     # Context API (AuthContext, MatchesContext, MatchFiltersContext, ReportsContext)
-├── hooks/        # Hooks customizados (useMatchFilters, useMatchDetail, useMatchParticipation, useMessages, useRatings)
-├── mocks/        # Dados mockados (users, matches, messages, ratings, reports)
+├── contexts/     # Context API (AuthContext, MatchesContext, MatchFiltersContext)
+├── hooks/        # Hooks customizados (useMatchFilters, useMatchDetail, useMatchParticipation, useMessages, useRatings, useReports)
+├── mocks/        # Dados mockados — mantidos como fixtures de teste (users, matches, messages, ratings, reports)
 ├── navigation/   # Navigators (AuthNavigator, AppNavigator, RootNavigator)
 ├── screens/      # Telas da aplicação
 ├── services/     # Infraestrutura de integração com o backend (Fase 13)
 │                 #   api/client.ts — fetch tipado + ApiError + Bearer + interceptor de refresh em 401
-│                 #   api/auth.ts, api/users.ts, api/matches.ts, api/messages.ts, api/ratings.ts —
-│                 #   chamadas reais de /auth/*, /users/*, /matches/*, /matches/{id}/messages e
-│                 #   /matches/{id}/ratings/{userId} · /users/{id}/ratings
+│                 #   api/auth.ts, api/users.ts, api/matches.ts, api/messages.ts, api/ratings.ts,
+│                 #   api/reports.ts — chamadas reais de /auth/*, /users/*, /matches/*,
+│                 #   /matches/{id}/messages, /matches/{id}/ratings/{userId} · /users/{id}/ratings
+│                 #   e /reports · /reports/{id}
 │                 #   adapters/    — conversão snake_case↔camelCase por entidade
 │                 #   storage/     — token seguro (expo-secure-store / sessionStorage no web)
 │                 #   queryClient.ts, queryKeys.ts — React Query
@@ -146,9 +147,15 @@ em vez de "0.0" (`averageRating: number | null`, `RatingStars`/`TrustBadges` tra
 
 Todas as telas internas usam o componente compartilhado `src/components/Header.tsx`, que padroniza o cabeçalho escuro (`secondary-900`), o botão de voltar, o respiro de safe-area (`useSafeAreaInsets`) e variantes `compact`/`large` (a segunda usada pelas abas Home/Busca/Criar, que têm título grande e podem receber conteúdo extra como a barra de busca).
 
-## Moderação (mock)
+## Denúncias e moderação (reais desde a Fase 13.8)
 
-O `ReportsContext` guarda as denúncias em memória (seed em `src/mocks/reports.ts`). Qualquer denúncia enviada via `ReportUserScreen` entra na lista com status `pending`. O painel administrativo (`AdminDashboardScreen`, acessível pelo botão "Painel administrativo" em `MyProfileScreen` — rota oculta, sem RBAC real) permite arquivar, advertir ou banir a partir de `ReportDetailScreen`.
+O hook `useReports` (`useReports`, `useCreateReport`, `useUpdateReportAction`) substitui o antigo
+`ReportsContext` contra `GET /reports`, `POST /reports` e `PATCH /reports/{id}`. Qualquer denúncia
+enviada via `ReportUserScreen` entra na lista com status `pending` (reporter vem do JWT, não do
+payload). O painel administrativo (`AdminDashboardScreen`, acessível pelo botão "Painel
+administrativo" em `MyProfileScreen` — rota oculta, sem RBAC real) permite arquivar, advertir ou
+banir a partir de `ReportDetailScreen`, enviando a ação real (`archive`/`warn`/`ban`) esperada pelo
+backend.
 
 ## Status do projeto
 
@@ -167,8 +174,8 @@ O `ReportsContext` guarda as denúncias em memória (seed em `src/mocks/reports.
 | 10 | Denúncia e segurança | ✅ Concluída |
 | 11 | Moderação (opcional) | ✅ Concluída |
 | 12 | Revisão e polimento final | 🟡 **Em andamento** (6/8 — restam apenas testes em Expo Go e build de apresentação) |
-| 13 | Integração com o backend real | 🟡 **Em andamento** (14/16 — fundação, Auth real (13.4), Matches reais (13.5), Mensagens reais (13.6) e Avaliações reais (13.7) concluídas; backend já deployado em `https://squadup-api.up.railway.app`) |
+| 13 | Integração com o backend real | 🟡 **Em andamento** (15/16 — fundação, Auth real (13.4), Matches reais (13.5), Mensagens reais (13.6), Avaliações reais (13.7) e Denúncias reais (13.8) concluídas; backend já deployado em `https://squadup-api.up.railway.app`) |
 
-252 testes passando · lint zerado · tsc zerado · 83/86 tarefas concluídas (97%)
+256 testes passando · lint zerado · tsc zerado · 84/86 tarefas concluídas (98%)
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

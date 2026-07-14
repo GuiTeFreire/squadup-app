@@ -31,6 +31,7 @@
 | Fase 13.5 — Matches reais | 4/4 ✅ | `feat/matches-real` (sessão 24 — 2026-07-13) |
 | Fase 13.6 — Mensagens reais | 1/1 ✅ | `feat/messages-real` (sessão 25 — 2026-07-13) |
 | Fase 13.7 — Avaliações reais | 1/1 ✅ | `feat/ratings-real` (sessão 26 — 2026-07-13) |
+| Fase 13.8 — Denúncias reais | 1/1 ✅ | `feat/reports-real` (sessão 27 — 2026-07-14) |
 
 ---
 
@@ -66,7 +67,7 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 | D11 | `Alert.alert` não renderiza em `react-native-web` | Baixa | Sem polyfill instalado, `Alert.alert(...)` em `RateUserScreen`, `ReportUserScreen`, `ReportDetailScreen` e no cancelamento de `MatchDetailScreen` não produz diálogo no browser — a ação de dados ocorre normalmente, mas o callback do botão "OK" (que costuma fazer `navigation.goBack()`) nunca dispara, deixando o usuário sem feedback visual. Funciona normalmente em Expo Go/iOS/Android nativo (a confirmar na 12.3). Só relevante se a apresentação acadêmica usar `npm run web` em vez de dispositivo/emulador — nesse caso, avaliar um polyfill de `Alert` (ex.: `react-native-web` community package) antes da entrega. Descoberto na sessão 17. |
 | D12 | Timestamp de mensagem do chat usa hora real | ~~Baixa~~ **Resolvida** | Sessão 25 (Fase 13.6): `useMessages.sendMessage` não gera mais `createdAt` no cliente — envia só `{ text }` via `POST /matches/{id}/messages` e invalida a query, deixando o próximo `GET` trazer o `created_at` real gerado pelo servidor. |
 | D13 | Selo de verificado sem texto alternativo para leitor de tela | Baixa | O ícone `check-decagram` (usuário verificado) aparece sozinho, sem `accessibilityLabel`, em `ParticipantList.tsx`, `MatchDetailScreen.tsx`, `PublicProfileScreen.tsx`, `MyProfileScreen.tsx`, `RateUserScreen.tsx` e `PostMatchRatingScreen.tsx` — leitores de tela não anunciam essa informação. Nice-to-have, não bloqueante para a apresentação. Descoberto na auditoria de acessibilidade da sessão 17 (12.4). |
-| D14 | `ReportsContext.updateReportStatus` manda status-alvo, backend espera ação | Média | Backend (`PATCH /reports/{id}`) espera `{ action: "archive"\|"warn"\|"ban" }`; front manda `ReportStatus` direto. Único ponto de **quebra de contrato real** (não é só nomenclatura) encontrado na comparação com `../back`. Ver `.status/backend-contract.md` §2.6. Corrigir antes de plugar a API real de denúncias. |
+| D14 | `ReportsContext.updateReportStatus` manda status-alvo, backend espera ação | ~~Média~~ **Resolvida** | Sessão 27 (Fase 13.8): `ReportsContext` removido; `useUpdateReportAction` (`src/hooks/useReports.ts`) chama `PATCH /reports/{id}` com `{ action: "archive"\|"warn"\|"ban" }`. `AdminDashboardScreen`/`ReportDetailScreen` migrados. |
 | D15 | Cadastro de usuário não coleta `age`, campo obrigatório no backend | ~~Média~~ **Resolvida** | Sessão 22: o campo "Data de nascimento" de `RegisterScreen` (existia na UI, mas era validado e depois **descartado** — nunca chegava a `register()`) passou a ser usado de verdade: `src/utils/date.ts` ganhou `parseBirthDate`/`calculateAge`, e `RegisterScreen` calcula a idade a partir da data informada e **exige 18+** (`MINIMUM_AGE`) — decisão de produto do usuário (não só satisfazer o schema do backend, é regra de segurança do app: partidas com desconhecidos). `register()` ganhou o 4º parâmetro `age: number` (computado, não digitado); `AuthContext` guarda em `pendingAge` e `completeProfile` usa esse valor em vez do `age: 25` hardcoded. 17 testes novos (`RegisterScreen.test.tsx`, `AuthContext.test.tsx`, `utils/__tests__/date.test.ts`). Ver `.status/backend-contract.md` §2.7. |
 | D16 | `types.Match` único vs `MatchRead`/`MatchDetailRead` separados no backend | Média | Backend só expande `organizer`/`participants` no endpoint de detalhe; a listagem (`GET /matches`) devolve `organizer_id` e `confirmed_count`/`available_slots` prontos, sem array de participantes. Código que hoje lê `match.participants`/`match.organizer.name` a partir de uma lista vai quebrar silenciosamente ao trocar o mock pela API. Ver `.status/backend-contract.md` §2.2 para o plano de split em `MatchSummary`/`MatchDetail`. |
 | D17 | Faltam ações de organizador: encerrar partida e aprovar participante pendente | Baixa | Backend já expõe `POST /matches/{id}/close` e `POST /matches/{id}/participants/{user_id}/approve`, mas não há UI para nenhuma das duas — `MatchDetailScreen`/`ParticipantList` só exibem, não moderam. Bloqueia o fluxo real de avaliação pós-partida (exige partida `closed`). Ver `.status/backend-contract.md` §2.2. |
@@ -104,7 +105,7 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 | # | Tarefa | Sub-fase | Status |
 |---|--------|----------|--------|
 | 14 | `RatingsContext` → React Query; adapter de achatamento de critérios; UI trata `averageRating` nulo | 13.7 | 🟢 |
-| 15 | `ReportsContext.updateReportStatus` migrado para ação (`archive`/`warn`/`ban`) em vez de status-alvo (D14) | 13.8 | ⚪ |
+| 15 | `ReportsContext.updateReportStatus` migrado para ação (`archive`/`warn`/`ban`) em vez de status-alvo (D14) | 13.8 | 🟢 |
 | 16 | Teste manual ponta a ponta contra backend local; apontar `.env` para URL de produção (`https://squadup-api.up.railway.app`); ajustar texto do TCC (decisão D-A) | 13.9 | ⚪ |
 
 ---
@@ -113,18 +114,31 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 
 > Histórico detalhado por sessão (o "porquê" de cada decisão, trechos de código, achados de
 > auditoria) vive em [`progress.md`](progress.md) — esta seção só guarda a observação mais
-> recente, para servir de ponto de retomada rápido no início da próxima sessão.
+> recente, para servir de ponto de retomada rápido no início da próxima sessão. Histórico
+> completo sessão-a-sessão (23–26) arquivado em [`progress.md`](progress.md).
 
-- **Sessão 23 (2026-07-10):** Item 8 da fila concluído na branch `feat/auth-real` — `AuthContext` reescrito por dentro para consumir a API real (`login`/`register`/`completeProfile`/`logout` mantidos, assinatura pública intacta). **Fase 13.4 (Auth real) inteiramente concluída** (itens 7 e 8). Destaques: boot usa `GET /users/me` (não `/auth/me` — só o primeiro traz `average_rating`/`matches_played`); `POST /auth/register` só dispara dentro de `completeProfile` (backend exige `location`, coletado só na tela seguinte); interceptor de refresh em 401 via `setUnauthorizedHandler` em `client.ts`; um bug real foi encontrado e corrigido na própria sessão — `/auth/logout` não estava isento do retry, causando uma tentativa inútil de `/auth/refresh` num 401 de logout. Detalhe completo (decisões, arquivos, testes) em `progress.md`, sessão 23. Suíte 245/245, lint e `tsc --noEmit` zerados.
-- **Sessão 24 (2026-07-13):** Itens 9–12 da fila concluídos juntos (interdependentes por causa da D19) — **Fase 13.5 (Matches reais) inteiramente concluída**. `MatchesContext`/`MatchFiltersContext` migrados para React Query contra `GET /matches`, com filtros de `date`/`location` novos em `FiltersScreen` (resolve D18); `MatchFilters`/`MatchCard`/`HomeScreen`/`SearchScreen` agora operam sobre `MatchSummary` (sem `organizer`/`participants`) — a busca por nome do organizador foi removida de `useMatchFilters` conforme a resolução já prevista pela D19; `MatchDetailScreen` passou a buscar `MatchDetail` sob demanda via novo hook `useMatchDetail`/`GET /matches/{id}` (também reaproveitado por `MatchChatScreen`, `PostMatchRatingScreen`, `RateUserScreen`, que liam `match.participants` da listagem antiga); `useMatchParticipation` migrado para `join`/`leave` reais; `CreateMatchScreen` envia só o payload de criação via `POST /matches`; novo botão "Encerrar partida" (organizador, `POST /matches/{id}/close`, D17) e UI de aprovar participante pendente em `ParticipantList` (`.../participants/{userId}/approve`, D17). Efeito colateral: `ReportUserScreen` perdeu o picker de "partida relacionada" por falta de endpoint "partidas em comum com usuário X" — registrado como D23, a resolver na Fase 13.8. Suíte 239/239, lint e `tsc --noEmit` zerados.
-- **Sessão 25 (2026-07-13):** Item 13 da fila concluído na branch `feat/messages-real` — **Fase 13.6 (Mensagens reais) inteiramente concluída**. Novo hook `useMessages` (`src/hooks/useMessages.ts`) substitui `MessagesContext` por completo: `useInfiniteQuery` contra `GET /matches/{id}/messages` e `useMutation` para `POST` (resolve D12 — servidor gera o timestamp, front não gera mais nada no cliente). Achado que mudou o desenho: o backend ordena a listagem crescente e não expõe total, então a paginação usa `limit` crescente a partir de `skip=0` em vez do `skip` decrescente originalmente cogitado — documentado em comentário no próprio hook. `MessageBubble`/`formatMessageTime` (novo, `src/utils/date.ts`) resolvem D21 para mensagens. `MatchChatScreen` ganhou `onEndReached`/indicador de carregamento para a paginação. `MessagesContext` removido (arquivo deletado + provider tirado de `App.tsx`); `src/mocks/messages.ts` mantido como fixture (só será removido na 13.9, quando `RatingsContext`/`ReportsContext` também migrarem). Suíte 245/245, lint e `tsc --noEmit` zerados. **Próxima tarefa:** item 14 da fila — `RatingsContext` → React Query (Fase 13.7).
-- **Sessão 26 (2026-07-13):** Item 14 da fila concluído na branch `feat/ratings-real` — **Fase 13.7 (Avaliações reais) inteiramente concluída**. Novo `src/hooks/useRatings.ts` (`useUserRatings`, `useSubmitRating`, `useHasRatedMap`) substitui `RatingsContext` por completo contra `GET /users/{id}/ratings` e `POST /matches/{id}/ratings/{userId}`; o adapter (`src/services/adapters/rating.ts`) já achatava `RatingCriteria` corretamente desde antes, não precisou de mudança. `useHasRatedMap` usa `useQueries` para checar "já avaliado" de vários participantes de `PostMatchRatingScreen` de uma vez, sem violar regras de hooks. **D20 resolvida**: `PublicUser.averageRating` virou `number | null`, `toPublicUser` para de mascarar `null` como `0`, e `RatingStars`/`TrustBadges`/telas de perfil tratam o caso "sem avaliações ainda" de verdade. `RatingsContext` removido (arquivo deletado + provider tirado de `App.tsx`); `src/mocks/ratings.ts` mantido (usado por `MyProfileScreen`/`PublicProfileScreen`, que exibem a lista de avaliações recebidas — fora do escopo desta sub-fase, que troca só enviar/checar avaliação). Suíte 252/252 (245 + 7 novos), lint e `tsc --noEmit` zerados. **Próxima tarefa:** item 15 da fila — `ReportsContext` → ação (Fase 13.8, resolve D14).
+- **Sessão 27 (2026-07-14):** Item 15 da fila concluído na branch `feat/reports-real` (commit
+  `ef67176`) — **Fase 13.8 (Denúncias reais) inteiramente concluída**. Novo `src/hooks/useReports.ts`
+  (`useReports`, `useCreateReport`, `useUpdateReportAction`) substitui `ReportsContext` por completo
+  contra `GET /reports`, `POST /reports` e `PATCH /reports/{id}`; o adapter
+  (`src/services/adapters/report.ts`) ganhou `ReportCreatePayload` (`reported_user_id`, `match_id?`,
+  `reason`, `description`) e a camada `src/services/api/reports.ts`. **D14 resolvida**:
+  `AdminDashboardScreen`/`ReportDetailScreen` migrados de `updateReportStatus(id, status)` para
+  `updateReportAction(id, action)` com os três verbos reais do backend (`archive`/`warn`/`ban`);
+  `ReportUserScreen` envia só o payload de criação esperado (reporter vem do JWT) e trata estado de
+  loading (`Button.loading`) e erro de rede. `ReportsContext` removido (arquivo deletado + provider
+  tirado de `App.tsx`); `src/mocks/reports.ts` mantido como fixture de teste (mesmo padrão de
+  `messages`/`ratings`). D23 (picker de "partida relacionada") segue em aberto — sem endpoint de
+  "partidas em comum com usuário X" no backend. Suíte 256/256 (252 + 4 novos), lint e
+  `tsc --noEmit` zerados. **Próxima tarefa:** item 16 da fila — teste manual ponta a ponta e apontar
+  `.env` para produção (Fase 13.9). Ver Checkpoint no final desta sessão (mensagem de fechamento)
+  para o estado exato do working tree.
 
 ---
 
 ## Progresso geral
 
 **Total de tarefas:** 86 (70 do protótipo + 16 da fila de integração, Fase 13)
-**Concluídas:** 83 (69 do protótipo + refinamento visual transversal + itens 1–14 da Fase 13, sessões 20–26)
+**Concluídas:** 84 (69 do protótipo + refinamento visual transversal + itens 1–15 da Fase 13, sessões 20–27)
 **Em andamento:** 0
-**A fazer:** 3 (Fase 12: 12.3 requer dispositivo/emulador do usuário, 12.8 build de apresentação; Fase 13: itens 15–16)
+**A fazer:** 2 (Fase 12: 12.3 requer dispositivo/emulador do usuário, 12.8 build de apresentação; Fase 13: item 16)

@@ -6,7 +6,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "./src/contexts/AuthContext";
 import { MatchesProvider } from "./src/contexts/MatchesContext";
 import { MatchFiltersProvider } from "./src/contexts/MatchFiltersContext";
-import { ReportsProvider } from "./src/contexts/ReportsContext";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { queryClient } from "./src/services/queryClient";
 
@@ -15,15 +14,13 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
         <AuthProvider>
-          <ReportsProvider>
-            <MatchFiltersProvider>
-              <MatchesProvider>
-                {/* Headers e heros são dark slate — status bar sempre clara */}
-                <StatusBar style="light" />
-                <RootNavigator />
-              </MatchesProvider>
-            </MatchFiltersProvider>
-          </ReportsProvider>
+          <MatchFiltersProvider>
+            <MatchesProvider>
+              {/* Headers e heros são dark slate — status bar sempre clara */}
+              <StatusBar style="light" />
+              <RootNavigator />
+            </MatchesProvider>
+          </MatchFiltersProvider>
         </AuthProvider>
       </SafeAreaProvider>
     </QueryClientProvider>
