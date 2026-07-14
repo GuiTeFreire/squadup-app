@@ -12,8 +12,8 @@ import Chip from "../components/Chip";
 import Header from "../components/Header";
 import Input from "../components/Input";
 import SectionCard from "../components/SectionCard";
-import { useReportsContext } from "../contexts/ReportsContext";
-import { CURRENT_USER, MOCK_USERS } from "../mocks/users";
+import { useCreateReport } from "../hooks/useReports";
+import { MOCK_USERS } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
 import { colors, shadows } from "../theme";
 import type { MatchRef, ReportReason } from "../types";
@@ -37,7 +37,7 @@ export default function ReportUserScreen() {
   const route = useRoute<Route>();
   const insets = useSafeAreaInsets();
   const { userId } = route.params;
-  const { addReport } = useReportsContext();
+  const { submitReport, isSubmitting } = useCreateReport();
 
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [description, setDescription] = useState("");
@@ -46,7 +46,7 @@ export default function ReportUserScreen() {
 
   const user = useMemo(() => MOCK_USERS.find((u) => u.id === userId) ?? null, [userId]);
   // Sem endpoint para "partidas em comum com userId" (D23, .status/queue.md) — picker de
-  // partida relacionada fica vazio até ReportsContext migrar para a API real (Fase 13.8).
+  // partida relacionada fica vazio até o backend expor esse dado.
   const userMatches: MatchRef[] = [];
 
   if (!user) {
@@ -67,22 +67,24 @@ export default function ReportUserScreen() {
       setError("Selecione o motivo da denúncia.");
       return;
     }
-    const now = new Date();
     const relatedMatch = userMatches.find((m) => m.id === selectedMatchId);
-    addReport({
-      id: `report-${now.getTime()}`,
-      reportedUser: user!,
-      reporterUser: CURRENT_USER,
-      match: relatedMatch,
-      reason: selectedReason as ReportReason,
-      description,
-      createdAt: now.toISOString(),
-      status: "pending",
-    });
-    Alert.alert(
-      "Denúncia enviada!",
-      `Sua denúncia sobre ${user!.name} foi registrada. Vamos analisar o caso em até 48 horas.`,
-      [{ text: "OK", onPress: () => navigation.goBack() }]
+    submitReport(
+      {
+        reported_user_id: user!.id,
+        match_id: relatedMatch?.id,
+        reason: selectedReason as ReportReason,
+        description,
+      },
+      {
+        onSuccess: () => {
+          Alert.alert(
+            "Denúncia enviada!",
+            `Sua denúncia sobre ${user!.name} foi registrada. Vamos analisar o caso em até 48 horas.`,
+            [{ text: "OK", onPress: () => navigation.goBack() }]
+          );
+        },
+        onError: () => setError("Não foi possível enviar a denúncia. Tente novamente."),
+      }
     );
   }
 
@@ -196,6 +198,7 @@ export default function ReportUserScreen() {
           variant="danger"
           size="lg"
           fullWidth
+          loading={isSubmitting}
         />
       </View>
     </View>

@@ -7,7 +7,7 @@ import { FlatList, Pressable, Text, View } from "react-native";
 import Avatar from "../components/Avatar";
 import EmptyState from "../components/EmptyState";
 import Header from "../components/Header";
-import { useReportsContext } from "../contexts/ReportsContext";
+import { useReports } from "../hooks/useReports";
 import type { AppRootStackParamList } from "../navigation/types";
 import { colors, shadows } from "../theme";
 import type { Report } from "../types";
@@ -22,7 +22,7 @@ function formatReportDate(isoString: string): string {
 
 export default function AdminDashboardScreen() {
   const navigation = useNavigation<Nav>();
-  const { reports } = useReportsContext();
+  const { reports } = useReports();
 
   const sortedReports = useMemo(
     () =>
