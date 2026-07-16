@@ -17,10 +17,17 @@
 > que dependem de `Alert.alert` (D11) e os prints de concorrentes (manuais). O `TCC.tex` segue como
 > um **anteprojeto** (tempo futuro, "será implementado"), ainda não trazido para o repositório
 > (D-TCC-1 em aberto) — Trilha E não avançou nesta sessão.
+>
+> **Escopo novo adicionado em 2026-07-16 (sessão 29):** geolocalização real (lat/long via GPS) e
+> notificações push (eventos essenciais) confirmadas como funcionalidades a implementar de fato
+> antes da defesa — não é mais "trabalho futuro" do TCC (decisão D-A revertida). Nasce a
+> **Trilha F** (§9), com plano técnico completo em `.status/backend-contract.md` §6-A e
+> `.status/roadmap.md` §20. Isso é escopo adicional que não estava no cronograma original — ver
+> §9 para a avaliação de risco e o plano de contingência.
 
 ---
 
-## 1. Visão geral: 5 trilhas, a maioria em paralelo
+## 1. Visão geral: 6 trilhas, a maioria em paralelo
 
 | Trilha | O quê | Depende de | Pode começar |
 |---|---|---|---|
@@ -29,6 +36,7 @@
 | **C — Build e demo do app** | EAS Build / Expo Go para teste e apresentação | Trilha B razoavelmente avançada | Em andamento — `eas.json` pronto, falta login/build do usuário |
 | **D — Assets do TCC** | Estrutura de pastas, prints, bibliografia, diagramas | Nada (screenshots podem ser tirados com os mocks atuais) | Em andamento — 8/~11 screenshots do app automatizadas (sessão 28) |
 | **E — Escrita da monografia** | Capítulos novos/atualizados do TCC.tex | Parcialmente nada (casos de uso extras e arquitetura já documentável), parcialmente B/C (capítulo de resultados) | **Agora** para as partes que não dependem de resultado final |
+| **F — Geolocalização real + push** | Fase 14 do front (`roadmap.md` §20) + Fase 13 do backend (`../squadup-back/.status/roadmap.md` §19) | Trilha B concluída (pré-requisito satisfeito em 2026-07-16) | Registrada, não iniciada — ver §9 |
 
 Nenhuma trilha bloqueia totalmente as outras — dá para avançar em 3–4 frentes ao mesmo tempo.
 
@@ -197,4 +205,77 @@ O cronograma do próprio `TCC.tex` (Capítulo 5) já reserva Jul 2–Ago 2 para 
 - **D-Deploy-2:** Android-only no EAS Build é suficiente para a defesa, ou a banca exige iOS também? (Recomendação: Android-only, salvo exigência contrária.)
 - **D-TCC-1:** trazer `TCC.tex`/assets/bibliografia para o repositório Git (estrutura da seção 5) em vez de manter só no Overleaf? (Você já indicou que sim para a bibliografia — recomendo estender para o pacote todo, por durabilidade e para eu poder editar diretamente.)
 - **D-TCC-2:** houve ou está planejado teste de usabilidade com usuários reais (além do orientador)? Define se o capítulo de resultados reporta isso como dado ou como limitação.
-- **D-A** (já registrada em `backend-contract.md`): geolocalização/"Local" como trabalho futuro — mantida como recomendação, só falta ajustar o texto (Trilha E.1).
+- **D-A** — **revertida em 2026-07-16 (sessão 29):** geolocalização e push deixam de ser "trabalho futuro" no TCC e passam a ser implementadas de fato. Ver Trilha F (§9) para o plano e o risco de cronograma associado a essa reversão.
+
+---
+
+## 9. Trilha F — Geolocalização real + notificações push (registrada em 2026-07-16, sessão 29)
+
+### O que muda
+
+Escopo novo, **fora do cronograma original aprovado no TCC** (§7). Antes desta sessão, a
+recomendação registrada (decisão D-A) era manter geolocalização como texto livre e notificações
+push como trabalho futuro — ambas decisões de escopo deliberadas para caber no prazo. O usuário
+confirmou nesta sessão que quer implementar as duas de verdade antes da defesa. Plano técnico
+completo:
+
+- **Contrato de API e decisões de arquitetura:** `.status/backend-contract.md` §6-A;
+- **Tarefas do front:** `.status/roadmap.md` §20 (Fase 14) e `.status/queue.md` (fila Fase 14);
+- **Tarefas do backend:** `../squadup-back/.status/roadmap.md` §19 (Fase 13 de lá — já estava
+  pré-desenhada desde 2026-07-08, com as mesmas decisões D-Geo-1/2 e D-Push-1/2, bloqueada até
+  esta Trilha B terminar; agora destravada) e `../squadup-back/.status/queue.md`.
+
+Resumo do escopo: `Match` ganha `latitude`/`longitude` opcionais; `GET /matches` ganha
+`lat`/`lng`/`radius_km` com filtro/ordenação por distância (Haversine, sem PostGIS); nova tabela
+`push_tokens` + `POST /users/me/push-token`; push via Expo Push API para 3 eventos (mensagem
+nova, participação aprovada, partida encerrada/cancelada). Ambas as features são estritamente
+aditivas — nenhum fluxo hoje funcional muda de comportamento se o usuário negar as permissões.
+
+### Avaliação de risco de cronograma
+
+**Esforço estimado:** 8 etapas coordenadas em 2 repositórios (4 backend, 3 front, 1 conjunta),
+incluindo uma migration de schema em produção (Railway/Postgres) e duas dependências de
+biblioteca nativa nova em cada lado (`expo-location`, `expo-notifications` no front;
+`expo-server-sdk` no backend). Ordem de grandeza comparável a uma das sub-fases médias da Fase 13
+já concluída (ex.: 13.5 "Matches reais", que levou 1 sessão inteira) — mas com um agravante: **a
+validação final (push + GPS reais) só é possível em dispositivo físico**, a mesma dependência que
+já bloqueia a tarefa 12.3 há várias sessões por não haver dispositivo/emulador disponível neste
+ambiente de trabalho.
+
+**Onde isso entra no cronograma já aprovado (§7):** hoje (2026-07-16) estamos no início do
+período "Ago 2 – Set 2" (Integração frontend↔backend, que já terminou adiantada) — ou seja, há
+folga real até a defesa (dezembro), mas a Trilha F **compete diretamente** com as Trilhas C
+(build de apresentação), D (assets do TCC) e E (escrita da monografia), que também usam esse
+mesmo período. Diferente da Fase 13 (que era pré-requisito documentado desde o início do TCC),
+esta é uma adição tardia de escopo — o tipo de mudança que mais comumente compromete prazos
+acadêmicos quando não tratada com uma contingência explícita.
+
+**Recomendação — sequenciamento:**
+
+1. Backend primeiro e sozinho (etapas 1–4 do plano mestre, `backend-contract.md` §6-A): é
+   trabalho aditivo, sem risco de quebrar a integração já concluída (13), e pode ser validado via
+   Swagger/testes automatizados sem depender do front nem de dispositivo físico;
+2. Front geo (etapas 5–6): baixo risco, testável em simulador/`npm run web` (GPS pode ser mockado
+   em dev, mesmo padrão que outras libs Expo já usam neste projeto);
+3. Front push (etapa 7) e o hardening final (etapa 8) **só depois** que 12.8 (EAS Build) e 12.3
+   (dispositivo físico) já estiverem resolvidos — push depende do `projectId` do EAS existir e de
+   um dispositivo real para validar, então naturalmente herda a mesma dependência externa que já
+   bloqueia essas duas tarefas.
+
+**Plano de contingência (se o tempo até a defesa não comportar as 8 etapas inteiras):** a
+geolocalização (14.1) é isolável e tem valor de demonstração alto por si só — pode ser entregue
+sem push, e o TCC descreveria push como trabalho futuro (revertendo só a metade da decisão D-A
+original). Push (14.2) exige mais validação manual (dispositivo físico) para menos ganho de
+demonstração na banca — é o item a cortar primeiro se o prazo apertar, não o contrário. Em
+nenhum cenário deixar o texto do TCC descrever uma funcionalidade como implementada sem que os
+testes automatizados e a validação manual correspondentes existam de fato — o mesmo princípio de
+honestidade que motivou a correção original da decisão D-A.
+
+### Sequenciamento sugerido (adição à tabela de §7)
+
+| Período (do cronograma) | Foco adicional (Trilha F) |
+|---|---|
+| Ago 2 – Set 2 (já em andamento) | Backend: etapas 1–4 (geo + push, infraestrutura), em paralelo com o encerramento da Trilha B |
+| Set 1 – Set 2 | Front: etapas 5–6 (geolocalização), em paralelo com 12.3/validação ponta a ponta |
+| Set 2 – Out 2 | Front: etapa 7 (push) — só após 12.8 (EAS/`projectId`) e 12.3 (dispositivo) estarem resolvidos; etapa 8 (hardening + ajuste do TCC) fecha a trilha |
+| Out 1 – Nov 1 | Se atrasado: aplicar o plano de contingência acima (cortar push, manter geo) antes de comprometer a escrita da monografia (Trilha E) |

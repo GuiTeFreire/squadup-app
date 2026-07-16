@@ -19,6 +19,7 @@
 | — | Redesign visual premium (theme module, elevação, cor por esporte) | 🟢 Concluído (transversal — sessão 16) |
 | Fase 12 | Revisão e polimento final | 🟡 Em andamento (6/8 — 12.1, 12.2, 12.4–12.7 concluídas, sessão 17; 12.8 em andamento, sessão 28) |
 | Fase 13 | Integração com o backend real | 🟢 **Concluída (16/16)** — 13.1 sessão 20; 13.2/13.3 sessão 21; 13.4 sessões 22–23; 13.5 sessão 24; 13.6 sessão 25; 13.7 sessão 26; 13.8 sessão 27; 13.9 sessão 28 |
+| Fase 14 | Geolocalização real e notificações push | ⚪ A fazer — plano completo em §20 (sessão 29, 2026-07-16) |
 
 **Progresso geral:** 85/86 tarefas concluídas (99%) · 256 testes passando · lint zerado · tsc zerado
 
@@ -591,3 +592,102 @@ telas.
 - Remover `src/mocks/*.ts` **só depois** que todas as telas estiverem consumindo dados reais —
   manter como fallback/seed de testes de componente até lá (os testes Jest continuam usando os
   mocks como fixtures, isso não muda).
+
+---
+
+## 20. Fase 14 — Geolocalização real e notificações push
+
+> Registrada em 2026-07-16 (sessão 29). Plano mestre completo (decisões de arquitetura,
+> contrato de API, etapas numeradas) em `.status/backend-contract.md` §6-A — este documento só
+> resume as tarefas do lado do front. Contraparte no backend: `../back/.status/roadmap.md` §19
+> (já pré-desenhada desde 2026-07-08, estava bloqueada até esta Fase 13 do front terminar — agora
+> destravada). Escopo confirmado com o usuário: geolocalização com coordenadas reais via GPS do
+> dispositivo (não geocoding de texto); notificações push no conjunto essencial de eventos
+> (mensagem nova, aprovação de participação, partida encerrada/cancelada).
+>
+> **Não estava no cronograma original do TCC** (`plano-de-entrega.md` §7) — é escopo novo. Ver
+> `plano-de-entrega.md` §9 para o encaixe no cronograma e o plano de contingência.
+
+### Objetivo
+
+Substituir a limitação conhecida "`location` é só texto livre, sem lat/long" (documentada desde
+a Fase 13, dívida D-A) por geolocalização real, e adicionar notificações push para os eventos
+mais relevantes de cada pilar (social: nova mensagem; logístico: aprovação/encerramento de
+partida), sem quebrar nenhum fluxo hoje funcional — as duas features são estritamente aditivas.
+
+### 14.1 — Geolocalização real
+
+- Instalar `expo-location` (`npx expo install expo-location`) e configurar permissões no
+  `app.json` (`NSLocationWhenInUseUsageDescription` para iOS, permissão `ACCESS_COARSE_LOCATION`
+  para Android — precisão "balanced", não "fine", conforme D-Geo-4);
+- Novo hook `useDeviceLocation` (`src/hooks/`): encapsula pedido de permissão + captura de
+  `latitude`/`longitude` com `Location.Accuracy.Balanced`; retorna `{ location, permissionDenied,
+  isLoading, requestLocation }` — nunca lança erro para quem chama, resolve com `location: null`
+  em caso de negação (D-Geo-3);
+- `CreateMatchScreen`: ao montar, chama `useDeviceLocation` e envia `latitude`/`longitude` junto
+  do payload de `POST /matches` **se disponíveis**; sem eles, o payload continua idêntico ao de
+  hoje (campo `location` de texto é sempre obrigatório, coordenadas são só um extra);
+- `FiltersScreen`: novo toggle "Usar minha localização" — ao ativar, chama `useDeviceLocation` e
+  passa a expor um input/slider de raio (`radius_km`, default 20); `useMatchFilters` e
+  `MatchesContext` propagam `lat`/`lng`/`radius_km` para `GET /matches` (`src/services/api/matches.ts`)
+  só quando o toggle estiver ativo;
+- `MatchCard`: exibe a distância aproximada (ex.: "3,2 km") quando o back retornar as partidas já
+  ordenadas por proximidade (isto é, quando a busca atual tinha `lat`/`lng` informados) — cálculo
+  do texto de distância pode ser feito no front a partir de `latitude`/`longitude` da partida e da
+  posição atual do usuário, sem chamada extra;
+- Tipos/adapters: `MatchSummary`/`MatchDetail` (`src/types`) e os adapters correspondentes
+  (`src/services/adapters/match.ts`) ganham `latitude: number | null` e `longitude: number | null`;
+- Testes: `useDeviceLocation` (permissão concedida/negada/erro), `useMatchFilters` (parâmetros
+  geográficos entram na query só quando o toggle está ativo), `CreateMatchScreen` (payload com e
+  sem coordenadas).
+
+### 14.2 — Notificações push reais
+
+- Instalar `expo-notifications`, `expo-device`, `expo-constants`
+  (`npx expo install expo-notifications expo-device expo-constants`);
+- Novo hook `useNotificationRegistration` (`src/hooks/`): solicita permissão, obtém o
+  `ExpoPushToken` do dispositivo (via `expo-device`/`expo-constants` para o `projectId` do EAS —
+  dependência direta da tarefa 12.8 já ter gerado esse `projectId`), e registra via novo
+  `POST /users/me/push-token` (`src/services/api/users.ts`); chamado uma única vez logo após
+  login/restauração de sessão bem-sucedidos (`AuthContext`), nunca bloqueando a navegação se a
+  permissão for negada (D-Push-3);
+- Listener de notificação tocada (`Notifications.addNotificationResponseReceivedListener`),
+  registrado uma vez no root do app (`App.tsx` ou `RootNavigator`): navega para
+  `MatchChatScreen`/`MatchDetailScreen` conforme o `data` embutido na notificação (`matchId` +
+  `type`, contrato a definir junto com o backend na etapa 3 do plano mestre);
+- Nenhuma tela nova — este item é infraestrutura de navegação/registro, não UI visível, exceto
+  pela notificação do sistema operacional em si;
+- Testes: `useNotificationRegistration` (token obtido e enviado ao backend; permissão negada não
+  lança erro), listener de navegação (mock de `Notifications`, verifica chamada correta de
+  `navigation.navigate`).
+
+### 14.3 — Hardening e fechamento
+
+- Teste manual ponta a ponta em **dispositivo físico** (Android real ou Expo Go) — push não
+  renderiza em simulador iOS nem em `npm run web`, mesma limitação já registrada para 12.3;
+  confirmar recebimento de notificação para os 3 eventos de escopo (mensagem, aprovação,
+  encerramento/cancelamento) e navegação correta ao tocar;
+- Confirmar filtro geográfico em dispositivo real (GPS de simulador pode retornar coordenadas
+  fixas/incorretas) — validar que o raio de busca reflete distância real percebida;
+- Atualizar a redação do TCC (decisão D-A) de "trabalho futuro" para "implementado" — inclui
+  ajustar §4.6.5 "Geolocalização" (agora correta, tempo verbal no passado passa a ser honesto) e,
+  se a Trilha D dos assets ainda estiver ativa, capturar um screenshot novo mostrando o filtro por
+  proximidade e/ou uma notificação push recebida;
+- Rodar `npx tsc --noEmit`, `npm run lint`, `npm run test` — zero erros antes de considerar a
+  fase concluída (mesmo gate de qualidade de todas as fases anteriores, CLAUDE.md §5).
+
+### Resultado esperado
+
+Usuário consegue buscar partidas por proximidade real (com fallback gracioso se negar permissão
+de localização), e recebe notificações push nos três eventos essenciais definidos — sem
+regressão em nenhum fluxo hoje funcional, e com o texto do TCC honesto sobre o que foi de fato
+implementado.
+
+### Fora do escopo desta fase
+
+- "Partida nova perto de você" (notificação proativa baseada em geolocalização) — composição de
+  duas features novas ao mesmo tempo, candidato a PG2;
+- Preferências de notificação por usuário (silenciar tipos específicos) — escopo tudo-ou-nada
+  nesta fase;
+- Notificações de denúncia/moderação;
+- Tracking contínuo de localização em background — só leitura pontual por ação do usuário.

@@ -56,6 +56,35 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 
 ---
 
+## FASE 14 — Geolocalização real e notificações push (0/8 — registrada na sessão 29, 2026-07-16)
+
+> Plano mestre completo (arquitetura, contrato de API, decisões D-Geo-*/D-Push-*) em
+> `.status/backend-contract.md` §6-A. Detalhe tarefa-a-tarefa do front em `roadmap.md` §20.
+> Contraparte no backend: `../squadup-back/.status/roadmap.md` §19 (já pré-desenhada desde
+> 2026-07-08, estava bloqueada até a Fase 13 deste repositório terminar — **destravada agora**).
+> Escopo: geolocalização com coordenadas reais via GPS (`expo-location`); push via Expo Push API
+> nos 3 eventos essenciais (mensagem nova, participação aprovada, partida encerrada/cancelada).
+> **Não estava no cronograma original do TCC** — ver `plano-de-entrega.md` §9 para o encaixe e o
+> plano de contingência de prazo.
+
+| # | Tarefa | Sub-fase | Repositório | Status |
+|---|--------|----------|---|--------|
+| 1 | Migration `latitude`/`longitude` em `Match`; schemas atualizados | 14 (backend) | Backend | ⚪ |
+| 2 | `GET /matches` ganha `lat`/`lng`/`radius_km`; Haversine; ordenação por distância; testes | 14 (backend) | Backend | ⚪ |
+| 3 | Tabela `push_tokens`; `POST /users/me/push-token`; revogação em logout | 14 (backend) | Backend | ⚪ |
+| 4 | `notification_service.py` (Expo Push API) + disparo nos 3 eventos via `BackgroundTasks` | 14 (backend) | Backend | ⚪ |
+| 5 | `useDeviceLocation` + `CreateMatchScreen` envia coordenadas + tipos/adapters | 14.1 | Front | ⚪ |
+| 6 | `FiltersScreen` (toggle + raio) + `useMatchFilters`/`MatchesContext` propagam geo + distância no `MatchCard` | 14.1 | Front | ⚪ |
+| 7 | `useNotificationRegistration` (permissão + token + registro) + listener de navegação | 14.2 | Front | ⚪ |
+| 8 | Hardening ponta a ponta em dispositivo físico + ajuste do texto do TCC (D-A) | 14.3 | Ambos | ⚪ |
+
+**Dependência crítica:** a tarefa 8 (e a validação real de push) só é possível em dispositivo
+físico — mesma limitação de sandbox já registrada para 12.3. Tarefas 1–4 (backend) podem ser
+feitas em paralelo entre si; 5–6 (geo) e 7 (push) são trilhas independentes do lado do front,
+cada uma só depende do respectivo contrato de backend estar mergeado.
+
+---
+
 ## Dívidas técnicas
 
 | # | Item | Prioridade | Descrição |

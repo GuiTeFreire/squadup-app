@@ -311,6 +311,140 @@ Etapas 4–8 são independentes entre si (todas dependem só da 3) e podem ser f
 ordem ou em paralelo — a ordem na tabela é só uma sugestão de prioridade (auth destrava tudo
 que exige usuário logado; matches é o fluxo mais visado na demo).
 
+---
+
+## 6-A. Plano mestre — Geolocalização real + Notificações push (Fase 14 do front / Fase 13 do backend)
+
+> Criado em 2026-07-16 (sessão 29). Contrato de API deste plano é a fonte única de verdade para
+> as duas implementações simétricas (`../back/app/routers/matches.py`,`users.py` de um lado;
+> `src/hooks`, `src/services/api` do outro). Qualquer mudança de schema durante a implementação
+> deve ser refletida aqui primeiro. Backend já tinha esta fase pré-desenhada e bloqueada em
+> `../back/.status/roadmap.md` §19 desde 2026-07-08 (D-Geo-1/2, D-Push-1/2) — este plano herda
+> essas decisões e as expande com o lado do contrato de API e do front, que faltava.
+>
+> **Pré-requisito satisfeito:** a Fase 13 do front (integração real, `roadmap.md` §19 acima) está
+> 100% concluída (16/16, sessão 28) — o bloqueio registrado no backend está liberado.
+>
+> **Escopo confirmado com o usuário (sessão 29):** geolocalização com coordenadas **reais**
+> (lat/long capturadas via GPS do dispositivo, não geocoding de texto), notificações push no
+> conjunto **essencial** de eventos (mensagem nova, aprovação de participação, partida
+> encerrada/cancelada). Ambas as features assumidas para **antes da defesa do TCC** — ver nota de
+> risco de cronograma em `plano-de-entrega.md` §9.
+
+### Decisões de arquitetura (herdadas + fechadas nesta sessão)
+
+- **D-Geo-1 (fonte das coordenadas) — mantida:** GPS do dispositivo via `expo-location`, capturado
+  no momento de criar partida (localização do organizador) e no momento de buscar (localização de
+  quem procura). Sem geocoding de endereço em texto livre — evita depender de API paga
+  (Google Maps/Mapbox) só para o MVP. `location: string` continua existindo para exibição textual;
+  `latitude`/`longitude` são campos novos e opcionais, não substituem o campo de texto.
+- **D-Geo-2 (raio de busca) — mantida:** configurável via query param `radius_km` na busca, com
+  default de 20km. Usuário pode ampliar/reduzir o raio na `FiltersScreen`.
+- **D-Geo-3 (nova, front — permissão negada):** se o usuário negar a permissão de localização,
+  a busca continua funcionando normalmente **sem** filtro geográfico (mesma lista de hoje, por
+  `sport`/`date`/`location`/`level`/`has_open_slots`) — geolocalização é estritamente aditiva,
+  nunca bloqueante. `CreateMatchScreen` permite criar partida sem coordenadas (só com o campo de
+  texto), tornando `latitude`/`longitude` sempre opcionais dos dois lados.
+- **D-Geo-4 (nova, front — precisão vs. bateria):** usar `Location.Accuracy.Balanced` (não `High`)
+  em ambas as capturas — precisão de rua é suficiente para um raio de 20km, e reduz consumo de
+  bateria/tempo de resposta do GPS. Sem tracking contínuo em nenhum momento — só uma leitura
+  pontual por ação (criar partida / abrir busca).
+- **D-Push-1 (provedor) — mantida:** Expo Push API (`https://exp.host/--/api/v2/push/send`) via
+  `expo-server-sdk` no backend, e `expo-notifications` no front para obter o `ExpoPushToken` e
+  lidar com permissões/recebimento. Sem integração direta com APNs/FCM.
+- **D-Push-2 (eventos) — mantida, escopo essencial:**
+  1. nova mensagem no chat de uma partida em que o destinatário está `confirmed` (exclui o autor);
+  2. participação aprovada pelo organizador (`POST /matches/{id}/participants/{userId}/approve`);
+  3. partida encerrada ou cancelada pelo organizador, para todos os `confirmed` (exclui o próprio
+     organizador quando ele for quem disparou a ação).
+  Fora do escopo desta fase (candidatos a PG2): "partida nova perto de você" (composição com
+  Geo, ver nota abaixo), denúncia/moderação, digest periódico, preferências de notificação por
+  usuário (tudo-ou-nada nesta fase — sem tabela de preferências).
+- **D-Push-3 (nova, front — permissão negada ou dispositivo sem suporte):** app funciona
+  normalmente sem push — nenhuma tela bloqueia ou exige a permissão; a ausência de token
+  registrado apenas significa que o backend não tenta notificar aquele usuário (silenciosamente,
+  sem erro visível). Web (`npm run web`) não suporta push nativo do Expo — tratar como no-op
+  também aí (mesmo espírito de `expo-secure-store` no web, D22).
+- **D-Push-4 (nova, backend — falha de entrega):** falha ao enviar push (erro de rede, token
+  inválido/expirado da Expo) nunca deve propagar erro para o endpoint que originou o evento (ex.:
+  enviar mensagem no chat não pode falhar por causa de um push que não foi entregue). Log da
+  falha, sem exceção subindo — mesmo racional de "não bloquear a resposta principal" do
+  `CLAUDE.md` §4 aplicado a redes externas em geral, não só latência.
+
+### Contrato de API (novo/alterado)
+
+**`Match` — campos novos, opcionais dos dois lados:**
+
+| Campo | Tipo | Observação |
+|---|---|---|
+| `latitude` | `float \| null` | Captura no momento de `POST /matches` |
+| `longitude` | `float \| null` | Idem |
+
+`MatchCreate`, `MatchRead`, `MatchDetailRead` (schemas) e `MatchSummary`/`MatchDetail` (tipos do
+front) todos ganham os dois campos, sempre opcionais.
+
+**`GET /matches` — novos query params, todos opcionais:**
+
+| Param | Tipo | Observação |
+|---|---|---|
+| `lat` | `float \| null` | Localização de quem busca |
+| `lng` | `float \| null` | Idem |
+| `radius_km` | `float` | Default `20`. Só tem efeito se `lat`/`lng` também forem informados |
+
+Filtro por distância via fórmula de Haversine — calculável em SQL puro (ou Python após
+pré-filtragem por bounding box, para não escanear a tabela inteira). **Não introduzir PostGIS**
+— complexidade desnecessária para o volume esperado do MVP (dezenas/centenas de partidas, não
+milhões). Quando os três parâmetros geográficos forem informados juntos, a listagem é **ordenada
+por distância** (mais próxima primeiro) em vez da ordenação atual; sem eles, comportamento
+inalterado.
+
+**Novo endpoint `POST /users/me/push-token`:**
+
+```text
+Request:  { "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]" }
+Response: 204 No Content
+Auth:     Bearer (obrigatório)
+```
+
+Idempotente — registrar o mesmo token duas vezes não duplica linha (upsert por `token` único).
+Suporta múltiplos tokens ativos por usuário (múltiplos dispositivos), mesmo padrão de
+`refresh_tokens`.
+
+**Nova tabela `push_tokens`** (`id`, `user_id → users.id`, `token` (unique), `created_at`) —
+sem endpoint de leitura pública, só uso interno do `notification_service`.
+
+**Revogação de push token:** `POST /auth/logout`/`logout-all` também removem o(s) push token(s)
+associados ao(s) refresh token(s) revogado(s) — mesmo espírito de higiene de sessão já aplicado a
+refresh tokens (lição da Fase 11, `../back/.status/queue.md`). Evita notificar um dispositivo que
+o usuário already deslogou.
+
+### Etapas de execução (ordem de dependência)
+
+| # | Etapa | Repositório | Depende de |
+|---|---|---|---|
+| 1 | Migration `latitude`/`longitude` em `Match`; `MatchCreate`/`MatchRead`/`MatchDetailRead` atualizados; `GET /matches` ganha `lat`/`lng`/`radius_km` + Haversine + ordenação por distância; testes de proximidade | **Backend** | Nada (schema aditivo, não quebra contrato existente) |
+| 2 | Tabela `push_tokens`; `POST /users/me/push-token`; revogação em `logout`/`logout-all`; `notification_service.py` (`send_push`, via `expo-server-sdk`, com tratamento de falha conforme D-Push-4); testes com cliente Expo mockado | **Backend** | Nada (aditivo) |
+| 3 | Disparo de push nos 3 eventos de D-Push-2, via `BackgroundTasks` do FastAPI, reaproveitando o `notification_service` da etapa 2 | **Backend** | Etapa 2 |
+| 4 | `npx expo install expo-location`; hook `useDeviceLocation` (permissão + captura `Balanced`, D-Geo-4); `CreateMatchScreen` envia `latitude`/`longitude` se disponíveis (D-Geo-3); tipos/adapters (`MatchSummary`/`MatchDetail`) ganham os 2 campos opcionais | **Front** | Etapa 1 (contrato) |
+| 5 | `FiltersScreen` ganha toggle "usar minha localização" + slider/input de `radius_km`; `useMatchFilters`/`MatchesContext` propagam `lat`/`lng`/`radius_km` para `GET /matches`; indicador visual de distância no `MatchCard` quando aplicável | **Front** | Etapa 4 |
+| 6 | `npx expo install expo-notifications expo-device expo-constants`; hook `useNotificationRegistration` (permissão + obtenção de `ExpoPushToken` + `POST /users/me/push-token`), chamado uma vez após login bem-sucedido | **Front** | Etapa 2 (contrato) |
+| 7 | Listener de notificação recebida/tocada (`Notifications.addNotificationResponseReceivedListener`) — navega para a tela relevante (chat da partida, detalhes da partida) ao tocar na notificação | **Front** | Etapa 6 |
+| 8 | Hardening conjunto: teste manual ponta a ponta em dispositivo físico. Push não funciona em simulador iOS nem em `npm run web` — exige Expo Go ou build em device Android/iOS real, mesma dependência já registrada em 12.3. Ajustar texto do TCC (D-A deixa de ser "trabalho futuro" e passa a "implementado"), com screenshot novo se possível | **Ambos** | Etapas 1–7 |
+
+Etapas 1–2 (backend) são independentes entre si e podem ser feitas em paralelo. Etapa 3 depende
+só da 2. Do lado do front, etapa 4–5 (geo) e 6–7 (push) são trilhas independentes entre si —
+podem ser feitas em paralelo ou em qualquer ordem, cada uma depende só do respectivo contrato de
+backend already estar mergeado.
+
+### Risco de cronograma (avaliação honesta)
+
+Esta fase **não estava no cronograma original do TCC** (`plano-de-entrega.md` §7) — é escopo novo
+adicionado depois do plano de entrega ter sido traçado. É trabalho real de 8 etapas coordenadas
+em dois repositórios, incluindo uma migration de banco em produção (Railway) e uma dependência de
+teste que **só é validável em dispositivo físico** (push não funciona em simulador/web). Ver
+`plano-de-entrega.md` §9 para o encaixe no cronograma e o plano de contingência caso o tempo até
+a defesa não comporte as 8 etapas inteiras.
+
 ## 7. Resumo executivo
 
 - **Paridade boa hoje:** todos os enums (`Sport`, `ExperienceLevel`, `MatchStatus`,
