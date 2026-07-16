@@ -1,6 +1,6 @@
 # SquadUp — Roadmap Inicial do Front-end
 
-## Status de execução (atualizado em 2026-07-13, sessão 26)
+## Status de execução (atualizado em 2026-07-16, sessão 28)
 
 | Fase | Descrição | Status |
 |------|-----------|--------|
@@ -17,12 +17,12 @@
 | Fase 10 | Denúncia e segurança | 🟢 Concluída (5/5 tarefas — sessão 12) |
 | Fase 11 | Moderação (opcional) | 🟢 Concluída (3/3 tarefas — sessão 13) |
 | — | Redesign visual premium (theme module, elevação, cor por esporte) | 🟢 Concluído (transversal — sessão 16) |
-| Fase 12 | Revisão e polimento final | 🟡 Em andamento (6/8 — 12.1, 12.2, 12.4–12.7 concluídas, sessão 17) |
-| Fase 13 | Integração com o backend real | 🟡 Em andamento (15/16 — 13.1 sessão 20; 13.2/13.3 completas sessão 21; 13.4 concluída sessões 22–23; 13.5 concluída sessão 24; 13.6 concluída sessão 25; 13.7 concluída sessão 26; 13.8 concluída sessão 27) |
+| Fase 12 | Revisão e polimento final | 🟡 Em andamento (6/8 — 12.1, 12.2, 12.4–12.7 concluídas, sessão 17; 12.8 em andamento, sessão 28) |
+| Fase 13 | Integração com o backend real | 🟢 **Concluída (16/16)** — 13.1 sessão 20; 13.2/13.3 sessão 21; 13.4 sessões 22–23; 13.5 sessão 24; 13.6 sessão 25; 13.7 sessão 26; 13.8 sessão 27; 13.9 sessão 28 |
 
-**Progresso geral:** 84/86 tarefas concluídas (98%) · 256 testes passando · lint zerado · tsc zerado
+**Progresso geral:** 85/86 tarefas concluídas (99%) · 256 testes passando · lint zerado · tsc zerado
 
-Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons) · @tanstack/react-query v5 · expo-secure-store (sessão 21)
+Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons) · @tanstack/react-query v5 · expo-secure-store (sessão 21) · @playwright/test como dev tooling para screenshots do TCC (sessão 28)
 
 ---
 

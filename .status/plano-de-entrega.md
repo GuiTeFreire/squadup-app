@@ -2,7 +2,21 @@
 
 > Criado em 2026-07-08, a partir da leitura de `TCC.tex` (front), `.status/{vision,roadmap,queue,backend-contract}.md` (front) e `../back/.status/{vision,roadmap,queue}.md` (back). Documento vivo — atualizar conforme as trilhas avançam, mesmo padrão dos outros arquivos em `.status/`.
 >
-> **Onde estamos (atualizado em 2026-07-14, sessão 27):** o backend (`../back`) está com as Fases 1–12 concluídas, testado (113 testes, 99% cobertura) e **já deployado em produção no Railway**: `https://squadup-api.up.railway.app` (documentado em 2026-07-08 — ver §2). O front (`../front`) tem o protótipo visual 100% pronto (Fases 1–11 concluídas, Fase 12 em 6/8) e **já consome a API real para autenticação, partidas, chat da partida, avaliações pós-partida e denúncias** — a Fase 13 (integração real) está em 15/16: fundação (13.1–13.3), Auth real (13.4), Matches reais (13.5, sessão 24), Mensagens reais (13.6, sessão 25), Avaliações reais (13.7, sessão 26) e Denúncias reais (13.8, sessão 27) concluídas. Resta só o fechamento ponta a ponta (13.9) — nenhum Context mockado restante no projeto. O `TCC.tex` está escrito como um **anteprojeto** (tempo futuro, "será implementado"), não como a monografia final — falta reescrever boa parte para refletir o que foi de fato construído, e os assets (prints, bibliografia) hoje só existem no Overleaf, fora do repositório.
+> **Onde estamos (atualizado em 2026-07-16, sessão 28):** o backend (`../back`, também acessível
+> localmente como `squadup-back` numa das máquinas de trabalho) está com as Fases 1–12 concluídas,
+> testado (113 testes, 99% cobertura) e **já deployado em produção no Railway**:
+> `https://squadup-api.up.railway.app`. O front tem o protótipo visual 100% pronto (Fases 1–11
+> concluídas, Fase 12 em 6/8) e **a Fase 13 (integração real) está 100% concluída (16/16)** —
+> fundação, Auth real, Matches reais, Mensagens reais, Avaliações reais, Denúncias reais e o
+> hardening/teste ponta a ponta (13.9, sessão 28, validado via chamadas diretas à API REST contra
+> o backend local, cobrindo auth/matches/join/approve/close/chat/ratings/reports/RBAC — ver
+> `progress.md` sessão 28 para o detalhe completo). Nenhum Context mockado resta no projeto. Trilha
+> C (build) avançou parcialmente: `eas.json` criado com os três perfis, falta só `eas login` +
+> `eas build:configure` (credenciais do usuário) para gerar o build de fato. Trilha D avançou:
+> Playwright automatiza a captura de 8 das ~11 screenshots do app (`tcc/assets/app/`) — faltam as
+> que dependem de `Alert.alert` (D11) e os prints de concorrentes (manuais). O `TCC.tex` segue como
+> um **anteprojeto** (tempo futuro, "será implementado"), ainda não trazido para o repositório
+> (D-TCC-1 em aberto) — Trilha E não avançou nesta sessão.
 
 ---
 
@@ -11,9 +25,9 @@
 | Trilha | O quê | Depende de | Pode começar |
 |---|---|---|---|
 | **A — Deploy do backend** | Executar o deploy real no Railway | Nada — **✅ URL de produção já ativa** (`squadup-api.up.railway.app`) | Concluída (falta só a decisão de seed, §2) |
-| **B — Integração front↔back** | Fase 13 do front (trocar mocks por API real) | Trilha A (precisa de uma URL real para apontar, mas pode começar contra `localhost` antes disso) | **Agora**, em paralelo com A |
-| **C — Build e demo do app** | EAS Build / Expo Go para teste e apresentação | Trilha B razoavelmente avançada | Depois de B |
-| **D — Assets do TCC** | Estrutura de pastas, prints, bibliografia, diagramas | Nada (screenshots podem ser tirados com os mocks atuais) | **Agora**, em paralelo com tudo |
+| **B — Integração front↔back** | Fase 13 do front (trocar mocks por API real) | Trilha A (precisa de uma URL real para apontar, mas pode começar contra `localhost` antes disso) | Concluída (16/16, sessão 28) |
+| **C — Build e demo do app** | EAS Build / Expo Go para teste e apresentação | Trilha B razoavelmente avançada | Em andamento — `eas.json` pronto, falta login/build do usuário |
+| **D — Assets do TCC** | Estrutura de pastas, prints, bibliografia, diagramas | Nada (screenshots podem ser tirados com os mocks atuais) | Em andamento — 8/~11 screenshots do app automatizadas (sessão 28) |
 | **E — Escrita da monografia** | Capítulos novos/atualizados do TCC.tex | Parcialmente nada (casos de uso extras e arquitetura já documentável), parcialmente B/C (capítulo de resultados) | **Agora** para as partes que não dependem de resultado final |
 
 Nenhuma trilha bloqueia totalmente as outras — dá para avançar em 3–4 frentes ao mesmo tempo.
@@ -39,28 +53,32 @@ Passos originais, documentados em `../back/README.md` §"Deploy" e `../back/.sta
 
 ---
 
-## 3. Trilha B — Integração front↔back (Fase 13)
+## 3. Trilha B — Integração front↔back (Fase 13) — ✅ concluída em 2026-07-16 (sessão 28)
 
-Detalhamento tarefa-a-tarefa já existe em `.status/roadmap.md` §19 e `.status/backend-contract.md` §6 (16 tarefas, 13.1–13.9). Aqui só a visão executiva e a ordem sugerida:
+Detalhamento tarefa-a-tarefa em `.status/roadmap.md` §19 e `.status/backend-contract.md` §6
+(16 tarefas, 13.1–13.9, todas 🟢). Resumo:
 
-1. **13.1–13.3 (fundação, sequencial):** tipos alinhados ao contrato real → cliente HTTP + adapters + storage seguro de token → React Query. ✅ Concluído (sessões 20–21).
-2. **13.4–13.8 (independentes entre si, podem ser paralelas ou em qualquer ordem):** Auth real, Matches reais, Mensagens reais, Avaliações reais, Denúncias reais. **Todas concluídas**: Auth real (sessões 22–23), Matches reais (sessão 24, branch `feat/matches-real`), Mensagens reais (sessão 25, branch `feat/messages-real`), Avaliações reais (sessão 26, branch `feat/ratings-real`) e Denúncias reais (sessão 27, branch `feat/reports-real`).
-3. **13.9 (fechamento, última tarefa restante da Fase 13):** teste manual ponta a ponta contra o backend local primeiro, depois contra a URL de produção do Railway (`https://squadup-api.up.railway.app`, Trilha A já concluída); ajustar `EXPO_PUBLIC_API_URL`.
+1. **13.1–13.3 (fundação):** tipos alinhados ao contrato real → cliente HTTP + adapters + storage seguro de token → React Query. Concluído (sessões 20–21).
+2. **13.4–13.8:** Auth real (sessões 22–23), Matches reais (sessão 24, `feat/matches-real`), Mensagens reais (sessão 25, `feat/messages-real`), Avaliações reais (sessão 26, `feat/ratings-real`), Denúncias reais (sessão 27, `feat/reports-real`).
+3. **13.9 (fechamento):** teste ponta a ponta validado via API real contra o backend local (sessão 28, branch `feat/organizer-actions-and-filters`, ainda não mergeada) — cobriu auth, matches (incluindo ações de organizador: encerrar/aprovar), chat, ratings, reports e RBAC de moderação. `.env` local reapontado para produção como validação adicional. Faltou só a navegação manual pela UI via dispositivo/browser interativo, que fica coberta pela mesma pendência da tarefa 12.3.
 
-Este era o maior bloco de trabalho do projeto — envolveu reescrever a camada de dados dos 6 Contexts originais (`AuthContext`, `MatchesContext`, `MatchFiltersContext`, `MessagesContext`, `RatingsContext`, `ReportsContext`); `MessagesContext`, `RatingsContext` e `ReportsContext` foram removidos por completo e substituídos por hooks de React Query (`useMessages`, `useRatings`, `useReports`), mantendo as interfaces públicas equivalentes para não precisar tocar (ou tocando o mínimo) nas telas.
+Este foi o maior bloco de trabalho do projeto — envolveu reescrever a camada de dados dos 6 Contexts originais (`AuthContext`, `MatchesContext`, `MatchFiltersContext`, `MessagesContext`, `RatingsContext`, `ReportsContext`); `MessagesContext`, `RatingsContext` e `ReportsContext` foram removidos por completo e substituídos por hooks de React Query (`useMessages`, `useRatings`, `useReports`), mantendo as interfaces públicas equivalentes para não precisar tocar (ou tocando o mínimo) nas telas.
 
-Junto disso, fechar a Fase 12 do front que ainda falta:
+Da Fase 12 do front, ainda restam:
 - **12.3** — testar no Expo Go em dispositivo físico/emulador (ação do usuário).
-- **12.8** — preparar build de apresentação (ver Trilha C).
+- **12.8** — preparar build de apresentação (ver Trilha C) — em andamento.
 
 ---
 
-## 4. Trilha C — Build e demo do app
+## 4. Trilha C — Build e demo do app (em andamento, sessão 28)
 
-Hoje não existe `eas.json` nem configuração de build no projeto. Para a defesa, recomenda-se um **APK Android via EAS Build** em vez de depender de Expo Go + rede durante a apresentação (menos pontos de falha ao vivo):
+`eas.json` **já criado** (sessão 28) com três perfis: `development` (client de dev, APK interno),
+`preview` (APK interno, `EXPO_PUBLIC_API_URL` já apontando para produção) e `production`
+(`autoIncrement`, mesma URL). Para a defesa, recomenda-se um **APK Android via EAS Build** em vez
+de depender de Expo Go + rede durante a apresentação (menos pontos de falha ao vivo):
 
-1. `npx eas login` + `npx eas build:configure` (gera `eas.json`).
-2. Perfil de build `preview` (APK direto, sem passar pela Play Store) apontando para a URL de produção do Railway — `EXPO_PUBLIC_API_URL=https://squadup-api.up.railway.app` via `eas.json` → `env`.
+1. ~~`npx eas build:configure` (gera `eas.json`)~~ — ✅ feito manualmente (sessão 28), sem passar pelo comando interativo.
+2. **Falta:** `npx eas login` (credenciais do usuário) + `eas build:configure` de fato (gera `projectId` em `app.json`, algo que a criação manual do `eas.json` não substitui).
 3. `npx eas build --platform android --profile preview`.
 4. Instalar o APK gerado num dispositivo Android para o dia da defesa (ou usar um emulador local como plano B).
 5. iOS: opcional — exige conta Apple Developer paga; só perseguir se for um requisito da banca (normalmente não é).
@@ -108,15 +126,21 @@ front/
 
 Ajustar os `\includegraphics{assets/...}` do `.tex` para `\includegraphics{assets/app/...}` etc. já é o padrão que o próprio documento já usa (a maioria já está organizada assim) — só falta mover os arquivos físicos para bater com os caminhos.
 
-### 5.1 — Screenshots do próprio app: automatizáveis, e podem começar já
+### 5.1 — Screenshots do próprio app — 8/~11 automatizadas (sessão 28)
 
-Como o front já roda via `expo start --web` (react-native-web, usado pelos testes Jest) e ainda está 100% mockado, **os screenshots podem ser gerados agora, sem esperar a Trilha B** — os dados mockados já são coerentes o suficiente para uma captura de tela apresentável.
+`@playwright/test` instalado e `scripts/capture-tcc-screenshots.ts` +
+`scripts/playwright.config.ts` (viewport 393×852) criados. O script faz login **real** (contra a
+API, não mais mockado — a Trilha B terminou antes desta etapa) com um usuário de teste e navega a
+UI de verdade via `npm run web`. Já geradas em `tcc/assets/app/`: `welcome`, `login`,
+`feed-principal`, `filtros`, `detalhes-partida`, `chat-partida`, `criar-partida`, `perfil`.
 
-Sugestão de ferramenta: **Playwright**, rodando contra `npm run web`, navegando pelas telas via a própria UI (ou com rotas diretas, se a navegação permitir) e tirando screenshot em viewport fixo (ex.: 393×852, proporção de celular) para consistência visual entre todas as imagens.
+Ainda faltam (confirmada a ressalva prevista abaixo): `cadastro`, `avaliacao`, `denunciar`,
+`moderacao` — telas cujo fluxo depende de `Alert.alert`, que não renderiza em `react-native-web`
+(D11), então exigem um screenshot manual via Expo Go/emulador em vez do script.
 
-- Instalar: `npm install -D @playwright/test` (não existe hoje no `package.json`).
-- Script novo, ex. `scripts/capture-tcc-screenshots.ts`: abre a página, faz login mockado, navega para cada tela-alvo, tira o screenshot, salva em `tcc/assets/app/`.
-- Ressalva conhecida (dívida técnica D11 do front): `Alert.alert` não renderiza em `react-native-web` — telas que dependem de um Alert para mostrar algo (parte do fluxo de denúncia/avaliação) podem precisar de um screenshot manual via Expo Go/emulador em vez do script.
+Para rodar de novo (ex.: após uma mudança de design): `npm run web` de pé, um usuário de teste
+cadastrado no backend apontado pelo `.env`, e `TCC_SCREENSHOT_PASSWORD="senha" npx playwright test
+--config=scripts/playwright.config.ts`.
 
 ### 5.2 — Screenshots de concorrentes: manuais, ação do usuário
 
