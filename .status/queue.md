@@ -70,8 +70,8 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 | D14 | `ReportsContext.updateReportStatus` manda status-alvo, backend espera ação | ~~Média~~ **Resolvida** | Sessão 27 (Fase 13.8): `ReportsContext` removido; `useUpdateReportAction` (`src/hooks/useReports.ts`) chama `PATCH /reports/{id}` com `{ action: "archive"\|"warn"\|"ban" }`. `AdminDashboardScreen`/`ReportDetailScreen` migrados. |
 | D15 | Cadastro de usuário não coleta `age`, campo obrigatório no backend | ~~Média~~ **Resolvida** | Sessão 22: o campo "Data de nascimento" de `RegisterScreen` (existia na UI, mas era validado e depois **descartado** — nunca chegava a `register()`) passou a ser usado de verdade: `src/utils/date.ts` ganhou `parseBirthDate`/`calculateAge`, e `RegisterScreen` calcula a idade a partir da data informada e **exige 18+** (`MINIMUM_AGE`) — decisão de produto do usuário (não só satisfazer o schema do backend, é regra de segurança do app: partidas com desconhecidos). `register()` ganhou o 4º parâmetro `age: number` (computado, não digitado); `AuthContext` guarda em `pendingAge` e `completeProfile` usa esse valor em vez do `age: 25` hardcoded. 17 testes novos (`RegisterScreen.test.tsx`, `AuthContext.test.tsx`, `utils/__tests__/date.test.ts`). Ver `.status/backend-contract.md` §2.7. |
 | D16 | `types.Match` único vs `MatchRead`/`MatchDetailRead` separados no backend | Média | Backend só expande `organizer`/`participants` no endpoint de detalhe; a listagem (`GET /matches`) devolve `organizer_id` e `confirmed_count`/`available_slots` prontos, sem array de participantes. Código que hoje lê `match.participants`/`match.organizer.name` a partir de uma lista vai quebrar silenciosamente ao trocar o mock pela API. Ver `.status/backend-contract.md` §2.2 para o plano de split em `MatchSummary`/`MatchDetail`. |
-| D17 | Faltam ações de organizador: encerrar partida e aprovar participante pendente | Baixa | Backend já expõe `POST /matches/{id}/close` e `POST /matches/{id}/participants/{user_id}/approve`, mas não há UI para nenhuma das duas — `MatchDetailScreen`/`ParticipantList` só exibem, não moderam. Bloqueia o fluxo real de avaliação pós-partida (exige partida `closed`). Ver `.status/backend-contract.md` §2.2. |
-| D18 | Filtros de partida não cobrem `date`/`location`, que o backend já suporta | Baixa | `GET /matches` aceita `date` e `location` como query params; `FiltersScreen`/`MatchFiltersContext` só implementam `sport`/`level`/`onlyAvailable`. Também é escopo original do `vision.md` (filtro por localização). Ver `.status/backend-contract.md` §4. |
+| D17 | Faltam ações de organizador: encerrar partida e aprovar participante pendente | ~~Baixa~~ **Resolvida** | `MatchDetailScreen`/`ParticipantList`/`useMatchParticipation` já implementam "Encerrar partida" (`POST /matches/{id}/close`, botão visível só para o organizador quando a partida não está encerrada) e "Aprovar" participante pendente (`POST /matches/{id}/participants/{userId}/approve`, ação por item na lista de `pending`). Confirmado no código na sessão 28 — já estava implementado, só não estava marcado como concluído nesta fila. |
+| D18 | Filtros de partida não cobrem `date`/`location`, que o backend já suporta | ~~Baixa~~ **Resolvida** | `FiltersScreen`/`MatchFiltersContext` já coletam `date` (`DD/MM/AAAA` → ISO) e `location` (texto livre); `MatchesContext` envia ambos como query params para `GET /matches` via `fetchMatches`. Confirmado no código na sessão 28 — já estava implementado, só não estava marcado como concluído nesta fila. |
 | D19 | `MatchesContext`/`useMatchFilters`/`MatchCard` tipados sobre `MatchDetail`, não `MatchSummary` | ~~Média~~ **Resolvida** | Resolvida na sessão 24 (Fase 13.5): `MatchesContext`/`MatchFiltersContext`/`useMatchFilters`/`MatchCard`/`HomeScreen`/`SearchScreen` migrados para `MatchSummary` real (`GET /matches`); a busca por nome do organizador foi removida de `useMatchFilters.applyFilters` (opção escolhida, em vez de pedir um campo `organizer_name` novo ao backend). `MatchDetailScreen` (que precisa de `organizer`/`participants` completos) passou a buscar `MatchDetail` sob demanda via `GET /matches/{id}` através do novo hook `useMatchDetail`. |
 | D20 | `toPublicUser` (`src/services/adapters/user.ts`) transforma `average_rating: null` em `0` | ~~Média~~ **Resolvida** | Sessão 26 (Fase 13.7): `PublicUser.averageRating` virou `number \| null`; `toPublicUser` não mascara mais o `null` com `0`; `RatingStars` mostra "Sem avaliações" (em vez de "0.0") quando `rating` é `null`; `TrustBadges` omite o badge de nota nesse caso; `MyProfileScreen`/`PublicProfileScreen` mostram "—" no `StatsRow` para usuário sem avaliações. |
 | D21 | `Message.createdAt`/`Rating.createdAt`/`Report.createdAt` (adapters) recebem o ISO completo do backend sem reformatar | ~~Baixa~~ **Parcialmente resolvida** | Sessão 25 (Fase 13.6): `MessageBubble.tsx` agora formata `message.createdAt` via `formatMessageTime` (novo, `src/utils/date.ts`) — o gap do chat está fechado. `Rating`/`Report` seguem sem mudança (já tratados na tela via `formatDate`/`formatReportDate`, fora do escopo desta sessão). |
@@ -106,7 +106,7 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 |---|--------|----------|--------|
 | 14 | `RatingsContext` → React Query; adapter de achatamento de critérios; UI trata `averageRating` nulo | 13.7 | 🟢 |
 | 15 | `ReportsContext.updateReportStatus` migrado para ação (`archive`/`warn`/`ban`) em vez de status-alvo (D14) | 13.8 | 🟢 |
-| 16 | Teste manual ponta a ponta contra backend local; apontar `.env` para URL de produção (`https://squadup-api.up.railway.app`); ajustar texto do TCC (decisão D-A) | 13.9 | ⚪ |
+| 16 | Teste manual ponta a ponta contra backend local; apontar `.env` para URL de produção (`https://squadup-api.up.railway.app`); ajustar texto do TCC (decisão D-A) | 13.9 | 🟡 |
 
 ---
 
@@ -130,9 +130,41 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
   tirado de `App.tsx`); `src/mocks/reports.ts` mantido como fixture de teste (mesmo padrão de
   `messages`/`ratings`). D23 (picker de "partida relacionada") segue em aberto — sem endpoint de
   "partidas em comum com usuário X" no backend. Suíte 256/256 (252 + 4 novos), lint e
-  `tsc --noEmit` zerados. **Próxima tarefa:** item 16 da fila — teste manual ponta a ponta e apontar
-  `.env` para produção (Fase 13.9). Ver Checkpoint no final desta sessão (mensagem de fechamento)
-  para o estado exato do working tree.
+  `tsc --noEmit` zerados.
+
+- **Sessão 28 (2026-07-16):** Auditoria confirmou que **D17 e D18 já estavam implementadas no
+  código** (`MatchDetailScreen`/`ParticipantList`/`useMatchParticipation` já têm "Encerrar partida"
+  e "Aprovar participante"; `FiltersScreen`/`MatchFiltersContext`/`MatchesContext` já coletam e
+  enviam `date`/`location` para `GET /matches`) — só não estavam marcadas como concluídas nesta
+  fila. Ambas atualizadas para "Resolvida" nesta sessão, sem mudança de código necessária.
+  Corrigido também um artefato de edição no editor (texto solto antes do primeiro `import` de
+  `HomeScreen.tsx`) que quebrava `tsc --noEmit`; não chegou a ser commitado no repositório (o
+  `HEAD` já estava correto). 256/256 testes, lint e `tsc --noEmit` zerados confirmados nesta sessão.
+  **Item 16 (13.9) — teste manual ponta a ponta executado via chamadas diretas à API REST** (não
+  pela UI interativa — ambiente sem navegador/dispositivo disponível) contra o backend local
+  (`squadup-back`, branch `dev`, subido localmente nesta sessão): fluxo completo validado —
+  registro (idade/localização obrigatórios, D15), login (JWT), `GET /users/me` (boot de sessão),
+  `GET /matches` (contrato `MatchSummary` com `organizer_id`/`confirmed_count`/`available_slots`
+  batendo 1:1 com o adapter do front), `GET /matches/{id}` (contrato `MatchDetail` com
+  `organizer`/`participants` expandidos), `POST /matches/{id}/join` (com e sem
+  `requires_approval`), `POST /matches/{id}/participants/{userId}/approve` (D17 — moveu
+  `confirmed_count` 0→1), `POST /matches/{id}/close` (D17 — `status` → `closed`), mensagem de
+  sistema automática ao criar partida (D-D, confirmado: `"Partida criada. Bem-vindos!"`),
+  `POST`/`GET /matches/{id}/messages` (chat), `POST /matches/{id}/ratings/{userId}` (regra de
+  negócio confirmada: **tanto quem avalia quanto quem é avaliado precisam ter participado da
+  partida** — organizador não é participante automático da própria partida, precisa entrar via
+  `join` como qualquer outro usuário), `GET /users/{id}/ratings` (contrato `MatchRef`
+  embutido, D-C), `POST /reports` (criação com `reason`/`description`/`match_id` opcional) e
+  `PATCH /reports/{id}` (RBAC confirmado: `403 ADMIN_ONLY` para usuário comum, validando D14 do
+  lado da autorização). `npm run web` também validado de pé (bundle Metro servindo HTML/título
+  "SquadUp" corretos) tanto contra o backend local quanto, na sequência, com `.env` local
+  reapontado para `https://squadup-api.up.railway.app` (produção, `GET /health` 200 confirmado).
+  **Não testado nesta sessão:** navegação real pela UI (cliques, formulários, Alerts) — exige
+  dispositivo/Expo Go/browser interativo, mesma limitação já registrada na tarefa 12.3. O usuário
+  ou uma sessão com browser disponível deve complementar com esse passo antes de fechar 13.9 de
+  vez. Texto do TCC (decisão D-A) ainda não ajustado — fica para a Trilha E. Processos de
+  desenvolvimento (backend local e `npm run web`) parados ao final da sessão; `.env` local
+  (não versionado) ficou apontando para produção.
 
 ---
 
@@ -140,5 +172,5 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 
 **Total de tarefas:** 86 (70 do protótipo + 16 da fila de integração, Fase 13)
 **Concluídas:** 84 (69 do protótipo + refinamento visual transversal + itens 1–15 da Fase 13, sessões 20–27)
-**Em andamento:** 0
-**A fazer:** 2 (Fase 12: 12.3 requer dispositivo/emulador do usuário, 12.8 build de apresentação; Fase 13: item 16)
+**Em andamento:** 1 (Fase 13: item 16 — teste de API ponta a ponta feito na sessão 28; falta navegação real pela UI)
+**A fazer:** 1 (Fase 12: 12.3 requer dispositivo/emulador do usuário, 12.8 build de apresentação)
