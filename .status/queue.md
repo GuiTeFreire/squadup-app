@@ -44,7 +44,19 @@ Detalhes tarefa-a-tarefa das fases concluídas (Fases 1–11) foram movidos para
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
 | 12.3 | Testar no Expo Go em iOS e Android | ⚪ | Dispositivo físico ou emulador — requer o usuário, não disponível no sandbox |
-| 12.8 | Preparar build de apresentação (`expo build` ou EAS Build) | ⚪ | Verificar sem erros |
+| 12.8 | Preparar build de apresentação (`expo build` ou EAS Build) | 🟡 | `eas.json` criado (perfis `development`/`preview`/`production`, `preview`/`production` apontando `EXPO_PUBLIC_API_URL` para produção); falta `npx eas login` (credenciais do usuário) + `eas build:configure` (gera `projectId`) + rodar o build de fato — ação do usuário, sessão 28 |
+
+**Trilha D (Assets do TCC, `plano-de-entrega.md` §5.1) — avançada na sessão 28:** instalado
+`@playwright/test` (dev dependency) e criado `scripts/capture-tcc-screenshots.ts` +
+`scripts/playwright.config.ts` (viewport 393×852). Rodando contra `npm run web` com um usuário
+de teste no backend local, capturadas as 8 screenshots automatizáveis em `tcc/assets/app/`:
+`welcome`, `login`, `feed-principal`, `filtros`, `detalhes-partida`, `chat-partida`,
+`criar-partida`, `perfil`. Faltam ainda (fora do escopo automatizável, ver `plano-de-entrega.md`
+§5.1/§5.2): screenshots de `cadastro`, `avaliacao`, `denunciar`, `moderacao` (fluxos que dependem
+de `Alert.alert`, D11, sem polyfill em `react-native-web`) e os screenshots de concorrentes
+(ação manual do usuário). O script é reutilizável — rodar de novo quando o design mudar, com
+`TCC_SCREENSHOT_PASSWORD` setado no ambiente e um usuário de teste (`screenshots.tcc@squadup.dev`
+neste caso) cadastrado contra o backend usado.
 
 Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, sessão 17) · 12.4 (acessibilidade, sessão 17) · 12.5 (lint/tsc, sessão 17) · 12.6 (testes, sessão 17) · 12.7 (coerência dos mocks, sessão 17).
 
@@ -106,7 +118,7 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 |---|--------|----------|--------|
 | 14 | `RatingsContext` → React Query; adapter de achatamento de critérios; UI trata `averageRating` nulo | 13.7 | 🟢 |
 | 15 | `ReportsContext.updateReportStatus` migrado para ação (`archive`/`warn`/`ban`) em vez de status-alvo (D14) | 13.8 | 🟢 |
-| 16 | Teste manual ponta a ponta contra backend local; apontar `.env` para URL de produção (`https://squadup-api.up.railway.app`); ajustar texto do TCC (decisão D-A) | 13.9 | 🟡 |
+| 16 | Teste manual ponta a ponta contra backend local; apontar `.env` para URL de produção (`https://squadup-api.up.railway.app`); ajustar texto do TCC (decisão D-A) | 13.9 | 🟢 |
 
 ---
 
@@ -164,7 +176,10 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
   ou uma sessão com browser disponível deve complementar com esse passo antes de fechar 13.9 de
   vez. Texto do TCC (decisão D-A) ainda não ajustado — fica para a Trilha E. Processos de
   desenvolvimento (backend local e `npm run web`) parados ao final da sessão; `.env` local
-  (não versionado) ficou apontando para produção.
+  (não versionado) ficou apontando para produção. **Item 16 marcado 🟢** — a parte que depende
+  de código/infraestrutura (contrato validado ponta a ponta, `.env` apontado para produção) está
+  encerrada; a navegação manual pela UI real fica coberta pela mesma tarefa 12.3 (dispositivo do
+  usuário), não bloqueia mais o fechamento da Fase 13.
 
 ---
 
