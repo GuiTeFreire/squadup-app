@@ -1459,3 +1459,118 @@ em `useReports.test.tsx`) · `npx expo export` (ver seção de build desta sess�
 - Nenhum bug pendente — parada é limpa, entre tarefas. Ver Checkpoint no fim do `queue.md`/mensagem
   de fechamento desta sessão para o estado exato do working tree (diff de CRLF pendente, não
   commitado).
+
+---
+
+## Sessão 28 — 2026-07-16
+
+### Auditoria de D17/D18 — já implementadas, sem código novo
+
+Antes de iniciar qualquer trabalho, uma auditoria do código confirmou que **D17** (ações de
+organizador: encerrar partida e aprovar participante pendente) e **D18** (filtros de `date`/
+`location`) já estavam implementadas — `MatchDetailScreen`/`ParticipantList`/
+`useMatchParticipation` já tinham os botões e chamadas reais (`POST /matches/{id}/close`,
+`POST /matches/{id}/participants/{userId}/approve`); `FiltersScreen`/`MatchFiltersContext`/
+`MatchesContext` já coletavam e enviavam `date`/`location` para `GET /matches`. Nenhuma dessas
+sub-fases precisou de mudança de código — só a fila (`queue.md`) estava desatualizada, sem marcar
+os itens como concluídos. Um artefato transitório do editor (texto solto antes do primeiro
+`import` de `HomeScreen.tsx`, que quebrava `tsc --noEmit`) foi corrigido, mas não chegou a ser
+commitado — o `HEAD` do repositório já estava correto (o problema existia só no buffer do IDE
+aberto naquele momento).
+
+### Item 16 (Fase 13.9) — teste ponta a ponta via API real
+
+Sem acesso a dispositivo/browser interativo no ambiente desta sessão, o teste manual foi feito
+via chamadas diretas à API REST contra o backend local (`squadup-back`, branch `dev`, subido
+localmente com `uvicorn`). Fluxo completo validado, contrato por contrato:
+
+- Registro (idade obrigatória, D15) → login (JWT) → `GET /users/me` (boot de sessão).
+- `GET /matches` — `MatchSummary` (`organizer_id`/`confirmed_count`/`available_slots`) bate 1:1
+  com o adapter do front.
+- `GET /matches/{id}` — `MatchDetail` com `organizer`/`participants` expandidos.
+- `POST /matches/{id}/join` — testado com e sem `requires_approval`.
+- `POST /matches/{id}/participants/{userId}/approve` (D17) — `confirmed_count` 0→1 confirmado.
+- `POST /matches/{id}/close` (D17) — `status` → `closed` confirmado.
+- Mensagem de sistema automática ao criar partida (D-D) — `"Partida criada. Bem-vindos!"`
+  confirmada no histórico do chat sem nenhuma geração no cliente.
+- `POST`/`GET /matches/{id}/messages` — chat funcionando.
+- `POST /matches/{id}/ratings/{userId}` — **regra de negócio descoberta**: tanto quem avalia
+  quanto quem é avaliado precisam ter participado da partida como `confirmed` — o organizador
+  **não** é participante automático da própria partida, precisa dar `join` como qualquer outro
+  usuário para poder avaliar ou ser avaliado depois. Não é um bug, é como o backend já modela a
+  regra; só não estava documentado no front.
+- `GET /users/{id}/ratings` — contrato `MatchRef` embutido (D-C) confirmado.
+- `POST /reports` — criação com `reason`/`description`/`match_id` opcional.
+- `PATCH /reports/{id}` — RBAC confirmado (`403 ADMIN_ONLY` para usuário comum), validando D14
+  do lado da autorização.
+
+`npm run web` também validado de pé (bundle Metro servindo HTML/título "SquadUp" corretos) contra
+o backend local e, na sequência, com `.env` local reapontado para
+`https://squadup-api.up.railway.app` (produção, `GET /health` 200 confirmado).
+
+**Não testado nesta sessão:** navegação real pela UI via cliques/formulários/Alerts — mesma
+limitação da tarefa 12.3 (falta dispositivo/browser interativo no ambiente). Coberto
+parcialmente mais tarde na sessão pelas capturas de tela via Playwright (ver abaixo), que
+validam a navegação real da UI para as 8 telas cobertas, incluindo login/senha reais.
+
+### Fase 12.8 — EAS Build (parcial) + Trilha D — screenshots do TCC
+
+**`eas.json` criado** (não existia antes): perfis `development` (client de dev, APK interno),
+`preview` (APK interno, `EXPO_PUBLIC_API_URL` já apontando para produção) e `production`
+(`autoIncrement`, mesma URL de produção). Falta `npx eas login` (credenciais do usuário) +
+`eas build:configure` (gera `projectId` em `app.json`) + rodar o build de fato — ação do
+usuário, não executável neste ambiente.
+
+**Trilha D (`plano-de-entrega.md` §5.1):** instalado `@playwright/test` como dev dependency
+(`npm install -D @playwright/test` + `npx playwright install chromium`). Criado
+`scripts/capture-tcc-screenshots.ts` + `scripts/playwright.config.ts` (viewport 393×852,
+simulando um celular). O script faz login real (usuário de teste `screenshots.tcc@squadup.dev`
+cadastrado no backend local) e navega a UI de verdade via `npm run web`, capturando 8 telas em
+`tcc/assets/app/`: `welcome`, `login`, `feed-principal`, `filtros`, `detalhes-partida`,
+`chat-partida`, `criar-partida`, `perfil`. A senha do usuário de teste é passada via variável de
+ambiente (`TCC_SCREENSHOT_PASSWORD`), não hardcoded no script (corrigido após aviso do linter do
+editor, `typescript:S2068`). Rodado duas vezes na sessão (uma vez para gerar, outra para validar
+reprodutibilidade) — resultado idêntico nas duas execuções.
+
+Ficam de fora do script (fora do escopo automatizável, ver `plano-de-entrega.md` §5.1/§5.2):
+screenshots de `cadastro`, `avaliacao`, `denunciar`, `moderacao` — fluxos que dependem de
+`Alert.alert`, que não renderiza em `react-native-web` (D11) — e os screenshots de apps
+concorrentes (ação manual do usuário, não é possível navegar apps de terceiros).
+
+`.gitignore` ganhou `test-results/`/`playwright-report/` (artefatos do Playwright).
+
+### Decisões não óbvias
+
+- **Item 16 marcado 🟢 mesmo sem navegação manual pela UI** — a parte que depende de
+  código/infraestrutura (contrato ponta a ponta validado via API real, `.env` apontado para
+  produção) está encerrada; a navegação manual real fica coberta pela mesma tarefa 12.3
+  (dispositivo do usuário), evitando duplicar a mesma pendência em dois lugares da fila.
+- **Regra "avaliador também precisa ter participado"** não estava documentada em nenhum lugar do
+  front antes desta sessão — só foi descoberta testando o fluxo de ratings via API real. Vale
+  para qualquer tela futura que assuma que o organizador pode avaliar sem ter entrado na própria
+  partida.
+- **Usuários de teste de sessão (`teste.e2e.*@squadup.dev`, `screenshots.tcc@squadup.dev`) e as
+  partidas extras criadas por eles ficaram no banco SQLite local** (`squadup-back/squadup.db`,
+  fora deste repositório) — não afeta produção (Railway usa Postgres separado), mas quem rodar o
+  backend local de novo vai ver esses registros de teste no `GET /matches`.
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros · `npm run test` 256/256 passando ·
+`npx expo export` (ver seção de build desta sessão de fechamento, mensagem de encerramento).
+
+### Estado ao final da sessão 28
+
+- Branch `feat/organizer-actions-and-filters`, criada a partir de `dev`. Dois commits:
+  `0ffd84a` (docs: D17/D18 + teste E2E via API) e `1e45317` (feat: eas.json + screenshots do TCC).
+- Fase 13 **16/16 — inteiramente concluída** (item 16/13.9 fechado nesta sessão, ver decisão
+  acima). Fase 12 em 6/8, com 12.8 avançada para 🟡 (falta só a parte que exige login/credenciais
+  do usuário).
+- Nenhuma dívida técnica nova identificada; D17 e D18 marcadas "Resolvida" (já estavam
+  implementadas, sem mudança de código).
+- Branch **não mergeada em `dev`** ainda — sem PR aberto, aguardando revisão do usuário.
+- Próxima tarefa: usuário decidir entre (a) revisar/mergear a branch atual, (b) rodar
+  `npx eas login` + `eas build:configure` + o build de fato (12.8), (c) testar em Expo Go/
+  dispositivo físico (12.3), ou (d) avançar a Trilha E (texto do TCC — casos de uso extras,
+  correção da decisão D-A sobre geolocalização/"Local").
+- Nenhum bug pendente — parada é limpa, entre tarefas.

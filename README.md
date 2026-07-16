@@ -38,6 +38,17 @@ npm install
 | `npm run lint` | Verifica erros de lint |
 | `npm run lint:fix` | Corrige erros de lint automaticamente |
 
+### Screenshots do app para o TCC
+
+`scripts/capture-tcc-screenshots.ts` (Playwright) navega o app real via `npm run web` e salva
+capturas em `tcc/assets/app/`. Pré-requisitos: `npm run web` rodando, um usuário de teste já
+cadastrado no backend (`EXPO_PUBLIC_API_URL` do `.env` apontando para o backend certo) e a senha
+desse usuário na variável `TCC_SCREENSHOT_PASSWORD`:
+
+```bash
+TCC_SCREENSHOT_PASSWORD="sua-senha" npx playwright test --config=scripts/playwright.config.ts
+```
+
 ## Paleta de cores
 
 | Token | Cor | Uso |
@@ -173,9 +184,9 @@ backend.
 | 9 | Avaliação pós-partida | ✅ Concluída |
 | 10 | Denúncia e segurança | ✅ Concluída |
 | 11 | Moderação (opcional) | ✅ Concluída |
-| 12 | Revisão e polimento final | 🟡 **Em andamento** (6/8 — restam apenas testes em Expo Go e build de apresentação) |
-| 13 | Integração com o backend real | 🟡 **Em andamento** (15/16 — fundação, Auth real (13.4), Matches reais (13.5), Mensagens reais (13.6), Avaliações reais (13.7) e Denúncias reais (13.8) concluídas; backend já deployado em `https://squadup-api.up.railway.app`) |
+| 12 | Revisão e polimento final | 🟡 **Em andamento** (6/8 — resta apenas testar em Expo Go/dispositivo; build de apresentação com `eas.json` pronto, falta login/execução) |
+| 13 | Integração com o backend real | 🟢 **Concluída (16/16)** — fundação, Auth real, Matches reais, Mensagens reais, Avaliações reais, Denúncias reais e hardening/teste ponta a ponta; backend já deployado em `https://squadup-api.up.railway.app` |
 
-256 testes passando · lint zerado · tsc zerado · 84/86 tarefas concluídas (98%)
+256 testes passando · lint zerado · tsc zerado · 85/86 tarefas concluídas (99%)
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

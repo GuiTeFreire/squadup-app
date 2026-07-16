@@ -32,6 +32,7 @@
 | Fase 13.6 — Mensagens reais | 1/1 ✅ | `feat/messages-real` (sessão 25 — 2026-07-13) |
 | Fase 13.7 — Avaliações reais | 1/1 ✅ | `feat/ratings-real` (sessão 26 — 2026-07-13) |
 | Fase 13.8 — Denúncias reais | 1/1 ✅ | `feat/reports-real` (sessão 27 — 2026-07-14) |
+| Fase 13.9 — Hardening e fechamento | 1/1 ✅ | `feat/organizer-actions-and-filters` (sessão 28 — 2026-07-16, ainda não mergeada) |
 
 ---
 
@@ -44,7 +45,12 @@ Detalhes tarefa-a-tarefa das fases concluídas (Fases 1–11) foram movidos para
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
 | 12.3 | Testar no Expo Go em iOS e Android | ⚪ | Dispositivo físico ou emulador — requer o usuário, não disponível no sandbox |
-| 12.8 | Preparar build de apresentação (`expo build` ou EAS Build) | ⚪ | Verificar sem erros |
+| 12.8 | Preparar build de apresentação (`expo build` ou EAS Build) | 🟡 | `eas.json` criado (perfis `development`/`preview`/`production`, `preview`/`production` apontando `EXPO_PUBLIC_API_URL` para produção); falta `npx eas login` (credenciais do usuário) + `eas build:configure` (gera `projectId`) + rodar o build de fato — ação do usuário, sessão 28 |
+
+**Trilha D (Assets do TCC) avançada na sessão 28** — ver `plano-de-entrega.md` §5.1 e
+`progress.md` (sessão 28) para detalhe completo. Resumo: `scripts/capture-tcc-screenshots.ts`
+(Playwright) automatiza a captura de 8 telas em `tcc/assets/app/`. Faltam só as telas que
+dependem de `Alert.alert` (D11, sem polyfill no web) e os prints de concorrentes (manual).
 
 Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, sessão 17) · 12.4 (acessibilidade, sessão 17) · 12.5 (lint/tsc, sessão 17) · 12.6 (testes, sessão 17) · 12.7 (coerência dos mocks, sessão 17).
 
@@ -70,13 +76,15 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 | D14 | `ReportsContext.updateReportStatus` manda status-alvo, backend espera ação | ~~Média~~ **Resolvida** | Sessão 27 (Fase 13.8): `ReportsContext` removido; `useUpdateReportAction` (`src/hooks/useReports.ts`) chama `PATCH /reports/{id}` com `{ action: "archive"\|"warn"\|"ban" }`. `AdminDashboardScreen`/`ReportDetailScreen` migrados. |
 | D15 | Cadastro de usuário não coleta `age`, campo obrigatório no backend | ~~Média~~ **Resolvida** | Sessão 22: o campo "Data de nascimento" de `RegisterScreen` (existia na UI, mas era validado e depois **descartado** — nunca chegava a `register()`) passou a ser usado de verdade: `src/utils/date.ts` ganhou `parseBirthDate`/`calculateAge`, e `RegisterScreen` calcula a idade a partir da data informada e **exige 18+** (`MINIMUM_AGE`) — decisão de produto do usuário (não só satisfazer o schema do backend, é regra de segurança do app: partidas com desconhecidos). `register()` ganhou o 4º parâmetro `age: number` (computado, não digitado); `AuthContext` guarda em `pendingAge` e `completeProfile` usa esse valor em vez do `age: 25` hardcoded. 17 testes novos (`RegisterScreen.test.tsx`, `AuthContext.test.tsx`, `utils/__tests__/date.test.ts`). Ver `.status/backend-contract.md` §2.7. |
 | D16 | `types.Match` único vs `MatchRead`/`MatchDetailRead` separados no backend | Média | Backend só expande `organizer`/`participants` no endpoint de detalhe; a listagem (`GET /matches`) devolve `organizer_id` e `confirmed_count`/`available_slots` prontos, sem array de participantes. Código que hoje lê `match.participants`/`match.organizer.name` a partir de uma lista vai quebrar silenciosamente ao trocar o mock pela API. Ver `.status/backend-contract.md` §2.2 para o plano de split em `MatchSummary`/`MatchDetail`. |
-| D17 | Faltam ações de organizador: encerrar partida e aprovar participante pendente | Baixa | Backend já expõe `POST /matches/{id}/close` e `POST /matches/{id}/participants/{user_id}/approve`, mas não há UI para nenhuma das duas — `MatchDetailScreen`/`ParticipantList` só exibem, não moderam. Bloqueia o fluxo real de avaliação pós-partida (exige partida `closed`). Ver `.status/backend-contract.md` §2.2. |
-| D18 | Filtros de partida não cobrem `date`/`location`, que o backend já suporta | Baixa | `GET /matches` aceita `date` e `location` como query params; `FiltersScreen`/`MatchFiltersContext` só implementam `sport`/`level`/`onlyAvailable`. Também é escopo original do `vision.md` (filtro por localização). Ver `.status/backend-contract.md` §4. |
+| D17 | Faltam ações de organizador: encerrar partida e aprovar participante pendente | ~~Baixa~~ **Resolvida** | `MatchDetailScreen`/`ParticipantList`/`useMatchParticipation` já implementam "Encerrar partida" (`POST /matches/{id}/close`, botão visível só para o organizador quando a partida não está encerrada) e "Aprovar" participante pendente (`POST /matches/{id}/participants/{userId}/approve`, ação por item na lista de `pending`). Confirmado no código na sessão 28 — já estava implementado, só não estava marcado como concluído nesta fila. |
+| D18 | Filtros de partida não cobrem `date`/`location`, que o backend já suporta | ~~Baixa~~ **Resolvida** | `FiltersScreen`/`MatchFiltersContext` já coletam `date` (`DD/MM/AAAA` → ISO) e `location` (texto livre); `MatchesContext` envia ambos como query params para `GET /matches` via `fetchMatches`. Confirmado no código na sessão 28 — já estava implementado, só não estava marcado como concluído nesta fila. |
 | D19 | `MatchesContext`/`useMatchFilters`/`MatchCard` tipados sobre `MatchDetail`, não `MatchSummary` | ~~Média~~ **Resolvida** | Resolvida na sessão 24 (Fase 13.5): `MatchesContext`/`MatchFiltersContext`/`useMatchFilters`/`MatchCard`/`HomeScreen`/`SearchScreen` migrados para `MatchSummary` real (`GET /matches`); a busca por nome do organizador foi removida de `useMatchFilters.applyFilters` (opção escolhida, em vez de pedir um campo `organizer_name` novo ao backend). `MatchDetailScreen` (que precisa de `organizer`/`participants` completos) passou a buscar `MatchDetail` sob demanda via `GET /matches/{id}` através do novo hook `useMatchDetail`. |
 | D20 | `toPublicUser` (`src/services/adapters/user.ts`) transforma `average_rating: null` em `0` | ~~Média~~ **Resolvida** | Sessão 26 (Fase 13.7): `PublicUser.averageRating` virou `number \| null`; `toPublicUser` não mascara mais o `null` com `0`; `RatingStars` mostra "Sem avaliações" (em vez de "0.0") quando `rating` é `null`; `TrustBadges` omite o badge de nota nesse caso; `MyProfileScreen`/`PublicProfileScreen` mostram "—" no `StatsRow` para usuário sem avaliações. |
 | D21 | `Message.createdAt`/`Rating.createdAt`/`Report.createdAt` (adapters) recebem o ISO completo do backend sem reformatar | ~~Baixa~~ **Parcialmente resolvida** | Sessão 25 (Fase 13.6): `MessageBubble.tsx` agora formata `message.createdAt` via `formatMessageTime` (novo, `src/utils/date.ts`) — o gap do chat está fechado. `Rating`/`Report` seguem sem mudança (já tratados na tela via `formatDate`/`formatReportDate`, fora do escopo desta sessão). |
 | D22 | `tokenStorage` usa `sessionStorage` no web, que não sobrevive a fechar a aba | Baixa | `expo-secure-store` é um no-op em `react-native-web` (`ExpoSecureStore.web.js` exporta objeto vazio) — sem alternativa nativa de "storage seguro" real no browser. `src/services/storage/tokenStorage.ts` cai para `sessionStorage` nesse caso, o que é aceitável para a demo acadêmica (`npm run web`) mas significa que o usuário é deslogado ao fechar/reabrir a aba (diferente do nativo, onde o keychain/keystore persiste entre sessões do app). Sem ação necessária a menos que a apresentação dependa de sessão persistente no browser — se depender, considerar `localStorage` (persiste mais, mas é menos seguro ainda) como troca consciente. Descoberto na sessão 21 (item 5, 13.2). |
 | D23 | `ReportUserScreen` perdeu o picker de "partida relacionada" ao migrar a listagem para `MatchSummary` | Baixa | A Fase 13.5 (sessão 24) trocou `MatchesContext` para consumir `GET /matches` real, que devolve `MatchSummary` (sem `participants`). `ReportUserScreen` usava `matches.filter(m => m.participants.some(...))` para achar partidas em comum com o usuário denunciado — não há endpoint no backend para "partidas em comum com o usuário X", então esse filtro virou um array vazio hardcoded (`userMatches: MatchRef[] = []`) até a Fase 13.8 (`ReportsContext` real) resolver isso de verdade — possivelmente precisando de um novo endpoint no backend. Efeito visual: a seção "Partida relacionada" nunca aparece mais em `ReportUserScreen`, mesmo quando o usuário e o denunciado jogaram juntos. Descoberto na sessão 24. |
+| D24 | Regra "avaliador precisa ter participado da partida" não documentada em nenhuma tela | Baixa | Descoberto testando `POST /matches/{id}/ratings/{userId}` via API real na sessão 28: o backend exige `confirmed` tanto para quem avalia quanto para quem é avaliado — organizador **não** é participante automático da própria partida (precisa dar `join`). Nenhuma tela (`PostMatchRatingScreen`/`RateUserScreen`) avisa disso; se o organizador nunca entrou como participante, a tentativa de avaliar falha com `403 NOT_MATCH_PARTICIPANT` sem mensagem específica na UI (cai no fallback genérico de erro). Nice-to-have: detectar esse código de erro e mostrar uma mensagem mais clara, ou simplesmente documentar a regra para quem for testar manualmente. |
+| D25 | Usuários/partidas de teste ficaram no banco SQLite local do backend | Baixa | A sessão 28 criou usuários (`teste.e2e.*@squadup.dev`, `screenshots.tcc@squadup.dev`) e partidas de teste ao validar a Fase 13.9 e capturar screenshots, todos no `squadup-back/squadup.db` local (fora deste repositório). Não afeta produção (Railway usa Postgres separado). Quem rodar o backend local de novo verá esses registros extras em `GET /matches`; limpar o banco local (`rm squadup.db` + rodar migrations/seed de novo) se isso incomodar a demo. |
 
 ---
 
@@ -94,19 +102,15 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 ## Fila de integração — Fase 13 (`.status/roadmap.md` §19, sessão 19 — 2026-07-08)
 
 > Plano mestre completo, decisões de arquitetura (D-A a D-D) e por que cada item existe estão
-> em `.status/backend-contract.md` §6. Esta fila só lista o "o quê"; o "por quê" fica lá para
-> não duplicar manutenção. **Pré-requisito:** Etapa 1 do plano mestre no backend
-> (`../back/.status/roadmap.md`, Fase 12) — **✅ concluída em 2026-07-08** (D-B/D-C/D-D
-> aplicadas, CORS de produção, hospedagem decidida, purge de refresh tokens e
-> `POST /auth/logout-all` implementados — ver `.status/backend-contract.md` para o detalhe
-> atualizado). Sub-fases 13.1–13.7 **concluídas** (sessões 20–26) — detalhe tarefa-a-tarefa
-> arquivado em [`progress.md`](progress.md). A fila abaixo é o que resta.
+> em `.status/backend-contract.md` §6. **Fase 13 inteiramente concluída (16/16) na sessão 28** —
+> detalhe tarefa-a-tarefa de todas as sub-fases (13.1–13.9) arquivado em
+> [`progress.md`](progress.md), sessões 20–28.
 
 | # | Tarefa | Sub-fase | Status |
 |---|--------|----------|--------|
 | 14 | `RatingsContext` → React Query; adapter de achatamento de critérios; UI trata `averageRating` nulo | 13.7 | 🟢 |
 | 15 | `ReportsContext.updateReportStatus` migrado para ação (`archive`/`warn`/`ban`) em vez de status-alvo (D14) | 13.8 | 🟢 |
-| 16 | Teste manual ponta a ponta contra backend local; apontar `.env` para URL de produção (`https://squadup-api.up.railway.app`); ajustar texto do TCC (decisão D-A) | 13.9 | ⚪ |
+| 16 | Teste ponta a ponta (via API real, sessão 28); apontar `.env` para URL de produção; ajustar texto do TCC (decisão D-A) | 13.9 | 🟢 |
 
 ---
 
@@ -114,31 +118,23 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 
 > Histórico detalhado por sessão (o "porquê" de cada decisão, trechos de código, achados de
 > auditoria) vive em [`progress.md`](progress.md) — esta seção só guarda a observação mais
-> recente, para servir de ponto de retomada rápido no início da próxima sessão. Histórico
-> completo sessão-a-sessão (23–26) arquivado em [`progress.md`](progress.md).
+> recente, para servir de ponto de retomada rápido no início da próxima sessão.
 
-- **Sessão 27 (2026-07-14):** Item 15 da fila concluído na branch `feat/reports-real` (commit
-  `ef67176`) — **Fase 13.8 (Denúncias reais) inteiramente concluída**. Novo `src/hooks/useReports.ts`
-  (`useReports`, `useCreateReport`, `useUpdateReportAction`) substitui `ReportsContext` por completo
-  contra `GET /reports`, `POST /reports` e `PATCH /reports/{id}`; o adapter
-  (`src/services/adapters/report.ts`) ganhou `ReportCreatePayload` (`reported_user_id`, `match_id?`,
-  `reason`, `description`) e a camada `src/services/api/reports.ts`. **D14 resolvida**:
-  `AdminDashboardScreen`/`ReportDetailScreen` migrados de `updateReportStatus(id, status)` para
-  `updateReportAction(id, action)` com os três verbos reais do backend (`archive`/`warn`/`ban`);
-  `ReportUserScreen` envia só o payload de criação esperado (reporter vem do JWT) e trata estado de
-  loading (`Button.loading`) e erro de rede. `ReportsContext` removido (arquivo deletado + provider
-  tirado de `App.tsx`); `src/mocks/reports.ts` mantido como fixture de teste (mesmo padrão de
-  `messages`/`ratings`). D23 (picker de "partida relacionada") segue em aberto — sem endpoint de
-  "partidas em comum com usuário X" no backend. Suíte 256/256 (252 + 4 novos), lint e
-  `tsc --noEmit` zerados. **Próxima tarefa:** item 16 da fila — teste manual ponta a ponta e apontar
-  `.env` para produção (Fase 13.9). Ver Checkpoint no final desta sessão (mensagem de fechamento)
-  para o estado exato do working tree.
+- **Sessão 28 (2026-07-16):** Fase 13 fechada (16/16) — D17/D18 confirmadas já implementadas
+  (sem código novo); item 16 (13.9) validado via API real ponta a ponta contra o backend local
+  (auth, matches, join/approve/close, chat, ratings, reports, RBAC de moderação todos OK). Nova
+  regra de negócio documentada: **quem avalia e quem é avaliado precisam ambos ter participado
+  (`confirmed`) da partida** — organizador não é participante automático da própria partida.
+  12.8 avançada para 🟡 (`eas.json` criado, falta login/credenciais do usuário). Trilha D
+  avançada: 8 screenshots do app geradas via Playwright em `tcc/assets/app/`. Branch
+  `feat/organizer-actions-and-filters` com 2 commits, **ainda não mergeada em `dev`**. Detalhe
+  completo em `progress.md`, sessão 28. Texto do TCC (D-A) segue não ajustado — Trilha E.
 
 ---
 
 ## Progresso geral
 
 **Total de tarefas:** 86 (70 do protótipo + 16 da fila de integração, Fase 13)
-**Concluídas:** 84 (69 do protótipo + refinamento visual transversal + itens 1–15 da Fase 13, sessões 20–27)
-**Em andamento:** 0
-**A fazer:** 2 (Fase 12: 12.3 requer dispositivo/emulador do usuário, 12.8 build de apresentação; Fase 13: item 16)
+**Concluídas:** 85 (69 do protótipo + refinamento visual transversal + 16/16 da Fase 13 — sessões 20–28)
+**Em andamento:** 1 (Fase 12: 12.8 — `eas.json` pronto, falta login/build real do usuário)
+**A fazer:** 1 (Fase 12: 12.3 requer dispositivo/emulador do usuário)
