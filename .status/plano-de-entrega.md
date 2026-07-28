@@ -24,6 +24,14 @@
 > **Trilha F** (§9), com plano técnico completo em `.status/backend-contract.md` §6-A e
 > `.status/roadmap.md` §20. Isso é escopo adicional que não estava no cronograma original — ver
 > §9 para a avaliação de risco e o plano de contingência.
+>
+> **Atualização (2026-07-28, sessão 30):** o lado do backend da Trilha F está **concluído** — as
+> 4 tarefas (`squadup-back`, etapas 1–4 do plano mestre) foram implementadas, testadas (138
+> testes, 99,2% cobertura) e mergeadas em `dev` via PR #50. Contrato de API estável (com dois
+> desvios documentados: campo novo `distance_km` em `MatchSummary`/`MatchDetail`, e `logout`
+> single-device não revoga push token — só `logout-all`). O lado do front (etapas 5–7) segue
+> em 0%. Falta rodar a migration pendente em produção (Railway) antes de testar contra a API
+> pública.
 
 ---
 
@@ -36,7 +44,7 @@
 | **C — Build e demo do app** | EAS Build / Expo Go para teste e apresentação | Trilha B razoavelmente avançada | Em andamento — `eas.json` pronto, falta login/build do usuário |
 | **D — Assets do TCC** | Estrutura de pastas, prints, bibliografia, diagramas | Nada (screenshots podem ser tirados com os mocks atuais) | Em andamento — 8/~11 screenshots do app automatizadas (sessão 28) |
 | **E — Escrita da monografia** | Capítulos novos/atualizados do TCC.tex | Parcialmente nada (casos de uso extras e arquitetura já documentável), parcialmente B/C (capítulo de resultados) | **Agora** para as partes que não dependem de resultado final |
-| **F — Geolocalização real + push** | Fase 14 do front (`roadmap.md` §20) + Fase 13 do backend (`../squadup-back/.status/roadmap.md` §19) | Trilha B concluída (pré-requisito satisfeito em 2026-07-16) | Registrada, não iniciada — ver §9 |
+| **F — Geolocalização real + push** | Fase 14 do front (`roadmap.md` §20) + Fase 13 do backend (`../squadup-back/.status/roadmap.md` §19) | Trilha B concluída (pré-requisito satisfeito em 2026-07-16) | Em andamento — **backend concluído** (4/4 tarefas, PR #50, 2026-07-28); front não iniciado — ver §9 |
 
 Nenhuma trilha bloqueia totalmente as outras — dá para avançar em 3–4 frentes ao mesmo tempo.
 
@@ -231,12 +239,17 @@ Resumo do escopo: `Match` ganha `latitude`/`longitude` opcionais; `GET /matches`
 nova, participação aprovada, partida encerrada/cancelada). Ambas as features são estritamente
 aditivas — nenhum fluxo hoje funcional muda de comportamento se o usuário negar as permissões.
 
+**Atualização (2026-07-28):** as 4 etapas do backend estão concluídas e mergeadas (`squadup-back`
+PR #50) — ver `../squadup-back/.status/progress.md` §"Fase 13 — tarefas 1–4 concluídas" para o
+detalhe tarefa-a-tarefa. Restam as etapas 5–8 (front + hardening conjunto), abaixo.
+
 ### Avaliação de risco de cronograma
 
 **Esforço estimado:** 8 etapas coordenadas em 2 repositórios (4 backend, 3 front, 1 conjunta),
-incluindo uma migration de schema em produção (Railway/Postgres) e duas dependências de
-biblioteca nativa nova em cada lado (`expo-location`, `expo-notifications` no front;
-`expo-server-sdk` no backend). Ordem de grandeza comparável a uma das sub-fases médias da Fase 13
+incluindo uma migration de schema em produção (Railway/Postgres, **ainda pendente de aplicar**,
+só rodou localmente) e dependências novas em cada lado (`expo-location`, `expo-notifications` no
+front; `httpx` chamando a Expo Push API direto no backend — não `expo-server-sdk`, que não existe
+como pacote Python maduro). Ordem de grandeza comparável a uma das sub-fases médias da Fase 13
 já concluída (ex.: 13.5 "Matches reais", que levou 1 sessão inteira) — mas com um agravante: **a
 validação final (push + GPS reais) só é possível em dispositivo físico**, a mesma dependência que
 já bloqueia a tarefa 12.3 há várias sessões por não haver dispositivo/emulador disponível neste
@@ -252,11 +265,11 @@ acadêmicos quando não tratada com uma contingência explícita.
 
 **Recomendação — sequenciamento:**
 
-1. Backend primeiro e sozinho (etapas 1–4 do plano mestre, `backend-contract.md` §6-A): é
-   trabalho aditivo, sem risco de quebrar a integração já concluída (13), e pode ser validado via
-   Swagger/testes automatizados sem depender do front nem de dispositivo físico;
-2. Front geo (etapas 5–6): baixo risco, testável em simulador/`npm run web` (GPS pode ser mockado
-   em dev, mesmo padrão que outras libs Expo já usam neste projeto);
+1. ~~Backend primeiro e sozinho (etapas 1–4 do plano mestre, `backend-contract.md` §6-A)~~ —
+   **✅ concluído em 2026-07-28** (PR #50 em `squadup-back`), validado via `pytest`/`/openapi.json`
+   sem depender do front nem de dispositivo físico, como planejado;
+2. **Próximo passo:** front geo (etapas 5–6) — baixo risco, testável em simulador/`npm run web`
+   (GPS pode ser mockado em dev, mesmo padrão que outras libs Expo já usam neste projeto);
 3. Front push (etapa 7) e o hardening final (etapa 8) **só depois** que 12.8 (EAS Build) e 12.3
    (dispositivo físico) já estiverem resolvidos — push depende do `projectId` do EAS existir e de
    um dispositivo real para validar, então naturalmente herda a mesma dependência externa que já
@@ -275,7 +288,7 @@ honestidade que motivou a correção original da decisão D-A.
 
 | Período (do cronograma) | Foco adicional (Trilha F) |
 |---|---|
-| Ago 2 – Set 2 (já em andamento) | Backend: etapas 1–4 (geo + push, infraestrutura), em paralelo com o encerramento da Trilha B |
+| Ago 2 – Set 2 | Backend: etapas 1–4 (geo + push, infraestrutura) — ✅ concluído em 2026-07-28, adiantado em relação a este período |
 | Set 1 – Set 2 | Front: etapas 5–6 (geolocalização), em paralelo com 12.3/validação ponta a ponta |
 | Set 2 – Out 2 | Front: etapa 7 (push) — só após 12.8 (EAS/`projectId`) e 12.3 (dispositivo) estarem resolvidos; etapa 8 (hardening + ajuste do TCC) fecha a trilha |
 | Out 1 – Nov 1 | Se atrasado: aplicar o plano de contingência acima (cortar push, manter geo) antes de comprometer a escrita da monografia (Trilha E) |

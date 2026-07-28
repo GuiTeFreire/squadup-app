@@ -56,27 +56,41 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 
 ---
 
-## FASE 14 — Geolocalização real e notificações push (0/8 — registrada na sessão 29, 2026-07-16)
+## FASE 14 — Geolocalização real e notificações push (4/8 — backend concluído em 2026-07-28)
 
 > Plano mestre completo (arquitetura, contrato de API, decisões D-Geo-*/D-Push-*) em
 > `.status/backend-contract.md` §6-A. Detalhe tarefa-a-tarefa do front em `roadmap.md` §20.
-> Contraparte no backend: `../squadup-back/.status/roadmap.md` §19 (já pré-desenhada desde
-> 2026-07-08, estava bloqueada até a Fase 13 deste repositório terminar — **destravada agora**).
+> Contraparte no backend: `../squadup-back/.status/roadmap.md` §19 — **tarefas 1–4 concluídas e
+> mergeadas em `dev` via PR #50 (2026-07-28)**, contrato de API estável e pronto para consumo.
 > Escopo: geolocalização com coordenadas reais via GPS (`expo-location`); push via Expo Push API
 > nos 3 eventos essenciais (mensagem nova, participação aprovada, partida encerrada/cancelada).
 > **Não estava no cronograma original do TCC** — ver `plano-de-entrega.md` §9 para o encaixe e o
 > plano de contingência de prazo.
+>
+> **Atenção antes de testar contra produção:** a migration da Fase 13 (backend) ainda não foi
+> aplicada em `https://squadup-api.up.railway.app` — só validada localmente. `lat`/`lng`/
+> `radius_km` e `POST /users/me/push-token` vão falhar em produção até isso rodar lá.
 
 | # | Tarefa | Sub-fase | Repositório | Status |
 |---|--------|----------|---|--------|
-| 1 | Migration `latitude`/`longitude` em `Match`; schemas atualizados | 14 (backend) | Backend | ⚪ |
-| 2 | `GET /matches` ganha `lat`/`lng`/`radius_km`; Haversine; ordenação por distância; testes | 14 (backend) | Backend | ⚪ |
-| 3 | Tabela `push_tokens`; `POST /users/me/push-token`; revogação em logout | 14 (backend) | Backend | ⚪ |
-| 4 | `notification_service.py` (Expo Push API) + disparo nos 3 eventos via `BackgroundTasks` | 14 (backend) | Backend | ⚪ |
+| 1 | Migration `latitude`/`longitude` em `Match`; schemas atualizados | 14 (backend) | Backend | 🟢 |
+| 2 | `GET /matches` ganha `lat`/`lng`/`radius_km`; Haversine; ordenação por distância; testes | 14 (backend) | Backend | 🟢 |
+| 3 | Tabela `push_tokens`; `POST /users/me/push-token`; revogação em logout | 14 (backend) | Backend | 🟢 |
+| 4 | `notification_service.py` (Expo Push API) + disparo nos 3 eventos via `BackgroundTasks` | 14 (backend) | Backend | 🟢 |
 | 5 | `useDeviceLocation` + `CreateMatchScreen` envia coordenadas + tipos/adapters | 14.1 | Front | ⚪ |
 | 6 | `FiltersScreen` (toggle + raio) + `useMatchFilters`/`MatchesContext` propagam geo + distância no `MatchCard` | 14.1 | Front | ⚪ |
 | 7 | `useNotificationRegistration` (permissão + token + registro) + listener de navegação | 14.2 | Front | ⚪ |
 | 8 | Hardening ponta a ponta em dispositivo físico + ajuste do texto do TCC (D-A) | 14.3 | Ambos | ⚪ |
+
+**Desvios do backend em relação ao contrato original de `backend-contract.md` §6-A** — relevantes
+para o front implementar 5–7 corretamente:
+- `MatchRead`/`MatchDetailRead` ganharam um campo novo não previsto: `distance_km: number | null`,
+  presente só quando a busca (`GET /matches`) informou `lat`/`lng` — usar esse valor pronto no
+  `MatchCard` em vez de recalcular a distância no cliente (tarefa 6).
+- `POST /auth/logout` (logout de um único dispositivo) **não** revoga o push token registrado
+  nesse dispositivo — só `POST /auth/logout-all` revoga todos. Não depende de nada novo do
+  front, é só uma limitação a ter em mente (o dispositivo pode continuar recebendo push depois
+  de um logout simples, até o token expirar do lado da Expo).
 
 **Dependência crítica:** a tarefa 8 (e a validação real de push) só é possível em dispositivo
 físico — mesma limitação de sandbox já registrada para 12.3. Tarefas 1–4 (backend) podem ser
@@ -149,15 +163,30 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 > auditoria) vive em [`progress.md`](progress.md) — esta seção só guarda a observação mais
 > recente, para servir de ponto de retomada rápido no início da próxima sessão.
 
-- **Sessão 28 (2026-07-16):** Fase 13 fechada (16/16) — D17/D18 confirmadas já implementadas
-  (sem código novo); item 16 (13.9) validado via API real ponta a ponta contra o backend local
-  (auth, matches, join/approve/close, chat, ratings, reports, RBAC de moderação todos OK). Nova
-  regra de negócio documentada: **quem avalia e quem é avaliado precisam ambos ter participado
-  (`confirmed`) da partida** — organizador não é participante automático da própria partida.
-  12.8 avançada para 🟡 (`eas.json` criado, falta login/credenciais do usuário). Trilha D
-  avançada: 8 screenshots do app geradas via Playwright em `tcc/assets/app/`. Branch
-  `feat/organizer-actions-and-filters` com 2 commits, **ainda não mergeada em `dev`**. Detalhe
-  completo em `progress.md`, sessão 28. Texto do TCC (D-A) segue não ajustado — Trilha E.
+- **Checkpointer — Sessão 30 (2026-07-28):** nenhum código deste repositório mudou nesta sessão
+  — trabalho de código foi todo no `squadup-back` (Fase 13, tarefas 1–4: geolocalização real +
+  push, ver `../squadup-back/.status/progress.md` §"Fase 13 — tarefas 1–4 concluídas"). Esta
+  sessão só sincronizou a documentação: `queue.md` (tabela da Fase 14, itens 1–4 → 🟢),
+  `roadmap.md` §20 e `plano-de-entrega.md` (Trilha F) atualizados para refletir que o **backend
+  está pronto e mergeado (PR #50)** — o front pode começar a Fase 14.1 (geolocalização) sem
+  bloqueio de contrato. `npm run lint` e `npm run test` (256/256, gate completo) rodados como
+  verificação — verde, nenhuma regressão (as únicas mudanças de código foram normalização de
+  final de linha via `npm run lint:fix`, D4).
+  - **Próxima tarefa concreta (Fase 14.1, item 5 da tabela acima):** criar
+    `src/hooks/useDeviceLocation.ts` (não existe ainda) — pede permissão de localização e captura
+    `latitude`/`longitude` via `expo-location` (`Location.Accuracy.Balanced`, D-Geo-4), retorna
+    `{ location, permissionDenied, isLoading, requestLocation }`, nunca lança erro (resolve com
+    `location: null` se a permissão for negada, D-Geo-3). Depois: `CreateMatchScreen.tsx` chama o
+    hook e envia `latitude`/`longitude` no payload de `POST /matches` **se disponíveis** (campo
+    `location` de texto continua obrigatório, coordenadas são só um extra).
+  - **Antes de começar:** `npx expo install expo-location` (ainda não está no `package.json`).
+  - **Atenção ao contrato real (desvio do plano original, ver `roadmap.md` §20):**
+    `MatchSummary`/`MatchDetail` (`src/types`) vão precisar do campo novo `distanceKm: number |
+    null` (existe no backend como `distance_km`) ao chegar no item 6 (`FiltersScreen`/
+    `MatchCard`) — usar direto em vez de recalcular a distância no cliente.
+  - Migration do backend ainda não rodou em produção (Railway) — testar a Fase 14 primeiro
+    contra o backend local (`.env` apontando para `http://<ip-da-rede-local>:8000`), não contra
+    `https://squadup-api.up.railway.app`, até essa migration ser aplicada lá.
 
 ---
 

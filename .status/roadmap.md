@@ -599,14 +599,23 @@ telas.
 
 > Registrada em 2026-07-16 (sessão 29). Plano mestre completo (decisões de arquitetura,
 > contrato de API, etapas numeradas) em `.status/backend-contract.md` §6-A — este documento só
-> resume as tarefas do lado do front. Contraparte no backend: `../back/.status/roadmap.md` §19
-> (já pré-desenhada desde 2026-07-08, estava bloqueada até esta Fase 13 do front terminar — agora
-> destravada). Escopo confirmado com o usuário: geolocalização com coordenadas reais via GPS do
-> dispositivo (não geocoding de texto); notificações push no conjunto essencial de eventos
-> (mensagem nova, aprovação de participação, partida encerrada/cancelada).
+> resume as tarefas do lado do front. Contraparte no backend: `../squadup-back/.status/roadmap.md`
+> §19 (já pré-desenhada desde 2026-07-08, estava bloqueada até esta Fase 13 do front terminar —
+> destravada em 2026-07-16). Escopo confirmado com o usuário: geolocalização com coordenadas
+> reais via GPS do dispositivo (não geocoding de texto); notificações push no conjunto essencial
+> de eventos (mensagem nova, aprovação de participação, partida encerrada/cancelada).
 >
 > **Não estava no cronograma original do TCC** (`plano-de-entrega.md` §7) — é escopo novo. Ver
 > `plano-de-entrega.md` §9 para o encaixe no cronograma e o plano de contingência.
+>
+> **Atualização (2026-07-28):** as 4 tarefas do backend (etapas 1–4 do plano mestre) estão
+> **concluídas e mergeadas em `dev`** (`squadup-back` PR #50) — contrato de API estável, pronto
+> para consumo. Nada de código foi escrito no front ainda (etapas 5–7 abaixo seguem 0%). Dois
+> pontos a considerar ao implementar: (1) `MatchSummary`/`MatchDetail` do backend ganharam
+> `distance_km: number | null`, não previsto no desenho original — usar direto em vez de
+> recalcular no cliente; (2) a migration da Fase 13 ainda não rodou em produção
+> (`squadup-api.up.railway.app`) — `lat`/`lng`/`radius_km` e `POST /users/me/push-token` só
+> funcionam contra o backend local até isso ser resolvido.
 
 ### Objetivo
 
