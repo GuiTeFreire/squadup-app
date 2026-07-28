@@ -39,6 +39,15 @@
 > Migration da Fase 13 do backend já aplicada em produção (confirmado, sessão 30) — Fase 14 pode
 > ser testada contra `squadup-api.up.railway.app` a partir de agora. Resta só a etapa 7 (push) e a
 > etapa 8 (hardening conjunto em dispositivo físico).
+>
+> **Atualização (2026-07-28, sessão 33):** front da etapa 7 (push) **concluído** —
+> `useNotificationRegistration` (permissão + `ExpoPushToken` + `POST /users/me/push-token`,
+> chamado após login/boot) e o listener de navegação por notificação (`navigationRef.ts` +
+> `RootNavigator`). Usuário rodou `eas login`/`eas build:configure` nesta sessão — `projectId`
+> gerado, destravando também a Trilha C (12.8). **Fase 14 em 7/8** — resta só a etapa 8
+> (hardening ponta a ponta em dispositivo físico, única pendência de toda a Trilha F). Achado
+> relevante: push remoto não funciona mais no Expo Go desde o SDK 53 — a etapa 8 precisa de um
+> development/preview build via EAS, não só de Expo Go.
 
 ---
 
@@ -48,10 +57,10 @@
 |---|---|---|---|
 | **A — Deploy do backend** | Executar o deploy real no Railway | Nada — **✅ URL de produção já ativa** (`squadup-api.up.railway.app`) | Concluída (falta só a decisão de seed, §2) |
 | **B — Integração front↔back** | Fase 13 do front (trocar mocks por API real) | Trilha A (precisa de uma URL real para apontar, mas pode começar contra `localhost` antes disso) | Concluída (16/16, sessão 28) |
-| **C — Build e demo do app** | EAS Build / Expo Go para teste e apresentação | Trilha B razoavelmente avançada | Em andamento — `eas.json` pronto, falta login/build do usuário |
+| **C — Build e demo do app** | EAS Build / Expo Go para teste e apresentação | Trilha B razoavelmente avançada | Em andamento — `eas.json` pronto, `projectId` gerado (sessão 33); falta rodar o build de fato |
 | **D — Assets do TCC** | Estrutura de pastas, prints, bibliografia, diagramas | Nada (screenshots podem ser tirados com os mocks atuais) | Em andamento — 8/~11 screenshots do app automatizadas (sessão 28) |
 | **E — Escrita da monografia** | Capítulos novos/atualizados do TCC.tex | Parcialmente nada (casos de uso extras e arquitetura já documentável), parcialmente B/C (capítulo de resultados) | **Agora** para as partes que não dependem de resultado final |
-| **F — Geolocalização real + push** | Fase 14 do front (`roadmap.md` §20) + Fase 13 do backend (`../squadup-back/.status/roadmap.md` §19) | Trilha B concluída (pré-requisito satisfeito em 2026-07-16) | Em andamento — **backend concluído** (4/4 tarefas, PR #50, 2026-07-28); front geo concluído (etapas 5–6, sessões 31–32); falta push (etapa 7) — ver §9 |
+| **F — Geolocalização real + push** | Fase 14 do front (`roadmap.md` §20) + Fase 13 do backend (`../squadup-back/.status/roadmap.md` §19) | Trilha B concluída (pré-requisito satisfeito em 2026-07-16) | Em andamento — **backend concluído** (4/4 tarefas, PR #50, 2026-07-28); front geo e push concluídos (etapas 5–7, sessões 31–33); falta só a etapa 8 (hardening) — ver §9 |
 
 Nenhuma trilha bloqueia totalmente as outras — dá para avançar em 3–4 frentes ao mesmo tempo.
 
@@ -93,7 +102,7 @@ Da Fase 12 do front, ainda restam:
 
 ---
 
-## 4. Trilha C — Build e demo do app (em andamento, sessão 28)
+## 4. Trilha C — Build e demo do app (em andamento, sessão 33)
 
 `eas.json` **já criado** (sessão 28) com três perfis: `development` (client de dev, APK interno),
 `preview` (APK interno, `EXPO_PUBLIC_API_URL` já apontando para produção) e `production`
@@ -101,9 +110,9 @@ Da Fase 12 do front, ainda restam:
 de depender de Expo Go + rede durante a apresentação (menos pontos de falha ao vivo):
 
 1. ~~`npx eas build:configure` (gera `eas.json`)~~ — ✅ feito manualmente (sessão 28), sem passar pelo comando interativo.
-2. **Falta:** `npx eas login` (credenciais do usuário) + `eas build:configure` de fato (gera `projectId` em `app.json`, algo que a criação manual do `eas.json` não substitui).
-3. `npx eas build --platform android --profile preview`.
-4. Instalar o APK gerado num dispositivo Android para o dia da defesa (ou usar um emulador local como plano B).
+2. ~~`npx eas login` + `eas build:configure` de fato (gera `projectId`)~~ — ✅ **feito pelo usuário na sessão 33**: projeto `@guilhermefreire7/squadup` criado no EAS, `projectId` `0032bb63-f809-42d2-baba-6d62bc2b61b0` gravado em `app.json`. Também destravou o `useNotificationRegistration` (Fase 14, etapa 7), que depende desse `projectId` para obter o `ExpoPushToken`.
+3. **Falta:** `npx eas build --platform android --profile preview` (o build em si, ainda não rodado).
+4. Instalar o APK gerado num dispositivo Android para o dia da defesa (ou usar um emulador local como plano B) — esse mesmo dispositivo pode servir para a etapa 8 da Fase 14 (hardening de geo + push), já que push remoto não funciona mais no Expo Go desde o SDK 53.
 5. iOS: opcional — exige conta Apple Developer paga; só perseguir se for um requisito da banca (normalmente não é).
 
 **Decisão a fechar:** Android-only é suficiente para a defesa, ou a banca/orientador exige demonstrar iOS também?
@@ -278,10 +287,12 @@ acadêmicos quando não tratada com uma contingência explícita.
 2. ~~Front geo (etapas 5–6) — baixo risco, testável em simulador/`npm run web`~~ — **✅ concluído
    em 2026-07-28** (sessões 31–32): `useDeviceLocation`, coordenadas em `CreateMatchScreen`,
    toggle + raio em `FiltersScreen`, distância no `MatchCard`;
-3. **Próximo passo:** front push (etapa 7) e o hardening final (etapa 8) **só depois** que 12.8
-   (EAS Build) e 12.3 (dispositivo físico) já estiverem resolvidos — push depende do `projectId`
-   do EAS existir e de um dispositivo real para validar, então naturalmente herda a mesma
-   dependência externa que já bloqueia essas duas tarefas.
+3. ~~Front push (etapa 7) — dependia do `projectId` do EAS~~ — **✅ concluído em 2026-07-28**
+   (sessão 33): usuário rodou `eas login`/`eas build:configure` (gera o `projectId`), destravando
+   `useNotificationRegistration` + listener de navegação;
+4. **Único item restante de toda a Trilha F:** a etapa 8 (hardening ponta a ponta em dispositivo
+   físico) — depende de 12.3 (Expo Go/dispositivo) e, para push especificamente, de um
+   development/preview build via EAS (push remoto não funciona mais no Expo Go desde o SDK 53).
 
 **Plano de contingência (se o tempo até a defesa não comportar as 8 etapas inteiras):** a
 geolocalização (14.1) é isolável e tem valor de demonstração alto por si só — pode ser entregue
@@ -297,6 +308,6 @@ honestidade que motivou a correção original da decisão D-A.
 | Período (do cronograma) | Foco adicional (Trilha F) |
 |---|---|
 | Ago 2 – Set 2 | Backend: etapas 1–4 (geo + push, infraestrutura) — ✅ concluído em 2026-07-28, adiantado em relação a este período |
-| Set 1 – Set 2 | Front: etapas 5–6 (geolocalização), em paralelo com 12.3/validação ponta a ponta |
-| Set 2 – Out 2 | Front: etapa 7 (push) — só após 12.8 (EAS/`projectId`) e 12.3 (dispositivo) estarem resolvidos; etapa 8 (hardening + ajuste do TCC) fecha a trilha |
-| Out 1 – Nov 1 | Se atrasado: aplicar o plano de contingência acima (cortar push, manter geo) antes de comprometer a escrita da monografia (Trilha E) |
+| Set 1 – Set 2 | Front: etapas 5–6 (geolocalização) — ✅ concluído em 2026-07-28, adiantado |
+| Set 2 – Out 2 | Front: etapa 7 (push) — ✅ concluído em 2026-07-28, adiantado; falta só a etapa 8 (hardening ponta a ponta em dispositivo físico + ajuste do texto do TCC) para fechar a trilha inteira |
+| Out 1 – Nov 1 | Contingência acima não precisou ser acionada — as 7 primeiras etapas fecharam bem antes do período previsto; folga extra para a etapa 8 e para a escrita da monografia (Trilha E) |

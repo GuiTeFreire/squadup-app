@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
+import { useNotificationRegistration } from "../hooks/useNotificationRegistration";
 import { toMyProfile } from "../services/adapters/user";
 import { loginRequest, logoutRequest, refreshRequest, registerRequest } from "../services/api/auth";
 import { setUnauthorizedHandler } from "../services/api/client";
@@ -40,6 +41,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [pendingEmail, setPendingEmail] = useState("");
   const [pendingPassword, setPendingPassword] = useState("");
   const [pendingAge, setPendingAge] = useState(0);
+
+  const { registerForPushNotifications } = useNotificationRegistration();
+
+  // Roda uma única vez a cada transição para autenticado (login, cadastro ou boot restaurado).
+  useEffect(() => {
+    if (isAuthenticated) {
+      void registerForPushNotifications();
+    }
+  }, [isAuthenticated, registerForPushNotifications]);
 
   const clearPendingState = () => {
     setPendingName("");

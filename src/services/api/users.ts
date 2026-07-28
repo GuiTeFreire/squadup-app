@@ -14,3 +14,7 @@ export async function fetchMyProfile(): Promise<ApiMyProfile> {
 export async function updateMyProfile(payload: UpdateMyProfilePayload): Promise<ApiMyProfile> {
   return apiClient.patch<ApiMyProfile>("/users/me", payload);
 }
+
+export async function registerPushToken(token: string): Promise<void> {
+  await apiClient.post("/users/me/push-token", { token });
+}

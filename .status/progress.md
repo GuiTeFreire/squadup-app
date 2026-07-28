@@ -1715,3 +1715,96 @@ campos novos de `MatchFilters`).
   notificação tocada (`Notifications.addNotificationResponseReceivedListener`) no root do app,
   navegando para `MatchChatScreen`/`MatchDetailScreen` conforme o `data` da notificação.
 - Nenhum bug pendente — parada é limpa, entre tarefas.
+
+---
+
+## Sessão 33 — 2026-07-28
+
+### Fase 12.8 + Fase 14.2 — EAS project configurado + notificações push reais (item 7 da tabela de `queue.md`)
+
+Sessão iniciada com o usuário rodando `eas login`/`eas whoami`/`eas build:configure` no próprio
+terminal (não executável neste ambiente — precisa das credenciais reais da conta Expo). Resultado:
+projeto `@guilhermefreire7/squadup` criado no EAS, `projectId` `0032bb63-f809-42d2-baba-6d62bc2b61b0`
+gravado em `app.json` (`expo.extra.eas.projectId`) — destrava a tarefa 12.8 (só falta rodar o build
+de fato) e o item 7 desta fase (`ExpoPushToken` depende desse `projectId`).
+
+Branch `feat/push-notifications`, criada a partir de `feat/match-distance-filter` (que já tinha o
+item 6 committed, ainda não mergeado em `dev`).
+
+| Arquivo | Mudança |
+|---|---|
+| `package.json`/`package-lock.json` | `npx expo install expo-notifications expo-device expo-constants` |
+| `app.json` | `extra.eas.projectId` novo; plugin `expo-notifications` adicionado a `plugins`; **revertido** um efeito colateral do `eas build:configure` que duplicou `ACCESS_COARSE_LOCATION` e adicionou `ACCESS_FINE_LOCATION` às permissões Android (contraria D-Geo-4 — ver D27) |
+| `src/services/api/users.ts` | `registerPushToken(token)` → `POST /users/me/push-token` com `{ token }` |
+| `src/hooks/useNotificationRegistration.ts` (novo) | `registerForPushNotifications()`: `Device.isDevice` → permissão (`getPermissionsAsync`/`requestPermissionsAsync`) → `projectId` de `expo-constants` → `getExpoPushTokenAsync` → `registerPushToken`; nunca lança (D-Push-3); também registra `Notifications.setNotificationHandler` no module load (sem isso, notificação em primeiro plano não mostra banner no iOS) |
+| `src/contexts/AuthContext.tsx` | `useEffect` em `[isAuthenticated]` chama `registerForPushNotifications()` uma vez quando vira `true` — cobre login, cadastro (`completeProfile`) e boot restaurado num único ponto, em vez de 3 chamadas duplicadas nos call sites |
+| `src/navigation/navigationRef.ts` (novo) | `navigationRef` (`createNavigationContainerRef`) + `navigateFromPushNotification(data)`: `new_message`→`MatchChat`, `match_closed`/`participation_approved`→`MatchDetail` |
+| `src/navigation/RootNavigator.tsx` | `NavigationContainer` ganha `ref={navigationRef}`; novo hook interno `usePushNotificationNavigation` registra `Notifications.addNotificationResponseReceivedListener` uma vez no mount, valida o formato de `data` antes de navegar |
+
+### Decisões não óbvias
+
+- **Contrato de `data` da notificação não precisou ser "definido junto com o backend" (como o
+  roadmap previa) — já existia, pronto, no código do backend.** Lido diretamente em
+  `squadup-back/app/services/message_service.py`/`match_service.py` (sibling directory, acessível
+  neste ambiente): `{"type": "new_message" | "match_closed" | "participation_approved", "matchId":
+  match.id}`. Evitou qualquer suposição — o mapeamento tela-por-tipo em `navigationRef.ts` reflete
+  exatamente os 3 `background_tasks.add_task(send_push, ...)` do backend.
+- **Registro de push consolidado num único `useEffect` em `AuthContext`** em vez de chamar
+  `registerForPushNotifications()` separadamente em `login`, `completeProfile` e no boot —
+  os três já convergem para `setIsAuthenticated(true)`, então um efeito assistindo essa transição
+  cobre os três casos sem duplicar a chamada nem arriscar esquecer um call site novo no futuro.
+- **`react-hooks/set-state-in-effect` não se aplica aqui** (diferente do desvio da sessão 32): o
+  `useEffect` em `AuthContext` chama uma função assíncrona que fala com um sistema externo
+  (rede/permissão do SO), não faz `setState` local síncrono — é exatamente o padrão que a regra
+  do lint permite (efeito colateral externo), então não precisou de nenhum contorno.
+- **`app.json` do `eas build:configure` teve que ser corrigido manualmente** (ver D27, `queue.md`)
+  — o CLI reescreveu `android.permissions` de forma agressiva, adicionando
+  `ACCESS_FINE_LOCATION`, que o projeto tinha deliberadamente evitado (D-Geo-4, sessão 31: só
+  precisão "balanced"). Revertido para `["ACCESS_COARSE_LOCATION"]` antes de commitar.
+- **Teste de `navigateFromPushNotification` usa `jest.spyOn(navigationRef, ...)` no objeto real**,
+  não mockando `@react-navigation/native` inteiro — a primeira tentativa (mockar
+  `createNavigationContainerRef` via `jest.mock` com closure sobre variáveis `mock*`) falhou com
+  `TypeError: navigationRef.isReady is not a function` sem uma causa raiz óbvia; espionar o
+  objeto real exportado por `navigationRef.ts` (que é só um objeto plano com métodos) é mais
+  simples e não depende de acertar a forma exata do mock do módulo inteiro.
+- **`expo-device`/`Device.isDevice` não pôde ser mutado em runtime via `(Device as any).isDevice =
+  false`** dentro de um teste — a interop do Babel para `import * as Device` parece copiar a
+  propriedade por valor em vez de manter uma referência viva ao objeto mockado. Resolvido com um
+  getter no factory do `jest.mock` (`get isDevice() { return mockIsDevice; }`), reavaliado a cada
+  acesso — mesmo princípio do padrão já usado em `CreateMatchScreen.test.tsx` para
+  `useDeviceLocation`, só que para uma propriedade em vez de uma função.
+- **Push remoto não funciona mais no Expo Go desde o SDK 53** — confirmado por um aviso do
+  próprio `expo-notifications` nos logs de teste (`console.warn`, não erro): "Android Push
+  notifications ... removed from Expo Go with the release of SDK 53. Use a development build
+  instead." A tarefa 14.3 (hardening) precisa de um development/preview build via EAS, não só de
+  Expo Go — atualizado no `roadmap.md` §20.
+
+### Dívidas técnicas identificadas
+
+| # | Item | Prioridade | Descrição |
+|---|------|-----------|-----------|
+| D27 | `eas build:configure` reescreve `android.permissions` em `app.json` | Baixa | Ver detalhe completo em `queue.md`. Resumo: adicionou `ACCESS_FINE_LOCATION` (contraria D-Geo-4), corrigido nesta sessão; conferir o diff de `app.json` se `eas build:configure`/`eas build` rodarem de novo no futuro. |
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros · `npm run test` **289/289** passando
+(41 suítes; 12 testes novos: `useNotificationRegistration.test.ts` — 7 casos [permissão concedida/
+pedida/negada, não-device, sem projectId, `getExpoPushTokenAsync` falha, `registerPushToken`
+falha]; `navigationRef.test.ts` — 4 casos [não pronta, e os 3 mapeamentos de tipo]; o restante do
+delta é o smoke test de `App.test.tsx`/`AuthContext.test.tsx`, que já passavam e continuam
+passando com os novos imports carregados) · `npx expo export --platform web` gera o bundle sem
+erros (951 módulos, até então 807 — cresceu com as 3 dependências novas).
+
+### Estado ao final da sessão 33
+
+- Branch `feat/push-notifications`, criada a partir de `feat/match-distance-filter` (commit local
+  `3c3573f`, item 6, ainda não mergeado em `dev`). Commit desta sessão: `460fd35`.
+- Fase 14: **7/8** (backend 1–4 + front itens 5–6–7). Falta só o item 8 (hardening ponta a ponta
+  em dispositivo físico) — única tarefa restante de toda a Fase 14.
+- Fase 12.8 avançou: `projectId` do EAS gerado (ação do usuário) — falta só rodar
+  `eas build --platform android --profile preview` de fato.
+- Uma dívida técnica nova, D27 (baixa prioridade, já com o código corrigido — o registro é só
+  para lembrar de conferir `app.json` se `eas`/`eas build:configure` rodarem de novo).
+- Nenhum bug pendente — parada é limpa, entre tarefas. **Nenhuma das duas branches locais
+  (`feat/match-distance-filter`, `feat/push-notifications`) foi mergeada em `dev` ainda** — ambas
+  aguardando revisão/merge do usuário, na ordem em que foram criadas.

@@ -27,19 +27,26 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "ACCESS_COARSE_LOCATION"
-      ]
+      ],
+      "package": "com.guilhermefreire7.squadup"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-secure-store",
+      "expo-notifications",
       [
         "expo-location",
         {
           "locationWhenInUsePermission": "O SquadUp usa sua localização para mostrar partidas próximas de você."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "0032bb63-f809-42d2-baba-6d62bc2b61b0"
+      }
+    }
   }
 }
