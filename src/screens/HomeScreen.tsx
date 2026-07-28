@@ -9,9 +9,9 @@ import Avatar from "../components/Avatar";
 import EmptyState from "../components/EmptyState";
 import MatchCard from "../components/MatchCard";
 import { MatchCardSkeleton } from "../components/Skeleton";
+import { useAuth } from "../contexts/AuthContext";
 import { useMatchFiltersContext } from "../contexts/MatchFiltersContext";
 import { useMatchesContext } from "../contexts/MatchesContext";
-import { CURRENT_USER } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
 import { useMatchFilters } from "../hooks/useMatchFilters";
 import { colors, SPORT_META } from "../theme";
@@ -55,11 +55,12 @@ export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
   const [searchText, setSearchText] = useState("");
+  const { user } = useAuth();
   const { filters, setFilters, activeFilterCount } = useMatchFiltersContext();
   const { matches, isLoading } = useMatchesContext();
   const filteredMatches = useMatchFilters(matches, searchText);
 
-  const firstName = CURRENT_USER.name.split(" ")[0];
+  const firstName = user?.name.split(" ")[0] ?? "";
 
   function selectSport(sport: Sport | null) {
     setFilters({ ...filters, sport });
@@ -74,7 +75,7 @@ export default function HomeScreen() {
             <Text className="text-secondary-400 text-sm">Bem-vindo de volta,</Text>
             <Text className="text-white text-2xl font-bold tracking-tight">{firstName}</Text>
           </View>
-          <Avatar name={CURRENT_USER.name} photoUrl={CURRENT_USER.photoUrl} size="md" ring />
+          <Avatar name={user?.name ?? ""} photoUrl={user?.photoUrl} size="md" ring />
         </View>
 
         {/* Search + filters */}

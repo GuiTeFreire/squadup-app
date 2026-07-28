@@ -19,17 +19,17 @@ export interface UseMatchParticipationResult {
 
 export function useMatchParticipation(
   matchId: string,
-  currentUser: PublicUser
+  currentUser: PublicUser | null
 ): UseMatchParticipationResult {
   const queryClient = useQueryClient();
   const { match, isLoading } = useMatchDetail(matchId);
 
   const userStatus = useMemo((): ParticipationStatus | null => {
-    if (!match) return null;
+    if (!match || !currentUser) return null;
     const found = match.participants.find((p) => p.user.id === currentUser.id);
     if (!found || found.status === "cancelled") return null;
     return found.status;
-  }, [match, currentUser.id]);
+  }, [match, currentUser]);
 
   const invalidate = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: queryKeys.match(matchId) });

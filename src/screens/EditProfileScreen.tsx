@@ -9,7 +9,7 @@ import Button from "../components/Button";
 import Chip from "../components/Chip";
 import Header from "../components/Header";
 import Input from "../components/Input";
-import { CURRENT_USER } from "../mocks/users";
+import { useAuth } from "../contexts/AuthContext";
 import type { AppRootStackParamList } from "../navigation/types";
 import { colors, LEVEL_META, SPORT_META } from "../theme";
 import type { ExperienceLevel, Sport } from "../types";
@@ -19,9 +19,12 @@ type Nav = NativeStackNavigationProp<AppRootStackParamList>;
 const SPORTS: Sport[] = ["football", "volleyball", "basketball", "tennis", "futsal", "other"];
 const LEVELS: ExperienceLevel[] = ["beginner", "intermediate", "advanced"];
 
-export default function EditProfileScreen() {
+function EditProfileForm({
+  user,
+}: Readonly<{ user: NonNullable<ReturnType<typeof useAuth>["user"]> }>) {
   const navigation = useNavigation<Nav>();
-  const user = CURRENT_USER;
+  const { updateProfile } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
 
   const [name, setName] = useState(user.name);
   const [bio, setBio] = useState(user.bio ?? "");
@@ -37,7 +40,7 @@ export default function EditProfileScreen() {
     );
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     let valid = true;
 
     if (name.trim().length < 2) {
@@ -56,9 +59,23 @@ export default function EditProfileScreen() {
 
     if (!valid) return;
 
-    Alert.alert("Perfil atualizado!", "Suas informações foram salvas com sucesso.", [
-      { text: "OK", onPress: () => navigation.goBack() },
-    ]);
+    setIsSaving(true);
+    try {
+      await updateProfile({
+        name: name.trim(),
+        bio: bio.trim(),
+        location: location.trim(),
+        favoriteSports: selectedSports,
+        level,
+      });
+      Alert.alert("Perfil atualizado!", "Suas informações foram salvas com sucesso.", [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
+    } catch {
+      Alert.alert("Não foi possível salvar", "Tente novamente em instantes.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handlePhotoPress = () => {
@@ -173,13 +190,20 @@ export default function EditProfileScreen() {
           <Button
             label="Salvar alterações"
             icon="check"
-            onPress={handleSave}
+            onPress={() => void handleSave()}
             variant="primary"
             size="lg"
+            loading={isSaving}
             fullWidth
           />
         </View>
       </ScrollView>
     </View>
   );
+}
+
+export default function EditProfileScreen() {
+  const { user } = useAuth();
+  if (!user) return null;
+  return <EditProfileForm user={user} />;
 }

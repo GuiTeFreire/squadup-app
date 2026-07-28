@@ -14,8 +14,8 @@ import ParticipantList from "../components/ParticipantList";
 import RatingStars from "../components/RatingStars";
 import SectionCard from "../components/SectionCard";
 import SportTile from "../components/SportTile";
+import { useAuth } from "../contexts/AuthContext";
 import { useMatchParticipation } from "../hooks/useMatchParticipation";
-import { CURRENT_USER } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
 import { colors, LEVEL_META, shadows, SPORT_META, type IconName } from "../theme";
 import { formatMatchDate } from "../utils/date";
@@ -82,9 +82,10 @@ export default function MatchDetailScreen() {
   const route = useRoute<Route>();
   const insets = useSafeAreaInsets();
   const { matchId } = route.params;
+  const { user } = useAuth();
   const { match, userStatus, isLoading, join, cancel, close, approve } = useMatchParticipation(
     matchId,
-    CURRENT_USER
+    user
   );
 
   const confirmedCount = useMemo(
@@ -113,7 +114,7 @@ export default function MatchDetailScreen() {
   const nonOpenStatus = match.status !== "open" ? statusLabel[match.status] : null;
   const sportMeta = SPORT_META[match.sport];
   const bottomPadding = Math.max(insets.bottom, 16);
-  const isOrganizer = match.organizer.id === CURRENT_USER.id;
+  const isOrganizer = match.organizer.id === user?.id;
   const canClose = isOrganizer && !isMatchOver;
 
   let bottomAction: React.ReactNode;

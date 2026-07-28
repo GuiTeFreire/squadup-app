@@ -4,6 +4,26 @@ import React from "react";
 import { createQueryWrapper } from "../../test-utils/queryClientWrapper";
 import MatchDetailScreen from "../MatchDetailScreen";
 
+jest.mock("../../contexts/AuthContext", () => ({
+  useAuth: () => ({
+    user: {
+      id: "user-1",
+      name: "Guilherme Freire",
+      email: "guilherme@example.com",
+      role: "user",
+      photoUrl: undefined,
+      age: 28,
+      location: "Botafogo, Rio de Janeiro",
+      bio: undefined,
+      favoriteSports: ["football"],
+      level: "intermediate",
+      averageRating: 4.7,
+      matchesPlayed: 42,
+      isVerified: true,
+    },
+  }),
+}));
+
 const GUILHERME = {
   id: "user-1",
   name: "Guilherme Freire",
