@@ -8,7 +8,14 @@ export interface MatchFilters {
   onlyAvailable: boolean;
   date: string | null;
   location: string | null;
+  /** "Usar minha localização" — quando true, latitude/longitude/radiusKm entram na busca. */
+  nearMe: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  radiusKm: number;
 }
+
+export const DEFAULT_RADIUS_KM = 20;
 
 const DEFAULT_FILTERS: MatchFilters = {
   sport: null,
@@ -16,6 +23,10 @@ const DEFAULT_FILTERS: MatchFilters = {
   onlyAvailable: false,
   date: null,
   location: null,
+  nearMe: false,
+  latitude: null,
+  longitude: null,
+  radiusKm: DEFAULT_RADIUS_KM,
 };
 
 interface MatchFiltersContextValue {
@@ -40,6 +51,7 @@ export function MatchFiltersProvider({ children }: { children: React.ReactNode }
         filters.onlyAvailable || null,
         filters.date,
         filters.location,
+        filters.nearMe || null,
       ].filter(Boolean).length,
     [filters]
   );

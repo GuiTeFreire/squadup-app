@@ -21,6 +21,10 @@ const statusLabel: Record<MatchSummary["status"], string | null> = {
   cancelled: "Cancelada",
 };
 
+function formatDistance(km: number): string {
+  return `${km.toFixed(1).replace(".", ",")} km`;
+}
+
 function SlotsBar({ confirmed, max }: Readonly<{ confirmed: number; max: number }>) {
   const ratio = max > 0 ? confirmed / max : 0;
   const available = max - confirmed;
@@ -95,6 +99,7 @@ function MatchCard({ match, onPress }: Readonly<MatchCardProps>) {
             />
             <Text className="text-sm text-neutral-500 flex-1" numberOfLines={1}>
               {match.location}
+              {match.distanceKm != null ? ` · ${formatDistance(match.distanceKm)}` : ""}
             </Text>
           </View>
           <View className="flex-row items-center gap-1.5">

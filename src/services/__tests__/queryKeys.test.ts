@@ -12,6 +12,10 @@ describe("queryKeys", () => {
       onlyAvailable: false,
       date: null,
       location: null,
+      nearMe: false,
+      latitude: null,
+      longitude: null,
+      radiusKm: 20,
     };
     expect(queryKeys.matches(filters)).toEqual(["matches", filters]);
     expect(queryKeys.matches()).toEqual(["matches", undefined]);

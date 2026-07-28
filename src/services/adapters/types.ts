@@ -53,6 +53,7 @@ export interface ApiMatchSummary {
   available_slots: number;
   latitude?: number | null;
   longitude?: number | null;
+  distance_km?: number | null;
 }
 
 export interface ApiMatchDetail extends ApiMatchSummary {

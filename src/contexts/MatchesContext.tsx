@@ -27,6 +27,9 @@ export function MatchesProvider({ children }: Readonly<{ children: React.ReactNo
         date: filters.date,
         location: filters.location,
         hasOpenSlots: filters.onlyAvailable,
+        latitude: filters.nearMe ? filters.latitude : null,
+        longitude: filters.nearMe ? filters.longitude : null,
+        radiusKm: filters.nearMe ? filters.radiusKm : null,
       });
       return apiMatches.map(toMatchSummary);
     },

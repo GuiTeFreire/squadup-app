@@ -33,6 +33,7 @@ export function toMatchSummary(api: ApiMatchSummary): MatchSummary {
     requiresApproval: api.requires_approval,
     latitude: api.latitude ?? null,
     longitude: api.longitude ?? null,
+    distanceKm: api.distance_km ?? null,
   };
 }
 

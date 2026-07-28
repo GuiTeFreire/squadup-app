@@ -8,6 +8,9 @@ export interface MatchesQueryFilters {
   date?: string | null;
   location?: string | null;
   hasOpenSlots?: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  radiusKm?: number | null;
 }
 
 interface CreateMatchPayload {
@@ -32,6 +35,11 @@ function buildQueryString(filters: MatchesQueryFilters): string {
   if (filters.date) params.set("date", filters.date);
   if (filters.location) params.set("location", filters.location);
   if (filters.hasOpenSlots) params.set("has_open_slots", "true");
+  if (filters.latitude != null && filters.longitude != null) {
+    params.set("lat", String(filters.latitude));
+    params.set("lng", String(filters.longitude));
+    if (filters.radiusKm != null) params.set("radius_km", String(filters.radiusKm));
+  }
   const qs = params.toString();
   return qs ? `?${qs}` : "";
 }

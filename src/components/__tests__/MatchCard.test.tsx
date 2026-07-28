@@ -21,6 +21,7 @@ const BASE_MATCH: MatchSummary = {
   requiresApproval: false,
   latitude: null,
   longitude: null,
+  distanceKm: null,
 };
 
 describe("MatchCard", () => {
@@ -79,5 +80,15 @@ describe("MatchCard", () => {
   it("exibe 'Sem vagas' quando partida está lotada", () => {
     render(<MatchCard match={{ ...BASE_MATCH, confirmedCount: 10, availableSlots: 0 }} />);
     expect(screen.getByText(/Sem vagas/)).toBeTruthy();
+  });
+
+  it("exibe a distância quando distanceKm está disponível", () => {
+    render(<MatchCard match={{ ...BASE_MATCH, distanceKm: 3.2 }} />);
+    expect(screen.getByText(/3,2 km/)).toBeTruthy();
+  });
+
+  it("não exibe distância quando distanceKm é null", () => {
+    render(<MatchCard match={BASE_MATCH} />);
+    expect(screen.queryByText(/km/)).toBeNull();
   });
 });
