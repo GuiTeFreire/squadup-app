@@ -3,7 +3,10 @@ import { MOCK_USERS } from "./users";
 
 const [guilherme, ana, rafael, juliana, thiago, beatriz] = MOCK_USERS;
 
-type MatchSeed = Omit<MatchDetail, "organizerId" | "confirmedCount" | "availableSlots">;
+type MatchSeed = Omit<
+  MatchDetail,
+  "organizerId" | "confirmedCount" | "availableSlots" | "latitude" | "longitude"
+> & { latitude?: number | null; longitude?: number | null };
 
 function toMatchDetail(seed: MatchSeed): MatchDetail {
   const confirmedCount = seed.participants.filter(
@@ -14,6 +17,8 @@ function toMatchDetail(seed: MatchSeed): MatchDetail {
     organizerId: seed.organizer.id,
     confirmedCount,
     availableSlots: seed.maxParticipants - confirmedCount,
+    latitude: seed.latitude ?? null,
+    longitude: seed.longitude ?? null,
   };
 }
 

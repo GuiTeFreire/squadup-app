@@ -21,6 +21,8 @@ interface CreateMatchPayload {
   description?: string;
   allow_beginners: boolean;
   requires_approval: boolean;
+  latitude?: number;
+  longitude?: number;
 }
 
 function buildQueryString(filters: MatchesQueryFilters): string {

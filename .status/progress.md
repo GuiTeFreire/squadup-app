@@ -1574,3 +1574,68 @@ concorrentes (ação manual do usuário, não é possível navegar apps de terce
   dispositivo físico (12.3), ou (d) avançar a Trilha E (texto do TCC — casos de uso extras,
   correção da decisão D-A sobre geolocalização/"Local").
 - Nenhum bug pendente — parada é limpa, entre tarefas.
+
+---
+
+## Sessão 31 — 2026-07-28
+
+### Fase 14.1 — Geolocalização real (item 5 da tabela de `queue.md`)
+
+Primeiro código da Fase 14 do lado do front (sessões 29/30 tinham sido só planejamento e
+sincronização de documentação — backend, PR #50). Escopo desta sessão: só o item 5
+(`useDeviceLocation` + `CreateMatchScreen` envia coordenadas + tipos/adapters), não os itens 6
+(`FiltersScreen`/`MatchCard`) e 7 (push).
+
+| Arquivo | Mudança |
+|---|---|
+| `package.json`/`package-lock.json` | `npx expo install expo-location` |
+| `app.json` | `ios.infoPlist.NSLocationWhenInUseUsageDescription`; `android.permissions: ["ACCESS_COARSE_LOCATION"]`; plugin `expo-location` com a mensagem de uso (D-Geo-4: só "balanced", sem `ACCESS_FINE_LOCATION`) |
+| `src/hooks/useDeviceLocation.ts` (novo) | Pede permissão via `requestForegroundPermissionsAsync`; captura `latitude`/`longitude` com `Location.Accuracy.Balanced`; retorna `{ location, permissionDenied, isLoading, requestLocation }`; nunca lança — resolve `location: null` em negação ou erro (D-Geo-3) |
+| `src/screens/CreateMatchScreen.tsx` | `useEffect` chama `requestLocation()` ao montar; `handleSubmit` inclui `latitude`/`longitude` no payload via spread condicional só quando `deviceLocation` não é `null` |
+| `src/services/api/matches.ts` | `CreateMatchPayload` ganha `latitude?`/`longitude?` (opcionais — coordenadas nunca bloqueiam a criação) |
+| `src/types/index.ts` | `MatchSummary` ganha `latitude: number \| null` e `longitude: number \| null` (herdados por `MatchDetail`) |
+| `src/services/adapters/types.ts` | `ApiMatchSummary` ganha `latitude?`/`longitude?: number \| null` (opcionais no lado da API — aditivo, não quebra respostas antigas) |
+| `src/services/adapters/match.ts` | `toMatchSummary` mapeia com fallback `?? null` |
+| `src/mocks/matches.ts` | `MatchSeed` ganha `latitude?`/`longitude?` com default `null` em `toMatchDetail` — evitou editar as 13 fixtures uma a uma |
+
+### Decisões não óbvias
+
+- **`useDeviceLocation` não é chamado automaticamente pelo próprio hook** — é a tela consumidora
+  (`CreateMatchScreen`) que decide chamar `requestLocation()` num `useEffect` de montagem. Isso
+  mantém o hook reutilizável para o padrão diferente que `FiltersScreen` vai precisar no item 6
+  (disparado por um toggle, não por montagem).
+- **`MatchSeed` (mocks) ganhou `latitude`/`longitude` opcionais com default `null` em vez de exigir
+  o campo em todas as 13 partidas mockadas** — mesma técnica já usada para `organizerId`/
+  `confirmedCount`/`availableSlots` nesse arquivo; evita um diff de 26 linhas só de boilerplate.
+- **`ApiMatchSummary.latitude`/`longitude` são opcionais (`?:`), não só nuláveis** — ao contrário
+  de `MatchSummary` (sempre presentes no tipo do front). Motivo: o backend em produção
+  (`squadup-api.up.railway.app`) ainda não rodou a migration desta fase (ver nota em
+  `roadmap.md` §20) — uma resposta real de produção pode simplesmente omitir os campos até lá, e
+  o adapter (`api.latitude ?? null`) já cobre esse caso sem precisar de mudança futura.
+
+### Dívidas técnicas identificadas
+
+| # | Item | Prioridade | Descrição |
+|---|------|-----------|-----------|
+| D26 | `CreateMatchScreen` não dá feedback visual quando a localização não pôde ser capturada | Baixa | Comportamento correto por desenho (D-Geo-3 — geolocalização é estritamente aditiva, criar partida nunca deve travar por causa disso), mas se o usuário nega a permissão ou o GPS falha, a partida é criada normalmente sem nenhum aviso de que as coordenadas não foram enviadas. Nice-to-have: um texto discreto (ex.: "Localização não disponível — partida será criada sem coordenadas") quando `permissionDenied` for `true`. Não bloqueante para a Fase 14. |
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros · `npm run test` **263/263** passando
+(9 testes novos: `useDeviceLocation.test.ts`, 3 casos de geolocalização em
+`CreateMatchScreen.test.tsx`, 2 casos de latitude/longitude em `match.test.ts` — o restante do
+delta são os ajustes de fixtures existentes que passaram a exigir os campos novos).
+
+### Estado ao final da sessão 31
+
+- Trabalho feito direto sobre `dev` local, depois movido para a branch `feat/device-location`
+  antes do commit de fechamento (ver mensagem de encerramento desta sessão para o hash).
+- Fase 14: 5/8 (backend 1–4 + este item 5). Itens 6 (`FiltersScreen`/`MatchCard`/`distanceKm`) e
+  7 (push) seguem em 0%.
+- Uma dívida técnica nova, D26 (baixa prioridade, não bloqueante).
+- Próxima tarefa concreta: item 6 — `FiltersScreen` ganha toggle "Usar minha localização" + raio
+  de busca; `useMatchFilters`/`MatchesContext` propagam `lat`/`lng`/`radius_km`; `MatchCard`
+  exibe a distância a partir do campo `distance_km` que o backend já devolve pronto — isso exige
+  primeiro adicionar `distanceKm: number | null` a `MatchSummary`/`ApiMatchSummary` (ainda não
+  feito, só `latitude`/`longitude` entraram nesta sessão).
+- Nenhum bug pendente — parada é limpa, entre tarefas.

@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 
 import Button from "../components/Button";
@@ -9,6 +9,7 @@ import Chip from "../components/Chip";
 import Header from "../components/Header";
 import Input from "../components/Input";
 import { useInvalidateMatches } from "../contexts/MatchesContext";
+import { useDeviceLocation } from "../hooks/useDeviceLocation";
 import type { AppTabParamList } from "../navigation/types";
 import { createMatch } from "../services/api/matches";
 import { colors, LEVEL_META, SPORT_META } from "../theme";
@@ -71,7 +72,12 @@ function ToggleRow({
 export default function CreateMatchScreen() {
   const navigation = useNavigation<Nav>();
   const invalidateMatches = useInvalidateMatches();
+  const { location: deviceLocation, requestLocation } = useDeviceLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    void requestLocation();
+  }, [requestLocation]);
 
   const [sport, setSport] = useState<Sport | null>(null);
   const [title, setTitle] = useState("");
@@ -160,6 +166,9 @@ export default function CreateMatchScreen() {
         description: description.trim() || undefined,
         allow_beginners: allowBeginners,
         requires_approval: requiresApproval,
+        ...(deviceLocation
+          ? { latitude: deviceLocation.latitude, longitude: deviceLocation.longitude }
+          : {}),
       });
 
       invalidateMatches();

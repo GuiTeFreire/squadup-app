@@ -19,6 +19,8 @@ const BASE_MATCH: MatchSummary = {
   status: "open",
   allowBeginners: false,
   requiresApproval: false,
+  latitude: null,
+  longitude: null,
 };
 
 describe("MatchCard", () => {

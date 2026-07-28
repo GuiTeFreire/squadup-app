@@ -31,6 +31,8 @@ export function toMatchSummary(api: ApiMatchSummary): MatchSummary {
     status: api.status,
     allowBeginners: api.allow_beginners,
     requiresApproval: api.requires_approval,
+    latitude: api.latitude ?? null,
+    longitude: api.longitude ?? null,
   };
 }
 

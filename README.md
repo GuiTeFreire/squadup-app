@@ -12,6 +12,7 @@ Protótipo navegável com dados mockados para apresentação acadêmica.
 - **@expo/vector-icons** — MaterialCommunityIcons para ícones vetoriais
 - **@tanstack/react-query** v5 — estado de servidor (auth, partidas, chat, avaliações e denúncias já consomem a API real; nenhum Context mockado restante)
 - **expo-secure-store** — storage seguro de token (nativo; fallback `sessionStorage` no web)
+- **expo-location** — geolocalização real do dispositivo (`useDeviceLocation`, Fase 14.1)
 - **Jest** + React Native Testing Library
 - **ESLint** 9 (flat config) + **Prettier**
 
@@ -66,7 +67,7 @@ src/
 ├── components/   # Componentes reutilizáveis (Button, Input, Card, Avatar, MatchCard, ParticipantList,
 │                 #   MessageBubble, StarRatingInput, SectionCard, Chip, SportTile, StatsRow, Skeleton…)
 ├── contexts/     # Context API (AuthContext, MatchesContext, MatchFiltersContext)
-├── hooks/        # Hooks customizados (useMatchFilters, useMatchDetail, useMatchParticipation, useMessages, useRatings, useReports)
+├── hooks/        # Hooks customizados (useMatchFilters, useMatchDetail, useMatchParticipation, useMessages, useRatings, useReports, useDeviceLocation)
 ├── mocks/        # Dados mockados — mantidos como fixtures de teste (users, matches, messages, ratings, reports)
 ├── navigation/   # Navigators (AuthNavigator, AppNavigator, RootNavigator)
 ├── screens/      # Telas da aplicação
@@ -158,6 +159,15 @@ em vez de "0.0" (`averageRating: number | null`, `RatingStars`/`TrustBadges` tra
 
 Todas as telas internas usam o componente compartilhado `src/components/Header.tsx`, que padroniza o cabeçalho escuro (`secondary-900`), o botão de voltar, o respiro de safe-area (`useSafeAreaInsets`) e variantes `compact`/`large` (a segunda usada pelas abas Home/Busca/Criar, que têm título grande e podem receber conteúdo extra como a barra de busca).
 
+## Geolocalização (real desde a Fase 14.1, em andamento)
+
+`CreateMatchScreen` usa o hook `useDeviceLocation` (`expo-location`) para capturar
+`latitude`/`longitude` reais do dispositivo (`Location.Accuracy.Balanced`) e enviá-las junto do
+payload de `POST /matches`, sempre que a permissão é concedida. O campo `location` (texto) segue
+obrigatório; as coordenadas são só um extra — se o usuário negar a permissão ou o GPS falhar, a
+partida é criada normalmente, sem coordenadas. Busca por proximidade (`FiltersScreen`/`MatchCard`)
+ainda não implementada — ver [`.status/roadmap.md`](.status/roadmap.md) §20.
+
 ## Denúncias e moderação (reais desde a Fase 13.8)
 
 O hook `useReports` (`useReports`, `useCreateReport`, `useUpdateReportAction`) substitui o antigo
@@ -186,7 +196,8 @@ backend.
 | 11 | Moderação (opcional) | ✅ Concluída |
 | 12 | Revisão e polimento final | 🟡 **Em andamento** (6/8 — resta apenas testar em Expo Go/dispositivo; build de apresentação com `eas.json` pronto, falta login/execução) |
 | 13 | Integração com o backend real | 🟢 **Concluída (16/16)** — fundação, Auth real, Matches reais, Mensagens reais, Avaliações reais, Denúncias reais e hardening/teste ponta a ponta; backend já deployado em `https://squadup-api.up.railway.app` |
+| 14 | Geolocalização real e notificações push | 🟡 **Em andamento (5/8)** — backend concluído (PR #50); front: `useDeviceLocation` + `CreateMatchScreen` envia coordenadas ✅; faltam filtro por proximidade (`FiltersScreen`/`MatchCard`) e push |
 
-256 testes passando · lint zerado · tsc zerado · 85/86 tarefas concluídas (99%)
+263 testes passando · lint zerado · tsc zerado · 85/86 tarefas do protótipo+integração concluídas (99%) · Fase 14: 5/8
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

@@ -7,6 +7,8 @@ import CreateMatchScreen from "../CreateMatchScreen";
 const mockNavigate = jest.fn();
 const mockInvalidateMatches = jest.fn();
 const mockCreateMatch = jest.fn();
+const mockRequestLocation = jest.fn();
+let mockDeviceLocation: { latitude: number; longitude: number } | null = null;
 
 jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -24,11 +26,21 @@ jest.mock("../../services/api/matches", () => ({
   createMatch: (...args: unknown[]) => mockCreateMatch(...args),
 }));
 
+jest.mock("../../hooks/useDeviceLocation", () => ({
+  useDeviceLocation: () => ({
+    location: mockDeviceLocation,
+    permissionDenied: false,
+    isLoading: false,
+    requestLocation: mockRequestLocation,
+  }),
+}));
+
 jest.spyOn(Alert, "alert");
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockCreateMatch.mockResolvedValue({ id: "match-new" });
+  mockDeviceLocation = null;
 });
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -273,5 +285,37 @@ describe("CreateMatchScreen — interações", () => {
     await waitFor(() => expect(mockCreateMatch).toHaveBeenCalledTimes(1));
     const payload = mockCreateMatch.mock.calls[0][0];
     expect(payload.requires_approval).toBe(true);
+  });
+});
+
+// ─── Geolocalização ─────────────────────────────────────────────────────────
+
+describe("CreateMatchScreen — geolocalização", () => {
+  it("solicita a localização do dispositivo ao montar", () => {
+    render(<CreateMatchScreen />);
+    expect(mockRequestLocation).toHaveBeenCalledTimes(1);
+  });
+
+  it("inclui latitude/longitude no payload quando a localização está disponível", async () => {
+    mockDeviceLocation = { latitude: -22.9, longitude: -43.2 };
+    render(<CreateMatchScreen />);
+    fillValidForm();
+    fireEvent.press(screen.getByText("Criar partida"));
+
+    await waitFor(() => expect(mockCreateMatch).toHaveBeenCalledTimes(1));
+    const payload = mockCreateMatch.mock.calls[0][0];
+    expect(payload.latitude).toBe(-22.9);
+    expect(payload.longitude).toBe(-43.2);
+  });
+
+  it("não inclui latitude/longitude no payload quando a localização não está disponível", async () => {
+    render(<CreateMatchScreen />);
+    fillValidForm();
+    fireEvent.press(screen.getByText("Criar partida"));
+
+    await waitFor(() => expect(mockCreateMatch).toHaveBeenCalledTimes(1));
+    const payload = mockCreateMatch.mock.calls[0][0];
+    expect(payload.latitude).toBeUndefined();
+    expect(payload.longitude).toBeUndefined();
   });
 });
