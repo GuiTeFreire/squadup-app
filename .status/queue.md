@@ -56,7 +56,7 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 
 ---
 
-## FASE 14 — Geolocalização real e notificações push (4/8 — backend concluído em 2026-07-28)
+## FASE 14 — Geolocalização real e notificações push (6/8 — backend concluído em 2026-07-28)
 
 > Plano mestre completo (arquitetura, contrato de API, decisões D-Geo-*/D-Push-*) em
 > `.status/backend-contract.md` §6-A. Detalhe tarefa-a-tarefa do front em `roadmap.md` §20.
@@ -67,9 +67,9 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 > **Não estava no cronograma original do TCC** — ver `plano-de-entrega.md` §9 para o encaixe e o
 > plano de contingência de prazo.
 >
-> **Atenção antes de testar contra produção:** a migration da Fase 13 (backend) ainda não foi
-> aplicada em `https://squadup-api.up.railway.app` — só validada localmente. `lat`/`lng`/
-> `radius_km` e `POST /users/me/push-token` vão falhar em produção até isso rodar lá.
+> **Migration em produção:** aplicada com sucesso em `https://squadup-api.up.railway.app`
+> (confirmado sessão 30, `../squadup-back/.status/queue.md`) — `lat`/`lng`/`radius_km` e
+> `POST /users/me/push-token` já funcionam contra produção, não só localmente.
 
 | # | Tarefa | Sub-fase | Repositório | Status |
 |---|--------|----------|---|--------|
@@ -78,7 +78,7 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 | 3 | Tabela `push_tokens`; `POST /users/me/push-token`; revogação em logout | 14 (backend) | Backend | 🟢 |
 | 4 | `notification_service.py` (Expo Push API) + disparo nos 3 eventos via `BackgroundTasks` | 14 (backend) | Backend | 🟢 |
 | 5 | `useDeviceLocation` + `CreateMatchScreen` envia coordenadas + tipos/adapters | 14.1 | Front | 🟢 |
-| 6 | `FiltersScreen` (toggle + raio) + `useMatchFilters`/`MatchesContext` propagam geo + distância no `MatchCard` | 14.1 | Front | ⚪ |
+| 6 | `FiltersScreen` (toggle + raio) + `useMatchFilters`/`MatchesContext` propagam geo + distância no `MatchCard` | 14.1 | Front | 🟢 |
 | 7 | `useNotificationRegistration` (permissão + token + registro) + listener de navegação | 14.2 | Front | ⚪ |
 | 8 | Hardening ponta a ponta em dispositivo físico + ajuste do texto do TCC (D-A) | 14.3 | Ambos | ⚪ |
 
@@ -164,18 +164,19 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 > auditoria) vive em [`progress.md`](progress.md) — esta seção só guarda a observação mais
 > recente, para servir de ponto de retomada rápido no início da próxima sessão.
 
-- **Checkpointer — Sessão 31 (2026-07-28):** item 5 da tabela da Fase 14 concluído (🟢) —
-  `useDeviceLocation` + `CreateMatchScreen` envia coordenadas + tipos/adapters. Detalhe completo
-  (arquivo por arquivo, decisões não óbvias) em [`progress.md`](progress.md), sessão 31.
-  263/263 testes, `tsc`/`lint` zerados.
-  - **Próxima tarefa concreta (item 6 da tabela acima):** adicionar `distanceKm: number | null` a
-    `MatchSummary`/`ApiMatchSummary` primeiro, depois o toggle "Usar minha localização" em
-    `FiltersScreen` (+ raio `radius_km`, default 20) propagando `lat`/`lng`/`radius_km` via
-    `useMatchFilters`/`MatchesContext` para `GET /matches`, e exibir a distância pronta do backend
-    (`distance_km`) no `MatchCard`.
-  - Migration do backend ainda não rodou em produção (Railway) — testar a Fase 14 primeiro
-    contra o backend local (`.env` apontando para `http://<ip-da-rede-local>:8000`), não contra
-    `https://squadup-api.up.railway.app`, até essa migration ser aplicada lá.
+- **Checkpointer — Sessão 32 (2026-07-28, branch `feat/match-distance-filter`, a partir de
+  `dev`):** item 6 da tabela da Fase 14 concluído (🟢) — `distanceKm`/`distance_km` nos tipos/
+  adapter, toggle "Usar minha localização" + chips de raio em `FiltersScreen`, propagação
+  condicional de `lat`/`lng`/`radius_km` em `MatchesContext`, distância exibida no `MatchCard`.
+  Detalhe completo (arquivo por arquivo, decisões não óbvias — inclui o desvio do lint
+  `react-hooks/set-state-in-effect`) em [`progress.md`](progress.md), sessão 32. **278/278
+  testes**, `tsc`/`lint` zerados.
+  - **Próxima tarefa concreta (item 7 da tabela acima):** `useNotificationRegistration` — instalar
+    `expo-notifications`/`expo-device`/`expo-constants`, obter `ExpoPushToken`, registrar via
+    `POST /users/me/push-token` após login/restauração de sessão, e o listener de navegação por
+    notificação tocada (`Notifications.addNotificationResponseReceivedListener`) no root do app.
+  - Migration do backend já rodou em produção (Railway, confirmado sessão 30) — a Fase 14 pode
+    ser testada tanto contra o backend local quanto contra `https://squadup-api.up.railway.app`.
 
 ---
 

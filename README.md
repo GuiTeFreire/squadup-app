@@ -106,7 +106,7 @@ App
         │   ├── SearchScreen      ← busca dedicada com filtros
         │   ├── CreateMatchScreen ← formulário completo de criação
         │   └── MyProfileScreen   ← perfil do usuário logado (+ acesso ao painel admin)
-        ├── FiltersScreen (modal) ← esporte · nível · vagas disponíveis
+        ├── FiltersScreen (modal) ← esporte · nível · data · localização · vagas · proximidade
         ├── MatchDetailScreen     ← detalhes + 5 estados de participação
         ├── MatchChatScreen       ← chat da partida
         ├── PublicProfileScreen   ← perfil público de outro usuário
@@ -159,14 +159,20 @@ em vez de "0.0" (`averageRating: number | null`, `RatingStars`/`TrustBadges` tra
 
 Todas as telas internas usam o componente compartilhado `src/components/Header.tsx`, que padroniza o cabeçalho escuro (`secondary-900`), o botão de voltar, o respiro de safe-area (`useSafeAreaInsets`) e variantes `compact`/`large` (a segunda usada pelas abas Home/Busca/Criar, que têm título grande e podem receber conteúdo extra como a barra de busca).
 
-## Geolocalização (real desde a Fase 14.1, em andamento)
+## Geolocalização (real desde a Fase 14.1)
 
 `CreateMatchScreen` usa o hook `useDeviceLocation` (`expo-location`) para capturar
 `latitude`/`longitude` reais do dispositivo (`Location.Accuracy.Balanced`) e enviá-las junto do
 payload de `POST /matches`, sempre que a permissão é concedida. O campo `location` (texto) segue
 obrigatório; as coordenadas são só um extra — se o usuário negar a permissão ou o GPS falhar, a
-partida é criada normalmente, sem coordenadas. Busca por proximidade (`FiltersScreen`/`MatchCard`)
-ainda não implementada — ver [`.status/roadmap.md`](.status/roadmap.md) §20.
+partida é criada normalmente, sem coordenadas.
+
+Busca por proximidade: `FiltersScreen` tem um toggle "Usar minha localização" (+ chips de raio
+5/10/20/50 km, default 20) que propaga `lat`/`lng`/`radius_km` para `GET /matches` via
+`MatchesContext` só quando ativo; `MatchCard` exibe a distância pronta devolvida pelo backend
+(`distance_km`, ex.: "3,2 km") sem recalcular no cliente. Permissão negada não bloqueia a busca —
+mostra um aviso e aplica os demais filtros sem coordenadas (mesmo princípio de fallback gracioso
+da criação de partida).
 
 ## Denúncias e moderação (reais desde a Fase 13.8)
 
@@ -196,8 +202,8 @@ backend.
 | 11 | Moderação (opcional) | ✅ Concluída |
 | 12 | Revisão e polimento final | 🟡 **Em andamento** (6/8 — resta apenas testar em Expo Go/dispositivo; build de apresentação com `eas.json` pronto, falta login/execução) |
 | 13 | Integração com o backend real | 🟢 **Concluída (16/16)** — fundação, Auth real, Matches reais, Mensagens reais, Avaliações reais, Denúncias reais e hardening/teste ponta a ponta; backend já deployado em `https://squadup-api.up.railway.app` |
-| 14 | Geolocalização real e notificações push | 🟡 **Em andamento (5/8)** — backend concluído (PR #50); front: `useDeviceLocation` + `CreateMatchScreen` envia coordenadas ✅; faltam filtro por proximidade (`FiltersScreen`/`MatchCard`) e push |
+| 14 | Geolocalização real e notificações push | 🟡 **Em andamento (6/8)** — backend concluído (PR #50); front geo concluído (`useDeviceLocation`, coordenadas na criação, filtro por proximidade em `FiltersScreen`/`MatchCard`) ✅; falta push |
 
-263 testes passando · lint zerado · tsc zerado · 85/86 tarefas do protótipo+integração concluídas (99%) · Fase 14: 5/8
+278 testes passando · lint zerado · tsc zerado · 85/86 tarefas do protótipo+integração concluídas (99%) · Fase 14: 6/8
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

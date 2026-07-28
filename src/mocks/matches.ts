@@ -5,7 +5,7 @@ const [guilherme, ana, rafael, juliana, thiago, beatriz] = MOCK_USERS;
 
 type MatchSeed = Omit<
   MatchDetail,
-  "organizerId" | "confirmedCount" | "availableSlots" | "latitude" | "longitude"
+  "organizerId" | "confirmedCount" | "availableSlots" | "latitude" | "longitude" | "distanceKm"
 > & { latitude?: number | null; longitude?: number | null };
 
 function toMatchDetail(seed: MatchSeed): MatchDetail {
@@ -19,6 +19,7 @@ function toMatchDetail(seed: MatchSeed): MatchDetail {
     availableSlots: seed.maxParticipants - confirmedCount,
     latitude: seed.latitude ?? null,
     longitude: seed.longitude ?? null,
+    distanceKm: null,
   };
 }
 

@@ -19,9 +19,9 @@
 | — | Redesign visual premium (theme module, elevação, cor por esporte) | 🟢 Concluído (transversal — sessão 16) |
 | Fase 12 | Revisão e polimento final | 🟡 Em andamento (6/8 — 12.1, 12.2, 12.4–12.7 concluídas, sessão 17; 12.8 em andamento, sessão 28) |
 | Fase 13 | Integração com o backend real | 🟢 **Concluída (16/16)** — 13.1 sessão 20; 13.2/13.3 sessão 21; 13.4 sessões 22–23; 13.5 sessão 24; 13.6 sessão 25; 13.7 sessão 26; 13.8 sessão 27; 13.9 sessão 28 |
-| Fase 14 | Geolocalização real e notificações push | 🟡 Em andamento (5/8 — backend 1–4 concluídas; front 14.1/item 5 concluído sessão 31) |
+| Fase 14 | Geolocalização real e notificações push | 🟡 Em andamento (6/8 — backend 1–4 concluídas; front 14.1 itens 5–6 concluídos sessões 31–32) |
 
-**Progresso geral:** 85/86 tarefas do protótipo+integração concluídas (99%) · Fase 14: 5/8 · 263 testes passando · lint zerado · tsc zerado
+**Progresso geral:** 85/86 tarefas do protótipo+integração concluídas (99%) · Fase 14: 6/8 · 278 testes passando · lint zerado · tsc zerado
 
 Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons) · @tanstack/react-query v5 · expo-secure-store (sessão 21) · @playwright/test como dev tooling para screenshots do TCC (sessão 28)
 
@@ -621,6 +621,13 @@ telas.
 > exibição de distância no `MatchCard` (item 6), e as notificações push (item 7). A migration da
 > Fase 13 ainda não rodou em produção (`squadup-api.up.railway.app`) — `lat`/`lng`/`radius_km` e
 > `POST /users/me/push-token` só funcionam contra o backend local até isso ser resolvido.
+>
+> **Atualização (2026-07-28, sessão 32, branch `feat/match-distance-filter`):** item 6 concluído —
+> `distanceKm`/`distance_km` em `MatchSummary`/`ApiMatchSummary`/adapter; toggle "Usar minha
+> localização" + chips de raio (5/10/20/50 km) em `FiltersScreen`; `MatchFilters` ganhou
+> `nearMe`/`latitude`/`longitude`/`radiusKm`; `MatchesContext` só propaga `lat`/`lng`/`radius_km`
+> para `GET /matches` quando `nearMe` está ativo; `MatchCard` exibe a distância pronta do backend.
+> Só falta o item 7 (push) e o item 8 (hardening) para fechar a Fase 14.
 
 ### Objetivo
 
@@ -642,21 +649,29 @@ partida), sem quebrar nenhum fluxo hoje funcional — as duas features são estr
   `latitude`/`longitude` junto do payload de `POST /matches` **se disponíveis**; sem eles, o
   payload continua idêntico ao de hoje (campo `location` de texto é sempre obrigatório,
   coordenadas são só um extra);
-- `FiltersScreen`: novo toggle "Usar minha localização" — ao ativar, chama `useDeviceLocation` e
-  passa a expor um input/slider de raio (`radius_km`, default 20); `useMatchFilters` e
-  `MatchesContext` propagam `lat`/`lng`/`radius_km` para `GET /matches` (`src/services/api/matches.ts`)
-  só quando o toggle estiver ativo;
-- `MatchCard`: exibe a distância aproximada (ex.: "3,2 km") quando o back retornar as partidas já
-  ordenadas por proximidade (isto é, quando a busca atual tinha `lat`/`lng` informados) — cálculo
-  do texto de distância pode ser feito no front a partir de `latitude`/`longitude` da partida e da
-  posição atual do usuário, sem chamada extra;
+- ✅ **Concluído (sessão 32):** `FiltersScreen`: novo toggle "Usar minha localização" — ao ativar,
+  chama `useDeviceLocation` e passa a expor chips de raio (`radiusKm`, opções 5/10/20/50 km,
+  default 20 via `DEFAULT_RADIUS_KM`); `MatchFilters` ganhou `nearMe`/`latitude`/`longitude`/
+  `radiusKm`; `MatchesContext` propaga `lat`/`lng`/`radius_km` para `GET /matches`
+  (`src/services/api/matches.ts`) só quando `nearMe` está ativo. **Ajuste em relação ao desenho
+  original:** sincronizar `latitude`/`longitude` do dispositivo para o filtro local via
+  `setState` dentro de `useEffect` foi rejeitado pelo lint (`react-hooks/set-state-in-effect`,
+  cascading renders) — as coordenadas finais são computadas só no momento de `handleApply`, lendo
+  `location` do hook diretamente (com fallback para o valor já aplicado antes); permissão negada
+  não reverte mais o toggle sozinha, só mostra aviso — a busca segue sem coordenadas (mesmo
+  princípio de fallback gracioso da D26);
+- ✅ **Concluído (sessão 32):** `MatchCard`: exibe a distância pronta do backend (`distance_km`,
+  ex.: "3,2 km") quando `match.distanceKm` não é `null` — sem recálculo no cliente, conforme
+  desenho original;
 - ✅ **Concluído (sessão 31):** Tipos/adapters: `MatchSummary`/`MatchDetail` (`src/types`) e os
   adapters correspondentes (`src/services/adapters/match.ts`) ganham `latitude: number | null` e
-  `longitude: number | null`; falta ainda `distanceKm: number | null` (item 6, ver atualização
-  acima);
+  `longitude: number | null`; ✅ **Concluído (sessão 32):** `distanceKm: number | null` adicionado
+  aos mesmos tipos/adapter;
 - ✅ **Concluído (sessão 31):** Testes de `useDeviceLocation` (permissão concedida/negada/erro) e
-  de `CreateMatchScreen` (payload com e sem coordenadas). Falta o teste de `useMatchFilters`
-  (parâmetros geográficos entram na query só quando o toggle está ativo) — depende do item 6.
+  de `CreateMatchScreen` (payload com e sem coordenadas). ✅ **Concluído (sessão 32):** teste de
+  `fetchMatches`/`buildQueryString` (parâmetros geográficos entram na query só quando lat+lng
+  estão presentes) e de `FiltersScreen` (toggle, raio, aplicar com/sem coordenadas, aviso de
+  permissão negada) — 278/278 testes, `tsc`/lint zerados.
 
 ### 14.2 — Notificações push reais
 

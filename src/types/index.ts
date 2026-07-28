@@ -64,6 +64,8 @@ export interface MatchSummary {
   requiresApproval: boolean;
   latitude: number | null;
   longitude: number | null;
+  /** Presente só quando a busca (`GET /matches`) informou `lat`/`lng` — nunca recalcular no cliente. */
+  distanceKm: number | null;
 }
 
 /** Equivalente a `MatchDetailRead` — shape devolvido só por `GET /matches/{id}`. */

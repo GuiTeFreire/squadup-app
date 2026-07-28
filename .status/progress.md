@@ -1639,3 +1639,79 @@ delta são os ajustes de fixtures existentes que passaram a exigir os campos nov
   primeiro adicionar `distanceKm: number | null` a `MatchSummary`/`ApiMatchSummary` (ainda não
   feito, só `latitude`/`longitude` entraram nesta sessão).
 - Nenhum bug pendente — parada é limpa, entre tarefas.
+
+---
+
+## Sessão 32 — 2026-07-28
+
+### Fase 14.1 — Filtro de proximidade (item 6 da tabela de `queue.md`)
+
+Branch `feat/match-distance-filter`, criada a partir de `dev` (que já tinha o item 5 mergeado via
+PR #10). Escopo: fechar o item 6 — `distanceKm` nos tipos, toggle + raio em `FiltersScreen`,
+propagação condicional em `MatchesContext`, distância exibida no `MatchCard`.
+
+| Arquivo | Mudança |
+|---|---|
+| `src/types/index.ts` | `MatchSummary` ganha `distanceKm: number \| null` (herdado por `MatchDetail`) |
+| `src/services/adapters/types.ts` | `ApiMatchSummary` ganha `distance_km?: number \| null` |
+| `src/services/adapters/match.ts` | `toMatchSummary` mapeia `distanceKm: api.distance_km ?? null` |
+| `src/services/api/matches.ts` | `MatchesQueryFilters` ganha `latitude`/`longitude`/`radiusKm`; `buildQueryString` só adiciona `lat`/`lng`/`radius_km` quando `latitude` **e** `longitude` estão presentes (`radius_km` só se também informado) |
+| `src/contexts/MatchFiltersContext.tsx` | `MatchFilters` ganha `nearMe: boolean`, `latitude`/`longitude: number \| null`, `radiusKm: number` (novo `DEFAULT_RADIUS_KM = 20`, exportado); `activeFilterCount` conta `nearMe` |
+| `src/contexts/MatchesContext.tsx` | `fetchMatches` só recebe `latitude`/`longitude`/`radiusKm` reais quando `filters.nearMe` é `true` (senão `null`) |
+| `src/screens/FiltersScreen.tsx` | Toggle "Usar minha localização" (`useDeviceLocation`) + chips de raio (5/10/20/50 km); `handleClear` reseta os campos novos |
+| `src/components/MatchCard.tsx` | `formatDistance()` local + texto de distância anexado à linha de local (`" · 3,2 km"`) quando `distanceKm` não é `null` |
+| `src/mocks/matches.ts` | `MatchSeed`/`toMatchDetail` ganham `distanceKm: null` (sempre, mocks nunca têm distância real) |
+
+### Decisões não óbvias
+
+- **Chips de raio em vez de slider** — o roadmap original sugeria um "input/slider de raio";
+  optei por 4 chips discretos (5/10/20/50 km, reaproveitando o componente `Chip` já existente)
+  em vez de instalar `@react-native-community/slider` (dependência nova só para isso) ou simular
+  um slider com `PanResponder`. Trade-off consciente: menos granularidade, zero dependência nova,
+  mesmo padrão visual já usado para esporte/nível na mesma tela.
+- **Sincronização de localização não usa `useEffect`** — a primeira versão copiava
+  `location.latitude`/`longitude` do hook para o estado local via `setState` dentro de um
+  `useEffect` (`[location]`), e o mesmo padrão fazia o `useEffect` de `[permissionDenied]`
+  reverter `nearMe` para `false` automaticamente. O lint (`react-hooks/set-state-in-effect`,
+  regra nova/mais estrita do projeto) rejeitou os dois como "cascading renders". Refeito sem
+  nenhum `useEffect`: as coordenadas finais só são computadas dentro de `handleApply`, lendo
+  `location` do hook diretamente (`location?.latitude ?? local.latitude` — prefere a leitura
+  fresca do GPS, cai para a coordenada já aplicada antes se o hook ainda não resolveu). Efeito
+  colateral **desejável**: permissão negada não reverte mais o toggle sozinha, só mostra um
+  aviso (`local.nearMe && permissionDenied`) — a busca aplica sem coordenadas, mesmo princípio de
+  fallback gracioso da D26 (D-Geo-3: geolocalização nunca trava um fluxo).
+- **`distanceKm` sempre `null` nos mocks** (`src/mocks/matches.ts`) — é um valor 100% derivado do
+  backend (Haversine contra a posição do usuário na query), não faz sentido fabricar um valor
+  fixo nos dados de teste/fixture.
+
+### Dívidas técnicas identificadas
+
+Nenhuma nova. D26 (já existente, sessão 31) segue válida e sem mudança — é especificamente sobre
+`CreateMatchScreen`, não sobre `FiltersScreen` (que já trata o caso de permissão negada nesta
+sessão).
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros (incluindo a correção do
+`react-hooks/set-state-in-effect` acima) · `npm run test` **278/278** passando (39 suítes; 15
+testes novos: `src/services/api/__tests__/matches.test.ts` — 4 casos de `buildQueryString`;
+`src/screens/__tests__/FiltersScreen.test.tsx` — 8 casos de toggle/raio/aplicar/permissão negada;
+2 casos novos em `MatchCard.test.tsx`; 1 caso novo em `adapters/match.test.ts`; o restante do
+delta são fixtures existentes — `useMatchFilters.test.ts`, `queryKeys.test.ts` — ajustadas aos
+campos novos de `MatchFilters`).
+
+### Estado ao final da sessão 32
+
+- Branch `feat/match-distance-filter`, criada a partir de `dev` (que já continha o item 5,
+  mergeado via PR #10). Commit de fechamento desta sessão: ver mensagem de encerramento.
+- Fase 14: 6/8 (backend 1–4 + itens 5–6 do front). Resta o item 7 (push) e o item 8 (hardening
+  conjunto em dispositivo físico).
+- Nenhuma dívida técnica nova.
+- Próxima tarefa concreta: item 7 — `useNotificationRegistration` (`src/hooks/`, novo): instalar
+  `expo-notifications`/`expo-device`/`expo-constants`, pedir permissão, obter o `ExpoPushToken`
+  (via `projectId` do EAS — depende de 12.8 já ter rodado `eas build:configure`, ainda pendente
+  de ação do usuário), registrar via novo `POST /users/me/push-token` (`src/services/api/users.ts`)
+  uma única vez após login/restauração de sessão bem-sucedidos (`AuthContext`); listener de
+  notificação tocada (`Notifications.addNotificationResponseReceivedListener`) no root do app,
+  navegando para `MatchChatScreen`/`MatchDetailScreen` conforme o `data` da notificação.
+- Nenhum bug pendente — parada é limpa, entre tarefas.

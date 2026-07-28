@@ -24,6 +24,7 @@ const makeMatch = (overrides: Partial<MatchSeed> = {}): MatchSummary => {
     requiresApproval: false,
     latitude: null,
     longitude: null,
+    distanceKm: null,
     ...overrides,
   };
   return {
@@ -39,6 +40,10 @@ const EMPTY_FILTERS: MatchFilters = {
   onlyAvailable: false,
   date: null,
   location: null,
+  nearMe: false,
+  latitude: null,
+  longitude: null,
+  radiusKm: 20,
 };
 
 describe("applyFilters", () => {

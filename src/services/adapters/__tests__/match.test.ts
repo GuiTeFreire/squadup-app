@@ -85,6 +85,7 @@ describe("toMatchSummary", () => {
       requiresApproval: false,
       latitude: null,
       longitude: null,
+      distanceKm: null,
     });
   });
 
@@ -93,6 +94,12 @@ describe("toMatchSummary", () => {
 
     expect(result.latitude).toBe(-22.9);
     expect(result.longitude).toBe(-43.2);
+  });
+
+  it("mantém distance_km quando o servidor informa a distância", () => {
+    const result = toMatchSummary({ ...API_MATCH_SUMMARY, distance_km: 3.2 });
+
+    expect(result.distanceKm).toBe(3.2);
   });
 
   it("converte description nula em undefined", () => {

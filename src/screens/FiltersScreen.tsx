@@ -7,12 +7,14 @@ import Button from "../components/Button";
 import Chip from "../components/Chip";
 import Input from "../components/Input";
 import type { MatchFilters } from "../contexts/MatchFiltersContext";
-import { useMatchFiltersContext } from "../contexts/MatchFiltersContext";
+import { DEFAULT_RADIUS_KM, useMatchFiltersContext } from "../contexts/MatchFiltersContext";
+import { useDeviceLocation } from "../hooks/useDeviceLocation";
 import { colors, LEVEL_META, shadows, SPORT_META } from "../theme";
 import type { ExperienceLevel, Sport } from "../types";
 
 const SPORTS: Sport[] = ["football", "futsal", "volleyball", "basketball", "tennis"];
 const LEVELS: ExperienceLevel[] = ["beginner", "intermediate", "advanced"];
+const RADII_KM = [5, 10, 20, 50];
 const DATE_RE = /^(\d{2})\/(\d{2})\/(\d{4})$/;
 
 function isoToDisplayDate(iso: string | null): string {
@@ -39,6 +41,16 @@ export default function FiltersScreen() {
   const [local, setLocal] = useState<MatchFilters>({ ...filters });
   const [dateText, setDateText] = useState(isoToDisplayDate(filters.date));
   const [dateError, setDateError] = useState("");
+
+  const { location, permissionDenied, requestLocation } = useDeviceLocation();
+
+  function toggleNearMe() {
+    setLocal((prev) => {
+      if (prev.nearMe) return { ...prev, nearMe: false, latitude: null, longitude: null };
+      void requestLocation();
+      return { ...prev, nearMe: true };
+    });
+  }
 
   function toggleSport(sport: Sport) {
     setLocal((prev) => ({ ...prev, sport: prev.sport === sport ? null : sport }));
@@ -69,13 +81,27 @@ export default function FiltersScreen() {
       setDateError("Use o formato DD/MM/AAAA");
       return;
     }
-    setFilters(local);
+    setFilters({
+      ...local,
+      latitude: local.nearMe ? (location?.latitude ?? local.latitude) : null,
+      longitude: local.nearMe ? (location?.longitude ?? local.longitude) : null,
+    });
     navigation.goBack();
   }
 
   function handleClear() {
     clearFilters();
-    setLocal({ sport: null, level: null, onlyAvailable: false, date: null, location: null });
+    setLocal({
+      sport: null,
+      level: null,
+      onlyAvailable: false,
+      date: null,
+      location: null,
+      nearMe: false,
+      latitude: null,
+      longitude: null,
+      radiusKm: DEFAULT_RADIUS_KM,
+    });
     setDateText("");
     setDateError("");
   }
@@ -86,6 +112,7 @@ export default function FiltersScreen() {
     local.onlyAvailable || null,
     local.date,
     local.location,
+    local.nearMe || null,
   ].filter(Boolean).length;
 
   let applyLabel = "Aplicar filtros";
@@ -211,6 +238,63 @@ export default function FiltersScreen() {
             )}
           </View>
         </Pressable>
+
+        {/* Near me */}
+        <SectionLabel>Proximidade</SectionLabel>
+        <Pressable
+          className={`flex-row items-center justify-between p-4 rounded-2xl border ${
+            local.nearMe ? "bg-primary-50 border-primary-300" : "bg-white border-neutral-200"
+          }`}
+          onPress={toggleNearMe}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: local.nearMe }}
+        >
+          <View className="flex-row items-center gap-3 flex-1">
+            <MaterialCommunityIcons
+              name="crosshairs-gps"
+              size={20}
+              color={local.nearMe ? colors.primary[500] : colors.secondary[500]}
+            />
+            <Text
+              className={`text-sm font-semibold ${
+                local.nearMe ? "text-primary-700" : "text-neutral-600"
+              }`}
+            >
+              Usar minha localização
+            </Text>
+          </View>
+          <View
+            className={`w-6 h-6 rounded-lg border-2 items-center justify-center ${
+              local.nearMe ? "bg-primary-500 border-primary-500" : "border-neutral-300"
+            }`}
+          >
+            {local.nearMe && (
+              <MaterialCommunityIcons name="check-bold" size={14} color={colors.white} />
+            )}
+          </View>
+        </Pressable>
+
+        {local.nearMe && permissionDenied && (
+          <Text className="text-xs text-error mt-2">
+            Permissão de localização negada — ative nas configurações do dispositivo para buscar por
+            proximidade.
+          </Text>
+        )}
+
+        {local.nearMe && (
+          <View className="flex-row flex-wrap gap-2 mt-3">
+            {RADII_KM.map((radiusKm) => (
+              <Chip
+                key={radiusKm}
+                label={`${radiusKm} km`}
+                selected={local.radiusKm === radiusKm}
+                onPress={() => setLocal((prev) => ({ ...prev, radiusKm }))}
+              />
+            ))}
+          </View>
+        )}
+
+        <View className="mb-6" />
       </ScrollView>
 
       {/* Apply button */}
