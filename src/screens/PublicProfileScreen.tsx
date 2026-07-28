@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useMemo } from "react";
+import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 import Avatar from "../components/Avatar";
@@ -14,8 +14,8 @@ import RatingStars from "../components/RatingStars";
 import SectionCard from "../components/SectionCard";
 import StatsRow from "../components/StatsRow";
 import TrustBadges from "../components/TrustBadges";
-import { MOCK_RATINGS } from "../mocks/ratings";
-import { MOCK_USERS } from "../mocks/users";
+import { usePublicProfile } from "../hooks/usePublicProfile";
+import { useUserRatings } from "../hooks/useRatings";
 import type { AppRootStackParamList } from "../navigation/types";
 import { colors, LEVEL_META, SPORT_META } from "../theme";
 
@@ -27,11 +27,16 @@ export default function PublicProfileScreen() {
   const route = useRoute<Route>();
   const { userId } = route.params;
 
-  const user = useMemo(() => MOCK_USERS.find((u) => u.id === userId) ?? null, [userId]);
-  const userReviews = useMemo(
-    () => MOCK_RATINGS.filter((r) => r.ratedUser.id === userId),
-    [userId]
-  );
+  const { profile: user, isLoading } = usePublicProfile(userId);
+  const { ratings: userReviews } = useUserRatings(userId);
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-secondary-50">
+        <Text className="text-neutral-500">Carregando perfil...</Text>
+      </View>
+    );
+  }
 
   if (!user) {
     return (

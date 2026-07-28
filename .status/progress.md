@@ -1808,3 +1808,84 @@ erros (951 módulos, até então 807 — cresceu com as 3 dependências novas).
 - Nenhum bug pendente — parada é limpa, entre tarefas. **Nenhuma das duas branches locais
   (`feat/match-distance-filter`, `feat/push-notifications`) foi mergeada em `dev` ainda** — ambas
   aguardando revisão/merge do usuário, na ordem em que foram criadas.
+
+---
+
+## Sessão 34 — 2026-07-28
+
+### D28 — `CURRENT_USER`/`MOCK_USERS`/`MOCK_RATINGS` em 7 telas (bug de alta gravidade, achado e corrigido)
+
+Sessão iniciada com o usuário rodando `eas login`/`eas build:configure`/`eas build` (branches
+`feat/match-distance-filter` e `feat/push-notifications` já mergeadas em `dev` via GitHub —
+PRs #11/#12 — nesta sessão, pelo usuário). Ao responder "vai rodar tudo, cadastrar conta nova e
+ficar funcional?", uma auditoria rápida de `grep CURRENT_USER src/screens` revelou que 7 telas
+ainda liam um usuário/avaliações **mockados** em vez do usuário real autenticado — resquício da
+Fase 13 (só `RateUserScreen`/`PostMatchRatingScreen` tinham sido migrados na época).
+
+**Efeito prático antes da correção:** "Meu Perfil" sempre mostrava o mock; "Editar perfil" não
+salvava nada de verdade; organizador real nunca via "Encerrar partida"/"Aprovar participante";
+status de participação errado; mensagens próprias apareciam como "de outra pessoa" no chat; e o
+mais grave — **`PublicProfileScreen`/`ReportUserScreen` mostravam "Usuário não encontrado" para
+qualquer participante real** (procuravam por `MOCK_USERS.find(id)`, que só tem 6 IDs fixos,
+nunca um UUID real do backend). Isso quebrava silenciosamente "ver perfil de participante" e,
+por consequência, "denunciar usuário" (só alcançável a partir do perfil público).
+
+| Arquivo | Mudança |
+|---|---|
+| `src/services/api/users.ts` | Novo `fetchPublicProfile(userId)` → `GET /users/{userId}`; `UpdateMyProfilePayload` expandida (`name`/`bio`/`location`/`favorite_sports` além de `level`/`photo_url` — o backend (`UserUpdate` schema) sempre aceitou todos, só o tipo do front estava incompleto) |
+| `src/hooks/usePublicProfile.ts` (novo) | `useQuery` + `toPublicUser`, mesmo padrão de `useMatchDetail` |
+| `src/hooks/useMatchParticipation.ts` | `currentUser` agora aceita `PublicUser \| null` (antes exigia não-nulo) — `userStatus` vira `null` com segurança quando `user` ainda não carregou |
+| `src/contexts/AuthContext.tsx` | Novo método `updateProfile(data)`: chama `updateMyProfile` e atualiza o `user` local via `setUser(toMyProfile(...))` |
+| `src/screens/HomeScreen.tsx` | Saudação/avatar: `CURRENT_USER` → `useAuth().user` |
+| `src/screens/MatchChatScreen.tsx` | `isOwn` (estilo da bolha): `CURRENT_USER.id` → `user?.id` |
+| `src/screens/MatchDetailScreen.tsx` | `isOrganizer` e `useMatchParticipation`: `CURRENT_USER` → `useAuth().user` |
+| `src/screens/MyProfileScreen.tsx` | `CURRENT_USER` + `MOCK_RATINGS.filter` → `useAuth().user` + `useUserRatings(user.id)` |
+| `src/screens/PublicProfileScreen.tsx` | `MOCK_USERS.find`/`MOCK_RATINGS.filter` → `usePublicProfile(userId)` + `useUserRatings(userId)`, com estado de carregamento novo |
+| `src/screens/ReportUserScreen.tsx` | `MOCK_USERS.find` → `usePublicProfile(userId)`, com estado de carregamento novo |
+| `src/screens/EditProfileScreen.tsx` | Componente dividido em `EditProfileForm` (recebe `user` não-nulo) + `EditProfileScreen` (busca `useAuth().user`, `return null` se ainda não logado); `handleSave` virou `async`, chama `updateProfile(...)` de verdade em vez de só mostrar um `Alert` fake; botão ganhou estado `loading` |
+
+### Decisões não óbvias
+
+- **`useMatchParticipation` aceita `null` em vez de exigir um "usuário vazio" fake** — a
+  alternativa (criar um `PublicUser` dummy só para satisfazer o tipo enquanto `useAuth().user`
+  ainda não resolveu) foi descartada por ser um hack; o hook já sabia lidar com "sem match"
+  (`match` nulo), então estender o mesmo padrão para "sem usuário" foi a solução mais limpa —
+  `userStatus` fica `null` e as ações (`join`/`cancel`/`close`/`approve`) continuam funcionando
+  normalmente assim que `user` resolve (o que, na prática, é sempre antes do primeiro render útil,
+  já que a tela só monta dentro do `AppNavigator`, autenticado).
+- **`EditProfileScreen` dividida em dois componentes** — `useState(user.name)` (e os outros campos)
+  precisa de um `user` garantidamente não-nulo no momento em que os hooks de estado são
+  inicializados; um `if (!user) return null` no meio do componente, antes desses `useState`,
+  violaria a regra de hooks (número de hooks variável entre renders). Separar em
+  `EditProfileScreen` (guarda + busca o usuário) → `EditProfileForm` (recebe `user` tipado como
+  não-nulo via prop) evita isso sem gambiarra de valores default.
+- **Teste de `usePublicProfile`/`useUserRatings` não foi criado como arquivo dedicado** — os dois
+  hooks são wrappers finos de `useQuery` já testados indiretamente pelas telas que os consomem
+  (`PublicProfileScreen.test.tsx`, `ReportUserScreen.test.tsx`, `useRatings.test.tsx` já cobre
+  `useUserRatings`); mesma lógica de granularidade de teste já aplicada a `useMatchDetail` (sem
+  teste dedicado, coberto via `MatchDetailScreen.test.tsx`) nas sessões anteriores.
+- **Fixtures de `ApiPublicUser`/`ApiRating` reconstruídas manualmente nos testes** (em vez de
+  importar `MOCK_USERS`/`MOCK_RATINGS`) — os testes agora simulam a API real (`snake_case`,
+  `GET /users/{id}`), então usar os mocks do front (`camelCase`, dados de UI) misturaria as duas
+  camadas; os valores foram copiados de `src/mocks/users.ts`/`ratings.ts` só para manter as
+  mesmas asserções de texto (nomes, bios, comentários) que os testes originais já verificavam.
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros · `npm run test` **289/289** passando
+(3 suítes reescritas — `MatchDetailScreen.test.tsx` ganhou um mock de `useAuth`;
+`PublicProfileScreen.test.tsx` e `ReportUserScreen.test.tsx` migraram de leitura síncrona de
+mocks para `createQueryWrapper` + fetch mockado por URL, já que os dados agora vêm de
+`useQuery`) · `npx expo export --platform web` gera o bundle sem erros.
+
+### Estado ao final da sessão 34
+
+- Nova branch `fix/real-user-profile-data`, criada a partir de `feat/push-notifications` (que já
+  tinha sido mergeada em `dev` via PR #12 nesta sessão, então equivale a partir de `dev`).
+- Fase 14 segue em 7/8 — este bug não fazia parte do escopo da Fase 14, foi achado ao validar se
+  o app "fica funcional com conta nova" antes da apresentação.
+- Uma dívida técnica nova, D28, já **resolvida** no mesmo commit desta sessão.
+- Próxima tarefa: nenhuma de código — resta revisar/mergear `fix/real-user-profile-data`, e as
+  pendências não-técnicas de sempre (screenshots do TCC, decisões D-Deploy-1/D-Deploy-2/D-TCC-1/
+  D-TCC-2 do `plano-de-entrega.md`, e o hardening em dispositivo físico — item 8 da Fase 14).
+- Nenhum bug pendente — parada é limpa.

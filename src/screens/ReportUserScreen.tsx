@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -13,7 +13,7 @@ import Header from "../components/Header";
 import Input from "../components/Input";
 import SectionCard from "../components/SectionCard";
 import { useCreateReport } from "../hooks/useReports";
-import { MOCK_USERS } from "../mocks/users";
+import { usePublicProfile } from "../hooks/usePublicProfile";
 import type { AppRootStackParamList } from "../navigation/types";
 import { colors, shadows } from "../theme";
 import type { MatchRef, ReportReason } from "../types";
@@ -44,10 +44,18 @@ export default function ReportUserScreen() {
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const user = useMemo(() => MOCK_USERS.find((u) => u.id === userId) ?? null, [userId]);
+  const { profile: user, isLoading } = usePublicProfile(userId);
   // Sem endpoint para "partidas em comum com userId" (D23, .status/queue.md) — picker de
   // partida relacionada fica vazio até o backend expor esse dado.
   const userMatches: MatchRef[] = [];
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-secondary-50">
+        <Text className="text-neutral-500">Carregando...</Text>
+      </View>
+    );
+  }
 
   if (!user) {
     return (

@@ -14,9 +14,9 @@ import {
 import ChatInput from "../components/ChatInput";
 import Header from "../components/Header";
 import MessageBubble from "../components/MessageBubble";
+import { useAuth } from "../contexts/AuthContext";
 import { useMatchDetail } from "../hooks/useMatchDetail";
 import { useMessages } from "../hooks/useMessages";
-import { CURRENT_USER } from "../mocks/users";
 import type { AppRootStackParamList } from "../navigation/types";
 import type { Message } from "../types";
 
@@ -28,6 +28,7 @@ export default function MatchChatScreen() {
   const route = useRoute<Route>();
   const { matchId } = route.params;
 
+  const { user } = useAuth();
   const { match } = useMatchDetail(matchId);
   const { messages, isFetchingMore, hasMore, loadMore, sendMessage } = useMessages(matchId);
 
@@ -40,9 +41,9 @@ export default function MatchChatScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: Message }) => (
-      <MessageBubble message={item} isOwn={item.senderId === CURRENT_USER.id} />
+      <MessageBubble message={item} isOwn={item.senderId === user?.id} />
     ),
-    []
+    [user?.id]
   );
 
   const keyExtractor = useCallback((item: Message) => item.id, []);

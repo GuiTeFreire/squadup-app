@@ -13,8 +13,8 @@ import RatingStars from "../components/RatingStars";
 import SectionCard from "../components/SectionCard";
 import StatsRow from "../components/StatsRow";
 import TrustBadges from "../components/TrustBadges";
-import { MOCK_RATINGS } from "../mocks/ratings";
-import { CURRENT_USER } from "../mocks/users";
+import { useAuth } from "../contexts/AuthContext";
+import { useUserRatings } from "../hooks/useRatings";
 import type { AppRootStackParamList } from "../navigation/types";
 import { colors, LEVEL_META, SPORT_META } from "../theme";
 
@@ -22,9 +22,10 @@ type Nav = NativeStackNavigationProp<AppRootStackParamList>;
 
 export default function MyProfileScreen() {
   const navigation = useNavigation<Nav>();
-  const user = CURRENT_USER;
+  const { user } = useAuth();
+  const { ratings: myReviews } = useUserRatings(user?.id ?? "");
 
-  const myReviews = MOCK_RATINGS.filter((r) => r.ratedUser.id === user.id);
+  if (!user) return null;
 
   return (
     <View className="flex-1 bg-secondary-50">

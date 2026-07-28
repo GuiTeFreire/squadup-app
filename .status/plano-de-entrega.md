@@ -225,10 +225,10 @@ O cronograma do próprio `TCC.tex` (Capítulo 5) já reserva Jul 2–Ago 2 para 
 
 ## 8. Decisões a fechar (resumo)
 
-- **D-Deploy-1:** popular o Railway de produção com dados de seed para a demo, ou demo 100% ao vivo? (Recomendação: seed + 1 fluxo ao vivo.)
-- **D-Deploy-2:** Android-only no EAS Build é suficiente para a defesa, ou a banca exige iOS também? (Recomendação: Android-only, salvo exigência contrária.)
-- **D-TCC-1:** trazer `TCC.tex`/assets/bibliografia para o repositório Git (estrutura da seção 5) em vez de manter só no Overleaf? (Você já indicou que sim para a bibliografia — recomendo estender para o pacote todo, por durabilidade e para eu poder editar diretamente.)
-- **D-TCC-2:** houve ou está planejado teste de usabilidade com usuários reais (além do orientador)? Define se o capítulo de resultados reporta isso como dado ou como limitação.
+- **D-Deploy-1:** popular o Railway de produção com dados de seed para a demo, ou demo 100% ao vivo? **Em aberto** — não é obrigatório: o app fica 100% funcional sem seed (cadastro, login, criar/entrar em partida, chat, avaliação e denúncia funcionam do zero contra a API real, confirmado sessão 34). Seed só muda a *aparência* da demo (lista de partidas populada em vez de vazia no primeiro acesso). Único caso que **exige** acesso direto ao banco (DBeaver ou `psql` via Railway) independente dessa decisão: promover um usuário a `role: admin` para o "Painel administrativo" — não existe endpoint/UI para isso, só `UPDATE users SET role='admin' WHERE email=...`.
+- **D-Deploy-2 — resolvida (sessão 34):** Android-only confirmado pelo usuário. Sem build iOS nesta entrega (exigiria conta Apple Developer paga).
+- **D-TCC-1 — resolvida:** `TCC.tex`, `references.bib`, `tcc/assets/logo.png` e os screenshots já capturados (app + concorrentes) **já estão versionados no repositório** em `tcc/` (confirmado sessão 34, `git ls-files | grep tcc`) — a estrutura da seção 5 já foi adotada, nenhuma ação pendente aqui.
+- **D-TCC-2 — resolvida (sessão 34):** sem teste de usabilidade formal com usuários externos planejado. Evidência de resultados via **vídeo gravado** da demo, com tentativa de demo ao vivo na defesa se as condições permitirem. O capítulo de resultados deve reportar isso como limitação explícita (nenhum teste de usabilidade com usuários reais além do orientador), não omitir.
 - **D-A** — **revertida em 2026-07-16 (sessão 29):** geolocalização e push deixam de ser "trabalho futuro" no TCC e passam a ser implementadas de fato. Ver Trilha F (§9) para o plano e o risco de cronograma associado a essa reversão.
 
 ---

@@ -5,6 +5,7 @@ export const queryKeys = {
   me: () => ["me"] as const,
   matches: (filters?: MatchFilters) => ["matches", filters] as const,
   match: (matchId: string) => ["match", matchId] as const,
+  publicProfile: (userId: string) => ["publicProfile", userId] as const,
   messages: (matchId: string) => ["messages", matchId] as const,
   userRatings: (userId: string) => ["ratings", userId] as const,
   reports: () => ["reports"] as const,

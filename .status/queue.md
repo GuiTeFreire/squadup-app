@@ -130,6 +130,7 @@ cada uma só depende do respectivo contrato de backend estar mergeado.
 | D25 | Usuários/partidas de teste ficaram no banco SQLite local do backend | Baixa | A sessão 28 criou usuários (`teste.e2e.*@squadup.dev`, `screenshots.tcc@squadup.dev`) e partidas de teste ao validar a Fase 13.9 e capturar screenshots, todos no `squadup-back/squadup.db` local (fora deste repositório). Não afeta produção (Railway usa Postgres separado). Quem rodar o backend local de novo verá esses registros extras em `GET /matches`; limpar o banco local (`rm squadup.db` + rodar migrations/seed de novo) se isso incomodar a demo. |
 | D26 | `CreateMatchScreen` não dá feedback visual quando a localização não pôde ser capturada | Baixa | Comportamento correto por desenho (D-Geo-3 — geolocalização é estritamente aditiva, criar partida nunca deve travar por causa disso), mas se o usuário nega a permissão ou o GPS falha, a partida é criada normalmente sem nenhum aviso de que as coordenadas não foram enviadas. Nice-to-have: um texto discreto (ex.: "Localização não disponível — partida será criada sem coordenadas") quando `permissionDenied` for `true`. Descoberto na sessão 31 (Fase 14.1, item 5). Não bloqueante. |
 | D27 | `eas build:configure` reescreve `android.permissions` em `app.json`, ignorando o valor já configurado | Baixa | Ao rodar `eas build:configure` na sessão 33 para gerar o `projectId` (tarefa 12.8/item 7), o CLI adicionou `android.permission.ACCESS_COARSE_LOCATION` (duplicado) e **`android.permission.ACCESS_FINE_LOCATION`** às permissões — essa última contraria diretamente a decisão D-Geo-4 (só precisão "balanced", nunca "fine"). Corrigido manualmente na mesma sessão (revertido para `["ACCESS_COARSE_LOCATION"]`). Se `eas build:configure`/`eas build` forem rodados de novo no futuro (ex.: ao adicionar a plataforma iOS), **conferir o diff de `app.json` antes de commitar** — o CLI pode reintroduzir a permissão indevida silenciosamente. |
+| D28 | `HomeScreen`/`MatchChatScreen`/`MatchDetailScreen`/`MyProfileScreen`/`EditProfileScreen`/`PublicProfileScreen`/`ReportUserScreen` usavam `CURRENT_USER`/`MOCK_USERS`/`MOCK_RATINGS` (mocks) em vez do usuário real logado — **Resolvida (sessão 34)** | ~~Alta~~ **Resolvida** | Ficou pra trás quando a Fase 13 trocou os mocks pela API real — só `RateUserScreen`/`PostMatchRatingScreen` tinham sido migrados. Efeito prático descoberto ao usuário perguntar "cadastro novo, vai ficar funcional?": "Meu Perfil" sempre mostrava o perfil mockado (nunca o real); "Editar perfil" não persistia nada (só um `Alert` de sucesso fake); como organizador real, os botões "Encerrar partida"/"Aprovar participante" nunca apareciam (checagem de `isOrganizer` comparava com o ID do mock); status de participação do usuário real ficava errado; mensagens próprias no chat apareciam com o estilo de "mensagem de outra pessoa"; **`PublicProfileScreen`/`ReportUserScreen` mostravam "Usuário não encontrado" para qualquer participante real** (procuravam por `id` em `MOCK_USERS`, que só tem os 6 IDs fake — nunca bate com um UUID gerado pelo backend). Corrigido: `HomeScreen`/`MatchChatScreen`/`MatchDetailScreen`/`EditProfileScreen` passaram a usar `useAuth().user`; `MyProfileScreen` passou a usar `useAuth().user` + `useUserRatings` (real); novo hook `usePublicProfile` (`GET /users/{id}`, novo `fetchPublicProfile` em `api/users.ts`) substitui `MOCK_USERS.find` em `PublicProfileScreen`/`ReportUserScreen`; `useMatchParticipation` passou a aceitar `currentUser: PublicUser \| null`; novo método `updateProfile` em `AuthContext` faz `EditProfileScreen` salvar de verdade via `PATCH /users/me` (payload expandido em `api/users.ts` para incluir `name`/`bio`/`location`/`favorite_sports`, antes só `level`/`photo_url`). 3 suítes de teste reescritas (`MatchDetailScreen`, `PublicProfileScreen`, `ReportUserScreen`) para mockar `useAuth`/API real em vez dos mocks síncronos. |
 
 ---
 
@@ -184,6 +185,21 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
     mesma limitação de sandbox já registrada para 12.3.
   - Migration do backend já rodou em produção (Railway, confirmado sessão 30) — a Fase 14 pode
     ser testada tanto contra o backend local quanto contra `https://squadup-api.up.railway.app`.
+
+- **Checkpointer — Sessão 34 (2026-07-28, branch `fix/real-user-profile-data`, a partir de
+  `feat/push-notifications`/`dev` já mergeada):** achado e corrigido D28 — 7 telas
+  (`HomeScreen`, `MatchChatScreen`, `MatchDetailScreen`, `MyProfileScreen`, `EditProfileScreen`,
+  `PublicProfileScreen`, `ReportUserScreen`) ainda liam `CURRENT_USER`/`MOCK_USERS`/
+  `MOCK_RATINGS` em vez do usuário real — resquício da Fase 13. Efeito mais grave: perfil público
+  de qualquer participante real mostrava "Usuário não encontrado" (quebrava também "denunciar
+  usuário"). Corrigido com `useAuth().user`, novo hook `usePublicProfile` (`GET /users/{id}`) e
+  novo método `AuthContext.updateProfile` (agora `EditProfileScreen` salva de verdade via
+  `PATCH /users/me`). Detalhe completo em [`progress.md`](progress.md), sessão 34. **289/289
+  testes**, `tsc`/`lint` zerados, build web validada.
+  - **Próxima tarefa concreta:** nenhuma de código pendente. Revisar/mergear
+    `fix/real-user-profile-data` em `dev`; depois só resta o item 8 da Fase 14 (hardening em
+    dispositivo físico) e as pendências não-técnicas (screenshots do TCC, decisões
+    D-Deploy-1/D-Deploy-2/D-TCC-1/D-TCC-2 do `plano-de-entrega.md`).
 
 ---
 

@@ -20,6 +20,15 @@ interface ProfileData {
   photoUrl?: string;
 }
 
+export interface UpdateProfileData {
+  name?: string;
+  bio?: string;
+  location?: string;
+  favoriteSports?: Sport[];
+  level?: ExperienceLevel;
+  photoUrl?: string;
+}
+
 interface AuthContextValue {
   user: MyProfile | null;
   isAuthenticated: boolean;
@@ -28,6 +37,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, age: number) => void;
   completeProfile: (data: ProfileData) => Promise<void>;
+  updateProfile: (data: UpdateProfileData) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -132,6 +142,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthenticated(true);
   };
 
+  const updateProfile = async (data: UpdateProfileData) => {
+    const profile = await updateMyProfile({
+      name: data.name,
+      bio: data.bio,
+      location: data.location,
+      favorite_sports: data.favoriteSports,
+      level: data.level,
+      photo_url: data.photoUrl,
+    });
+    setUser(toMyProfile(profile));
+  };
+
   const logout = async () => {
     const refreshToken = await getRefreshToken();
     if (refreshToken) {
@@ -157,6 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         register,
         completeProfile,
+        updateProfile,
         logout,
       }}
     >
