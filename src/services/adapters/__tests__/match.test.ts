@@ -83,7 +83,16 @@ describe("toMatchSummary", () => {
       status: "open",
       allowBeginners: true,
       requiresApproval: false,
+      latitude: null,
+      longitude: null,
     });
+  });
+
+  it("mantém latitude/longitude quando o servidor informa coordenadas", () => {
+    const result = toMatchSummary({ ...API_MATCH_SUMMARY, latitude: -22.9, longitude: -43.2 });
+
+    expect(result.latitude).toBe(-22.9);
+    expect(result.longitude).toBe(-43.2);
   });
 
   it("converte description nula em undefined", () => {

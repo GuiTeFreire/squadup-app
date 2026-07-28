@@ -22,6 +22,8 @@ const makeMatch = (overrides: Partial<MatchSeed> = {}): MatchSummary => {
     status: "open",
     allowBeginners: true,
     requiresApproval: false,
+    latitude: null,
+    longitude: null,
     ...overrides,
   };
   return {

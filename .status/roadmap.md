@@ -19,9 +19,9 @@
 | — | Redesign visual premium (theme module, elevação, cor por esporte) | 🟢 Concluído (transversal — sessão 16) |
 | Fase 12 | Revisão e polimento final | 🟡 Em andamento (6/8 — 12.1, 12.2, 12.4–12.7 concluídas, sessão 17; 12.8 em andamento, sessão 28) |
 | Fase 13 | Integração com o backend real | 🟢 **Concluída (16/16)** — 13.1 sessão 20; 13.2/13.3 sessão 21; 13.4 sessões 22–23; 13.5 sessão 24; 13.6 sessão 25; 13.7 sessão 26; 13.8 sessão 27; 13.9 sessão 28 |
-| Fase 14 | Geolocalização real e notificações push | ⚪ A fazer — plano completo em §20 (sessão 29, 2026-07-16) |
+| Fase 14 | Geolocalização real e notificações push | 🟡 Em andamento (5/8 — backend 1–4 concluídas; front 14.1/item 5 concluído sessão 31) |
 
-**Progresso geral:** 85/86 tarefas concluídas (99%) · 256 testes passando · lint zerado · tsc zerado
+**Progresso geral:** 85/86 tarefas do protótipo+integração concluídas (99%) · Fase 14: 5/8 · 263 testes passando · lint zerado · tsc zerado
 
 Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons) · @tanstack/react-query v5 · expo-secure-store (sessão 21) · @playwright/test como dev tooling para screenshots do TCC (sessão 28)
 
@@ -608,14 +608,19 @@ telas.
 > **Não estava no cronograma original do TCC** (`plano-de-entrega.md` §7) — é escopo novo. Ver
 > `plano-de-entrega.md` §9 para o encaixe no cronograma e o plano de contingência.
 >
-> **Atualização (2026-07-28):** as 4 tarefas do backend (etapas 1–4 do plano mestre) estão
-> **concluídas e mergeadas em `dev`** (`squadup-back` PR #50) — contrato de API estável, pronto
-> para consumo. Nada de código foi escrito no front ainda (etapas 5–7 abaixo seguem 0%). Dois
-> pontos a considerar ao implementar: (1) `MatchSummary`/`MatchDetail` do backend ganharam
-> `distance_km: number | null`, não previsto no desenho original — usar direto em vez de
-> recalcular no cliente; (2) a migration da Fase 13 ainda não rodou em produção
-> (`squadup-api.up.railway.app`) — `lat`/`lng`/`radius_km` e `POST /users/me/push-token` só
-> funcionam contra o backend local até isso ser resolvido.
+> **Atualização (2026-07-28, sessão 30):** as 4 tarefas do backend (etapas 1–4 do plano mestre)
+> estão **concluídas e mergeadas em `dev`** (`squadup-back` PR #50) — contrato de API estável,
+> pronto para consumo.
+>
+> **Atualização (2026-07-28, sessão 31):** primeira fatia do front (item 5 da tabela de
+> `queue.md`) implementada — `expo-location` instalado, `useDeviceLocation` criado,
+> `CreateMatchScreen` já envia `latitude`/`longitude` reais quando disponíveis, e
+> `MatchSummary`/`MatchDetail` ganharam os dois campos. Detalhe completo em `progress.md`
+> (sessão 31). Ainda faltam: `distance_km` (não previsto no desenho original — usar direto em vez
+> de recalcular no cliente) em `MatchSummary`/`ApiMatchSummary`, o toggle de `FiltersScreen` e a
+> exibição de distância no `MatchCard` (item 6), e as notificações push (item 7). A migration da
+> Fase 13 ainda não rodou em produção (`squadup-api.up.railway.app`) — `lat`/`lng`/`radius_km` e
+> `POST /users/me/push-token` só funcionam contra o backend local até isso ser resolvido.
 
 ### Objetivo
 
@@ -626,16 +631,17 @@ partida), sem quebrar nenhum fluxo hoje funcional — as duas features são estr
 
 ### 14.1 — Geolocalização real
 
-- Instalar `expo-location` (`npx expo install expo-location`) e configurar permissões no
-  `app.json` (`NSLocationWhenInUseUsageDescription` para iOS, permissão `ACCESS_COARSE_LOCATION`
-  para Android — precisão "balanced", não "fine", conforme D-Geo-4);
-- Novo hook `useDeviceLocation` (`src/hooks/`): encapsula pedido de permissão + captura de
-  `latitude`/`longitude` com `Location.Accuracy.Balanced`; retorna `{ location, permissionDenied,
-  isLoading, requestLocation }` — nunca lança erro para quem chama, resolve com `location: null`
-  em caso de negação (D-Geo-3);
-- `CreateMatchScreen`: ao montar, chama `useDeviceLocation` e envia `latitude`/`longitude` junto
-  do payload de `POST /matches` **se disponíveis**; sem eles, o payload continua idêntico ao de
-  hoje (campo `location` de texto é sempre obrigatório, coordenadas são só um extra);
+- ✅ **Concluído (sessão 31):** Instalar `expo-location` (`npx expo install expo-location`) e
+  configurar permissões no `app.json` (`NSLocationWhenInUseUsageDescription` para iOS, permissão
+  `ACCESS_COARSE_LOCATION` para Android — precisão "balanced", não "fine", conforme D-Geo-4);
+- ✅ **Concluído (sessão 31):** Novo hook `useDeviceLocation` (`src/hooks/`): encapsula pedido de
+  permissão + captura de `latitude`/`longitude` com `Location.Accuracy.Balanced`; retorna
+  `{ location, permissionDenied, isLoading, requestLocation }` — nunca lança erro para quem chama,
+  resolve com `location: null` em caso de negação (D-Geo-3);
+- ✅ **Concluído (sessão 31):** `CreateMatchScreen`: ao montar, chama `useDeviceLocation` e envia
+  `latitude`/`longitude` junto do payload de `POST /matches` **se disponíveis**; sem eles, o
+  payload continua idêntico ao de hoje (campo `location` de texto é sempre obrigatório,
+  coordenadas são só um extra);
 - `FiltersScreen`: novo toggle "Usar minha localização" — ao ativar, chama `useDeviceLocation` e
   passa a expor um input/slider de raio (`radius_km`, default 20); `useMatchFilters` e
   `MatchesContext` propagam `lat`/`lng`/`radius_km` para `GET /matches` (`src/services/api/matches.ts`)
@@ -644,11 +650,13 @@ partida), sem quebrar nenhum fluxo hoje funcional — as duas features são estr
   ordenadas por proximidade (isto é, quando a busca atual tinha `lat`/`lng` informados) — cálculo
   do texto de distância pode ser feito no front a partir de `latitude`/`longitude` da partida e da
   posição atual do usuário, sem chamada extra;
-- Tipos/adapters: `MatchSummary`/`MatchDetail` (`src/types`) e os adapters correspondentes
-  (`src/services/adapters/match.ts`) ganham `latitude: number | null` e `longitude: number | null`;
-- Testes: `useDeviceLocation` (permissão concedida/negada/erro), `useMatchFilters` (parâmetros
-  geográficos entram na query só quando o toggle está ativo), `CreateMatchScreen` (payload com e
-  sem coordenadas).
+- ✅ **Concluído (sessão 31):** Tipos/adapters: `MatchSummary`/`MatchDetail` (`src/types`) e os
+  adapters correspondentes (`src/services/adapters/match.ts`) ganham `latitude: number | null` e
+  `longitude: number | null`; falta ainda `distanceKm: number | null` (item 6, ver atualização
+  acima);
+- ✅ **Concluído (sessão 31):** Testes de `useDeviceLocation` (permissão concedida/negada/erro) e
+  de `CreateMatchScreen` (payload com e sem coordenadas). Falta o teste de `useMatchFilters`
+  (parâmetros geográficos entram na query só quando o toggle está ativo) — depende do item 6.
 
 ### 14.2 — Notificações push reais
 

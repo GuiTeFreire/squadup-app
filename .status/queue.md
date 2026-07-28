@@ -77,7 +77,7 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 | 2 | `GET /matches` ganha `lat`/`lng`/`radius_km`; Haversine; ordenação por distância; testes | 14 (backend) | Backend | 🟢 |
 | 3 | Tabela `push_tokens`; `POST /users/me/push-token`; revogação em logout | 14 (backend) | Backend | 🟢 |
 | 4 | `notification_service.py` (Expo Push API) + disparo nos 3 eventos via `BackgroundTasks` | 14 (backend) | Backend | 🟢 |
-| 5 | `useDeviceLocation` + `CreateMatchScreen` envia coordenadas + tipos/adapters | 14.1 | Front | ⚪ |
+| 5 | `useDeviceLocation` + `CreateMatchScreen` envia coordenadas + tipos/adapters | 14.1 | Front | 🟢 |
 | 6 | `FiltersScreen` (toggle + raio) + `useMatchFilters`/`MatchesContext` propagam geo + distância no `MatchCard` | 14.1 | Front | ⚪ |
 | 7 | `useNotificationRegistration` (permissão + token + registro) + listener de navegação | 14.2 | Front | ⚪ |
 | 8 | Hardening ponta a ponta em dispositivo físico + ajuste do texto do TCC (D-A) | 14.3 | Ambos | ⚪ |
@@ -128,6 +128,7 @@ cada uma só depende do respectivo contrato de backend estar mergeado.
 | D23 | `ReportUserScreen` perdeu o picker de "partida relacionada" ao migrar a listagem para `MatchSummary` | Baixa | A Fase 13.5 (sessão 24) trocou `MatchesContext` para consumir `GET /matches` real, que devolve `MatchSummary` (sem `participants`). `ReportUserScreen` usava `matches.filter(m => m.participants.some(...))` para achar partidas em comum com o usuário denunciado — não há endpoint no backend para "partidas em comum com o usuário X", então esse filtro virou um array vazio hardcoded (`userMatches: MatchRef[] = []`) até a Fase 13.8 (`ReportsContext` real) resolver isso de verdade — possivelmente precisando de um novo endpoint no backend. Efeito visual: a seção "Partida relacionada" nunca aparece mais em `ReportUserScreen`, mesmo quando o usuário e o denunciado jogaram juntos. Descoberto na sessão 24. |
 | D24 | Regra "avaliador precisa ter participado da partida" não documentada em nenhuma tela | Baixa | Descoberto testando `POST /matches/{id}/ratings/{userId}` via API real na sessão 28: o backend exige `confirmed` tanto para quem avalia quanto para quem é avaliado — organizador **não** é participante automático da própria partida (precisa dar `join`). Nenhuma tela (`PostMatchRatingScreen`/`RateUserScreen`) avisa disso; se o organizador nunca entrou como participante, a tentativa de avaliar falha com `403 NOT_MATCH_PARTICIPANT` sem mensagem específica na UI (cai no fallback genérico de erro). Nice-to-have: detectar esse código de erro e mostrar uma mensagem mais clara, ou simplesmente documentar a regra para quem for testar manualmente. |
 | D25 | Usuários/partidas de teste ficaram no banco SQLite local do backend | Baixa | A sessão 28 criou usuários (`teste.e2e.*@squadup.dev`, `screenshots.tcc@squadup.dev`) e partidas de teste ao validar a Fase 13.9 e capturar screenshots, todos no `squadup-back/squadup.db` local (fora deste repositório). Não afeta produção (Railway usa Postgres separado). Quem rodar o backend local de novo verá esses registros extras em `GET /matches`; limpar o banco local (`rm squadup.db` + rodar migrations/seed de novo) se isso incomodar a demo. |
+| D26 | `CreateMatchScreen` não dá feedback visual quando a localização não pôde ser capturada | Baixa | Comportamento correto por desenho (D-Geo-3 — geolocalização é estritamente aditiva, criar partida nunca deve travar por causa disso), mas se o usuário nega a permissão ou o GPS falha, a partida é criada normalmente sem nenhum aviso de que as coordenadas não foram enviadas. Nice-to-have: um texto discreto (ex.: "Localização não disponível — partida será criada sem coordenadas") quando `permissionDenied` for `true`. Descoberto na sessão 31 (Fase 14.1, item 5). Não bloqueante. |
 
 ---
 
@@ -163,27 +164,15 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 > auditoria) vive em [`progress.md`](progress.md) — esta seção só guarda a observação mais
 > recente, para servir de ponto de retomada rápido no início da próxima sessão.
 
-- **Checkpointer — Sessão 30 (2026-07-28):** nenhum código deste repositório mudou nesta sessão
-  — trabalho de código foi todo no `squadup-back` (Fase 13, tarefas 1–4: geolocalização real +
-  push, ver `../squadup-back/.status/progress.md` §"Fase 13 — tarefas 1–4 concluídas"). Esta
-  sessão só sincronizou a documentação: `queue.md` (tabela da Fase 14, itens 1–4 → 🟢),
-  `roadmap.md` §20 e `plano-de-entrega.md` (Trilha F) atualizados para refletir que o **backend
-  está pronto e mergeado (PR #50)** — o front pode começar a Fase 14.1 (geolocalização) sem
-  bloqueio de contrato. `npm run lint` e `npm run test` (256/256, gate completo) rodados como
-  verificação — verde, nenhuma regressão (as únicas mudanças de código foram normalização de
-  final de linha via `npm run lint:fix`, D4).
-  - **Próxima tarefa concreta (Fase 14.1, item 5 da tabela acima):** criar
-    `src/hooks/useDeviceLocation.ts` (não existe ainda) — pede permissão de localização e captura
-    `latitude`/`longitude` via `expo-location` (`Location.Accuracy.Balanced`, D-Geo-4), retorna
-    `{ location, permissionDenied, isLoading, requestLocation }`, nunca lança erro (resolve com
-    `location: null` se a permissão for negada, D-Geo-3). Depois: `CreateMatchScreen.tsx` chama o
-    hook e envia `latitude`/`longitude` no payload de `POST /matches` **se disponíveis** (campo
-    `location` de texto continua obrigatório, coordenadas são só um extra).
-  - **Antes de começar:** `npx expo install expo-location` (ainda não está no `package.json`).
-  - **Atenção ao contrato real (desvio do plano original, ver `roadmap.md` §20):**
-    `MatchSummary`/`MatchDetail` (`src/types`) vão precisar do campo novo `distanceKm: number |
-    null` (existe no backend como `distance_km`) ao chegar no item 6 (`FiltersScreen`/
-    `MatchCard`) — usar direto em vez de recalcular a distância no cliente.
+- **Checkpointer — Sessão 31 (2026-07-28):** item 5 da tabela da Fase 14 concluído (🟢) —
+  `useDeviceLocation` + `CreateMatchScreen` envia coordenadas + tipos/adapters. Detalhe completo
+  (arquivo por arquivo, decisões não óbvias) em [`progress.md`](progress.md), sessão 31.
+  263/263 testes, `tsc`/`lint` zerados.
+  - **Próxima tarefa concreta (item 6 da tabela acima):** adicionar `distanceKm: number | null` a
+    `MatchSummary`/`ApiMatchSummary` primeiro, depois o toggle "Usar minha localização" em
+    `FiltersScreen` (+ raio `radius_km`, default 20) propagando `lat`/`lng`/`radius_km` via
+    `useMatchFilters`/`MatchesContext` para `GET /matches`, e exibir a distância pronta do backend
+    (`distance_km`) no `MatchCard`.
   - Migration do backend ainda não rodou em produção (Railway) — testar a Fase 14 primeiro
     contra o backend local (`.env` apontando para `http://<ip-da-rede-local>:8000`), não contra
     `https://squadup-api.up.railway.app`, até essa migration ser aplicada lá.

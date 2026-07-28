@@ -51,6 +51,8 @@ export interface ApiMatchSummary {
   requires_approval: boolean;
   confirmed_count: number;
   available_slots: number;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface ApiMatchDetail extends ApiMatchSummary {

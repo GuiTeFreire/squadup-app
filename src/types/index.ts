@@ -62,6 +62,8 @@ export interface MatchSummary {
   status: MatchStatus;
   allowBeginners: boolean;
   requiresApproval: boolean;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 /** Equivalente a `MatchDetailRead` — shape devolvido só por `GET /matches/{id}`. */
