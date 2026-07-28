@@ -27,7 +27,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "ACCESS_COARSE_LOCATION"
-      ]
+      ],
+      "package": "com.guilhermefreire7.squadup"
     },
     "web": {
       "favicon": "./assets/favicon.png"
