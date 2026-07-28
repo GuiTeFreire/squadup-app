@@ -45,7 +45,7 @@ Detalhes tarefa-a-tarefa das fases concluídas (Fases 1–11) foram movidos para
 | # | Tarefa | Status | Observação |
 |---|--------|--------|------------|
 | 12.3 | Testar no Expo Go em iOS e Android | ⚪ | Dispositivo físico ou emulador — requer o usuário, não disponível no sandbox |
-| 12.8 | Preparar build de apresentação (`expo build` ou EAS Build) | 🟡 | `eas.json` criado (perfis `development`/`preview`/`production`, `preview`/`production` apontando `EXPO_PUBLIC_API_URL` para produção); falta `npx eas login` (credenciais do usuário) + `eas build:configure` (gera `projectId`) + rodar o build de fato — ação do usuário, sessão 28 |
+| 12.8 | Preparar build de apresentação (`expo build` ou EAS Build) | 🟡 | `eas.json` criado (sessão 28); `eas login` + `eas build:configure` rodados pelo usuário na sessão 33 — `projectId` gerado (`0032bb63-f809-42d2-baba-6d62bc2b61b0`, gravado em `app.json`). Falta só rodar o build de fato (`eas build --platform android --profile preview`) — ação do usuário |
 
 **Trilha D (Assets do TCC) avançada na sessão 28** — ver `plano-de-entrega.md` §5.1 e
 `progress.md` (sessão 28) para detalhe completo. Resumo: `scripts/capture-tcc-screenshots.ts`
@@ -56,7 +56,7 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 
 ---
 
-## FASE 14 — Geolocalização real e notificações push (6/8 — backend concluído em 2026-07-28)
+## FASE 14 — Geolocalização real e notificações push (7/8 — backend concluído em 2026-07-28)
 
 > Plano mestre completo (arquitetura, contrato de API, decisões D-Geo-*/D-Push-*) em
 > `.status/backend-contract.md` §6-A. Detalhe tarefa-a-tarefa do front em `roadmap.md` §20.
@@ -79,7 +79,7 @@ Concluídas: 12.1 (consistência visual, sessão 15) · 12.2 (fluxo completo, se
 | 4 | `notification_service.py` (Expo Push API) + disparo nos 3 eventos via `BackgroundTasks` | 14 (backend) | Backend | 🟢 |
 | 5 | `useDeviceLocation` + `CreateMatchScreen` envia coordenadas + tipos/adapters | 14.1 | Front | 🟢 |
 | 6 | `FiltersScreen` (toggle + raio) + `useMatchFilters`/`MatchesContext` propagam geo + distância no `MatchCard` | 14.1 | Front | 🟢 |
-| 7 | `useNotificationRegistration` (permissão + token + registro) + listener de navegação | 14.2 | Front | ⚪ |
+| 7 | `useNotificationRegistration` (permissão + token + registro) + listener de navegação | 14.2 | Front | 🟢 |
 | 8 | Hardening ponta a ponta em dispositivo físico + ajuste do texto do TCC (D-A) | 14.3 | Ambos | ⚪ |
 
 **Desvios do backend em relação ao contrato original de `backend-contract.md` §6-A** — relevantes
@@ -129,6 +129,7 @@ cada uma só depende do respectivo contrato de backend estar mergeado.
 | D24 | Regra "avaliador precisa ter participado da partida" não documentada em nenhuma tela | Baixa | Descoberto testando `POST /matches/{id}/ratings/{userId}` via API real na sessão 28: o backend exige `confirmed` tanto para quem avalia quanto para quem é avaliado — organizador **não** é participante automático da própria partida (precisa dar `join`). Nenhuma tela (`PostMatchRatingScreen`/`RateUserScreen`) avisa disso; se o organizador nunca entrou como participante, a tentativa de avaliar falha com `403 NOT_MATCH_PARTICIPANT` sem mensagem específica na UI (cai no fallback genérico de erro). Nice-to-have: detectar esse código de erro e mostrar uma mensagem mais clara, ou simplesmente documentar a regra para quem for testar manualmente. |
 | D25 | Usuários/partidas de teste ficaram no banco SQLite local do backend | Baixa | A sessão 28 criou usuários (`teste.e2e.*@squadup.dev`, `screenshots.tcc@squadup.dev`) e partidas de teste ao validar a Fase 13.9 e capturar screenshots, todos no `squadup-back/squadup.db` local (fora deste repositório). Não afeta produção (Railway usa Postgres separado). Quem rodar o backend local de novo verá esses registros extras em `GET /matches`; limpar o banco local (`rm squadup.db` + rodar migrations/seed de novo) se isso incomodar a demo. |
 | D26 | `CreateMatchScreen` não dá feedback visual quando a localização não pôde ser capturada | Baixa | Comportamento correto por desenho (D-Geo-3 — geolocalização é estritamente aditiva, criar partida nunca deve travar por causa disso), mas se o usuário nega a permissão ou o GPS falha, a partida é criada normalmente sem nenhum aviso de que as coordenadas não foram enviadas. Nice-to-have: um texto discreto (ex.: "Localização não disponível — partida será criada sem coordenadas") quando `permissionDenied` for `true`. Descoberto na sessão 31 (Fase 14.1, item 5). Não bloqueante. |
+| D27 | `eas build:configure` reescreve `android.permissions` em `app.json`, ignorando o valor já configurado | Baixa | Ao rodar `eas build:configure` na sessão 33 para gerar o `projectId` (tarefa 12.8/item 7), o CLI adicionou `android.permission.ACCESS_COARSE_LOCATION` (duplicado) e **`android.permission.ACCESS_FINE_LOCATION`** às permissões — essa última contraria diretamente a decisão D-Geo-4 (só precisão "balanced", nunca "fine"). Corrigido manualmente na mesma sessão (revertido para `["ACCESS_COARSE_LOCATION"]`). Se `eas build:configure`/`eas build` forem rodados de novo no futuro (ex.: ao adicionar a plataforma iOS), **conferir o diff de `app.json` antes de commitar** — o CLI pode reintroduzir a permissão indevida silenciosamente. |
 
 ---
 
@@ -164,17 +165,23 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 > auditoria) vive em [`progress.md`](progress.md) — esta seção só guarda a observação mais
 > recente, para servir de ponto de retomada rápido no início da próxima sessão.
 
-- **Checkpointer — Sessão 32 (2026-07-28, branch `feat/match-distance-filter`, a partir de
-  `dev`):** item 6 da tabela da Fase 14 concluído (🟢) — `distanceKm`/`distance_km` nos tipos/
-  adapter, toggle "Usar minha localização" + chips de raio em `FiltersScreen`, propagação
-  condicional de `lat`/`lng`/`radius_km` em `MatchesContext`, distância exibida no `MatchCard`.
-  Detalhe completo (arquivo por arquivo, decisões não óbvias — inclui o desvio do lint
-  `react-hooks/set-state-in-effect`) em [`progress.md`](progress.md), sessão 32. **278/278
-  testes**, `tsc`/`lint` zerados.
-  - **Próxima tarefa concreta (item 7 da tabela acima):** `useNotificationRegistration` — instalar
-    `expo-notifications`/`expo-device`/`expo-constants`, obter `ExpoPushToken`, registrar via
-    `POST /users/me/push-token` após login/restauração de sessão, e o listener de navegação por
-    notificação tocada (`Notifications.addNotificationResponseReceivedListener`) no root do app.
+- **Checkpointer — Sessão 33 (2026-07-28, branch `feat/push-notifications`, a partir de
+  `feat/match-distance-filter`):** item 7 da tabela da Fase 14 concluído (🟢) —
+  `useNotificationRegistration` (permissão + `ExpoPushToken` + `POST /users/me/push-token`),
+  chamado uma vez quando `isAuthenticated` vira `true` em `AuthContext`; listener de navegação
+  (`navigationRef.ts` + `RootNavigator`) mapeando `new_message`→`MatchChat`,
+  `match_closed`/`participation_approved`→`MatchDetail`. `eas build:configure` rodado pelo
+  usuário nesta sessão (`projectId` gerado: `0032bb63-f809-42d2-baba-6d62bc2b61b0`) — corrigido
+  um efeito colateral dele em `app.json` que adicionava `ACCESS_FINE_LOCATION`, contrariando
+  D-Geo-4. Detalhe completo em [`progress.md`](progress.md), sessão 33. **289/289 testes**,
+  `tsc`/`lint` zerados, build web (`npx expo export`) validada.
+  - **Próxima tarefa concreta (item 8, última da Fase 14):** hardening ponta a ponta em
+    dispositivo físico — testar geolocalização real (GPS) e push real (Expo) num Android
+    físico/Expo Go (push remoto **não funciona em Expo Go desde o SDK 53** — precisa de
+    development build via `eas build --profile development`, ou `--profile preview` para um
+    APK completo), confirmar navegação ao tocar a notificação nos 3 eventos, e então ajustar o
+    texto do TCC (decisão D-A) de "trabalho futuro" para "implementado". Ação do usuário —
+    mesma limitação de sandbox já registrada para 12.3.
   - Migration do backend já rodou em produção (Railway, confirmado sessão 30) — a Fase 14 pode
     ser testada tanto contra o backend local quanto contra `https://squadup-api.up.railway.app`.
 
