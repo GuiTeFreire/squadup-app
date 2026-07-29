@@ -3,7 +3,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useState } from "react";
-import { Alert, ScrollView, Text, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Avatar from "../components/Avatar";
@@ -85,7 +85,10 @@ export default function RateUserScreen() {
   }
 
   return (
-    <View className="flex-1 bg-secondary-50">
+    <KeyboardAvoidingView
+      className="flex-1 bg-secondary-50"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <Header title="Avaliar participante" onBack={() => navigation.goBack()} />
 
       <ScrollView
@@ -177,6 +180,6 @@ export default function RateUserScreen() {
           loading={isSubmitting}
         />
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 
 import Button from "../components/Button";
 import Chip from "../components/Chip";
@@ -11,6 +11,7 @@ import { DEFAULT_RADIUS_KM, useMatchFiltersContext } from "../contexts/MatchFilt
 import { useDeviceLocation } from "../hooks/useDeviceLocation";
 import { colors, LEVEL_META, shadows, SPORT_META } from "../theme";
 import type { ExperienceLevel, Sport } from "../types";
+import { formatDateInput } from "../utils/date";
 
 const SPORTS: Sport[] = ["football", "futsal", "volleyball", "basketball", "tennis"];
 const LEVELS: ExperienceLevel[] = ["beginner", "intermediate", "advanced"];
@@ -60,7 +61,8 @@ export default function FiltersScreen() {
     setLocal((prev) => ({ ...prev, level: prev.level === level ? null : level }));
   }
 
-  function handleDateChange(text: string) {
+  function handleDateChange(rawText: string) {
+    const text = formatDateInput(rawText);
     setDateText(text);
     if (!text) {
       setDateError("");
@@ -120,7 +122,10 @@ export default function FiltersScreen() {
   else if (localActiveCount > 1) applyLabel = `Aplicar ${localActiveCount} filtros`;
 
   return (
-    <View className="flex-1 bg-white">
+    <KeyboardAvoidingView
+      className="flex-1 bg-white"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       {/* Handle bar */}
       <View className="items-center pt-3 pb-1">
         <View className="w-10 h-1 bg-neutral-200 rounded-full" />
@@ -301,6 +306,6 @@ export default function FiltersScreen() {
       <View className="px-5 pb-8 pt-4 bg-white" style={shadows.floating}>
         <Button label={applyLabel} onPress={handleApply} size="lg" fullWidth />
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

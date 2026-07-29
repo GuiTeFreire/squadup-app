@@ -2,7 +2,15 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 import Button from "../components/Button";
 import Chip from "../components/Chip";
@@ -14,6 +22,7 @@ import type { AppTabParamList } from "../navigation/types";
 import { createMatch } from "../services/api/matches";
 import { colors, LEVEL_META, SPORT_META } from "../theme";
 import type { ExperienceLevel, Sport } from "../types";
+import { formatDateInput } from "../utils/date";
 
 type Nav = BottomTabNavigationProp<AppTabParamList>;
 
@@ -186,7 +195,10 @@ export default function CreateMatchScreen() {
   }
 
   return (
-    <View className="flex-1 bg-secondary-50">
+    <KeyboardAvoidingView
+      className="flex-1 bg-secondary-50"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <Header variant="large" title="Criar Partida" subtitle="Organize o jogo e chame a galera" />
 
       <ScrollView
@@ -248,7 +260,7 @@ export default function CreateMatchScreen() {
               <Input
                 label="Data *"
                 value={date}
-                onChangeText={setDate}
+                onChangeText={(text) => setDate(formatDateInput(text))}
                 error={dateError}
                 placeholder="DD/MM/AAAA"
                 keyboardType="number-pad"
@@ -355,6 +367,6 @@ export default function CreateMatchScreen() {
           />
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

@@ -7,6 +7,18 @@ export function formatMatchDate(dateStr: string): string {
   return `${DAYS[date.getDay()]}, ${day} ${MONTHS[month - 1]}`;
 }
 
+/** Insere "/" automaticamente enquanto o usuário digita — teclado numérico não tem esse caractere. */
+export function formatDateInput(text: string): string {
+  const digits = text.replace(/\D/g, "").slice(0, 8);
+  const day = digits.slice(0, 2);
+  const month = digits.slice(2, 4);
+  const year = digits.slice(4, 8);
+  let result = day;
+  if (month) result += `/${month}`;
+  if (year) result += `/${year}`;
+  return result;
+}
+
 /** Aceita `DD/MM/AAAA`; devolve `null` se o formato ou a data (ex.: 31/02) forem inválidos. */
 export function parseBirthDate(input: string): Date | null {
   const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(input.trim());

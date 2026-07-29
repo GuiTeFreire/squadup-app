@@ -2,14 +2,14 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 
 import SquadUpLogo from "../../assets/squadup_logo.svg";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import { useAuth } from "../contexts/AuthContext";
 import type { AuthStackParamList } from "../navigation/types";
-import { calculateAge, parseBirthDate } from "../utils/date";
+import { calculateAge, formatDateInput, parseBirthDate } from "../utils/date";
 
 const MINIMUM_AGE = 18;
 
@@ -84,83 +84,88 @@ export default function RegisterScreen() {
   };
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView
       className="flex-1 bg-white"
-      contentContainerStyle={{ flexGrow: 1, padding: 24, paddingTop: 96 }}
-      keyboardShouldPersistTaps="handled"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <StatusBar style="dark" />
-      {/* Brand header */}
-      <View className="items-center mb-8">
-        <SquadUpLogo width={180} height={54} />
-        <Text className="mt-5 text-3xl font-bold text-secondary-900">Crie sua conta</Text>
-        <Text className="mt-1 text-base text-neutral-500 text-center">
-          Junte-se ao SquadUp e encontre sua próxima partida
-        </Text>
-      </View>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1, padding: 24, paddingTop: 96 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <StatusBar style="dark" />
+        {/* Brand header */}
+        <View className="items-center mb-8">
+          <SquadUpLogo width={180} height={54} />
+          <Text className="mt-5 text-3xl font-bold text-secondary-900">Crie sua conta</Text>
+          <Text className="mt-1 text-base text-neutral-500 text-center">
+            Junte-se ao SquadUp e encontre sua próxima partida
+          </Text>
+        </View>
 
-      <View className="gap-4">
-        <Input
-          label="Nome completo"
-          value={name}
-          onChangeText={setName}
-          error={nameError}
-          placeholder="Seu nome"
-          autoCapitalize="words"
-          leftIcon="account-outline"
-        />
+        <View className="gap-4">
+          <Input
+            label="Nome completo"
+            value={name}
+            onChangeText={setName}
+            error={nameError}
+            placeholder="Seu nome"
+            autoCapitalize="words"
+            leftIcon="account-outline"
+          />
 
-        <Input
-          label="E-mail"
-          value={email}
-          onChangeText={setEmail}
-          error={emailError}
-          placeholder="seu@email.com"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          leftIcon="email-outline"
-        />
+          <Input
+            label="E-mail"
+            value={email}
+            onChangeText={setEmail}
+            error={emailError}
+            placeholder="seu@email.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            leftIcon="email-outline"
+          />
 
-        <Input
-          label="Senha"
-          value={password}
-          onChangeText={setPassword}
-          error={passwordError}
-          placeholder="Mínimo 6 caracteres"
-          secureTextEntry
-          leftIcon="lock-outline"
-        />
+          <Input
+            label="Senha"
+            value={password}
+            onChangeText={setPassword}
+            error={passwordError}
+            placeholder="Mínimo 6 caracteres"
+            secureTextEntry
+            leftIcon="lock-outline"
+          />
 
-        <Input
-          label="Data de nascimento"
-          value={birthDate}
-          onChangeText={setBirthDate}
-          error={birthDateError}
-          placeholder="DD/MM/AAAA"
-          keyboardType="numeric"
-          maxLength={10}
-          leftIcon="cake-variant-outline"
-        />
-      </View>
+          <Input
+            label="Data de nascimento"
+            value={birthDate}
+            onChangeText={(text) => setBirthDate(formatDateInput(text))}
+            error={birthDateError}
+            placeholder="DD/MM/AAAA"
+            keyboardType="number-pad"
+            maxLength={10}
+            leftIcon="cake-variant-outline"
+          />
+        </View>
 
-      <View className="mt-8">
-        <Button
-          label="Criar conta"
-          onPress={handleRegister}
-          variant="primary"
-          size="lg"
-          fullWidth
-          loading={loading}
-        />
-      </View>
+        <View className="mt-8">
+          <Button
+            label="Criar conta"
+            onPress={handleRegister}
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={loading}
+          />
+        </View>
 
-      <View className="mt-6 flex-row justify-center">
-        <Text className="text-base text-neutral-500">Já tem uma conta? </Text>
-        <Pressable onPress={() => navigation.navigate("Login")}>
-          <Text className="text-base font-semibold text-primary-500">Entrar</Text>
-        </Pressable>
-      </View>
-    </ScrollView>
+        <View className="mt-6 flex-row justify-center">
+          <Text className="text-base text-neutral-500">Já tem uma conta? </Text>
+          <Pressable onPress={() => navigation.navigate("Login")}>
+            <Text className="text-base font-semibold text-primary-500">Entrar</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

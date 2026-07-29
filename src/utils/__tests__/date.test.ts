@@ -1,4 +1,31 @@
-import { calculateAge, formatMessageTime, parseBirthDate } from "../date";
+import { calculateAge, formatDateInput, formatMessageTime, parseBirthDate } from "../date";
+
+describe("formatDateInput", () => {
+  it("insere as barras automaticamente enquanto digita", () => {
+    expect(formatDateInput("1")).toBe("1");
+    expect(formatDateInput("15")).toBe("15");
+    expect(formatDateInput("153")).toBe("15/3");
+    expect(formatDateInput("1503")).toBe("15/03");
+    expect(formatDateInput("150319")).toBe("15/03/19");
+    expect(formatDateInput("15031990")).toBe("15/03/1990");
+  });
+
+  it("ignora tudo que não é dígito (teclado numérico não tem barra)", () => {
+    expect(formatDateInput("15a03b1990")).toBe("15/03/1990");
+  });
+
+  it("é idempotente para um texto já formatado corretamente", () => {
+    expect(formatDateInput("15/03/1990")).toBe("15/03/1990");
+  });
+
+  it("trunca em 8 dígitos (DDMMAAAA)", () => {
+    expect(formatDateInput("1503199099")).toBe("15/03/1990");
+  });
+
+  it("string vazia continua vazia", () => {
+    expect(formatDateInput("")).toBe("");
+  });
+});
 
 describe("parseBirthDate", () => {
   it("converte DD/MM/AAAA válido em Date", () => {
