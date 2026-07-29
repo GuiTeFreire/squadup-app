@@ -58,12 +58,72 @@ export type ApiRequestOptions = Omit<RequestInit, "body" | "method"> & {
   body?: unknown;
 };
 
+interface FastApiValidationError {
+  loc?: unknown[];
+  msg?: string;
+}
+
+/**
+ * Erro de validação automático do FastAPI/Pydantic (422 antes de chegar no handler da rota —
+ * ex.: senha curta demais, e-mail em formato inválido) tem um formato diferente do nosso
+ * `{ detail: { code, message } }` (ver `.status/backend-contract.md` §3): `detail` vem como uma
+ * lista de `{ loc, msg, type }`. Sem tratar isso à parte, esses erros caem no fallback genérico
+ * e escondem a causa real (ex.: "senha deve ter pelo menos 8 caracteres") tanto do usuário
+ * quanto de quem for depurar depois.
+ */
+function fromValidationErrors(detail: FastApiValidationError[]): ApiErrorPayload | null {
+  const first = detail[0];
+  if (!first?.msg) return null;
+  const field = Array.isArray(first.loc) ? first.loc.at(-1) : undefined;
+  return {
+    code: "VALIDATION_ERROR",
+    message: typeof field === "string" ? `${field}: ${first.msg}` : first.msg,
+  };
+}
+
 async function parseErrorPayload(response: Response): Promise<ApiErrorPayload> {
   const json = await response.json().catch(() => null);
   if (json?.detail?.code && json?.detail?.message) {
     return json.detail as ApiErrorPayload;
   }
+  if (Array.isArray(json?.detail) && json.detail.length > 0) {
+    const validationError = fromValidationErrors(json.detail);
+    if (validationError) return validationError;
+  }
   return { code: "UNKNOWN_ERROR", message: "Erro inesperado ao comunicar com o servidor." };
+}
+
+/**
+ * `true` quando `err` veio do próprio `fetch()` falhando (sem internet, DNS, conexão recusada,
+ * blip momentâneo de rede móvel) — nunca de uma resposta HTTP de erro (essas viram `ApiError`).
+ * Usado tanto para decidir se vale tentar de novo quanto para telas mostrarem uma mensagem
+ * amigável em vez do texto cru do erro nativo (ex.: "Network request failed").
+ */
+export function isNetworkError(err: unknown): boolean {
+  return err instanceof TypeError;
+}
+
+const NETWORK_RETRY_ATTEMPTS = 2;
+const NETWORK_RETRY_DELAY_MS = 600;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Só reenvia quando o `fetch()` falha antes de qualquer resposta chegar (queda momentânea de
+ * rede) — nunca em cima de uma resposta HTTP já recebida (4xx/5xx são erros de negócio reais,
+ * repeti-los às cegas arrisca efeito colateral duplicado, ex. duas denúncias iguais).
+ */
+async function fetchWithNetworkRetry(url: string, init: RequestInit): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fetch(url, init);
+    } catch (err) {
+      if (attempt >= NETWORK_RETRY_ATTEMPTS || !isNetworkError(err)) throw err;
+      await sleep(NETWORK_RETRY_DELAY_MS);
+    }
+  }
 }
 
 async function request<T>(
@@ -79,7 +139,7 @@ async function request<T>(
   if (hasBody) headers.set("Content-Type", "application/json");
   if (authToken) headers.set("Authorization", `Bearer ${authToken}`);
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await fetchWithNetworkRetry(`${BASE_URL}${path}`, {
     ...options,
     method,
     headers,

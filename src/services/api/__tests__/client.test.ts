@@ -1,4 +1,4 @@
-import { apiClient, ApiError, setAuthToken } from "../client";
+import { apiClient, ApiError, isNetworkError, setAuthToken } from "../client";
 
 function mockFetchOnce(status: number, body: unknown) {
   globalThis.fetch = jest.fn().mockResolvedValue({
@@ -76,6 +76,26 @@ describe("apiClient", () => {
     });
   });
 
+  it("extrai uma mensagem legível de um 422 de validação automática do FastAPI (detail em lista)", async () => {
+    mockFetchOnce(422, {
+      detail: [
+        {
+          type: "string_too_short",
+          loc: ["body", "password"],
+          msg: "String should have at least 8 characters",
+          input: "abc123",
+          ctx: { min_length: 8 },
+        },
+      ],
+    });
+
+    await expect(apiClient.post("/auth/register", {})).rejects.toMatchObject({
+      status: 422,
+      code: "VALIDATION_ERROR",
+      message: "password: String should have at least 8 characters",
+    });
+  });
+
   it("devolve undefined em respostas 204", async () => {
     globalThis.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -100,5 +120,53 @@ describe("apiClient", () => {
       expect(error).toBeInstanceOf(ApiError);
       expect(error).toBeInstanceOf(Error);
     }
+  });
+
+  describe("retry em falha de rede (fetch() lança antes de qualquer resposta)", () => {
+    it("tenta de novo e devolve o resultado se uma tentativa seguinte funcionar", async () => {
+      const fetchMock = jest
+        .fn()
+        .mockRejectedValueOnce(new TypeError("Network request failed"))
+        .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ id: "match-1" }) });
+      globalThis.fetch = fetchMock;
+
+      const result = await apiClient.get<{ id: string }>("/matches/match-1");
+
+      expect(result).toEqual({ id: "match-1" });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("desiste depois de esgotar as tentativas e propaga o erro de rede original", async () => {
+      const networkError = new TypeError("Network request failed");
+      const fetchMock = jest.fn().mockRejectedValue(networkError);
+      globalThis.fetch = fetchMock;
+
+      await expect(apiClient.get("/matches")).rejects.toBe(networkError);
+      // 1 tentativa inicial + 2 retries = 3 chamadas ao fetch.
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
+
+    it("não tenta de novo em cima de uma resposta HTTP de erro (só falha de rede pura)", async () => {
+      mockFetchOnce(500, {});
+
+      await expect(apiClient.get("/matches")).rejects.toMatchObject({ status: 500 });
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    });
+  });
+});
+
+describe("isNetworkError", () => {
+  it("identifica TypeError (erro cru do fetch nativo) como falha de rede", () => {
+    expect(isNetworkError(new TypeError("Network request failed"))).toBe(true);
+  });
+
+  it("não confunde ApiError (resposta HTTP real) com falha de rede", () => {
+    expect(isNetworkError(new ApiError(500, { code: "UNKNOWN_ERROR", message: "Erro." }))).toBe(
+      false
+    );
+  });
+
+  it("não confunde um Error genérico com falha de rede", () => {
+    expect(isNetworkError(new Error("algo deu errado"))).toBe(false);
   });
 });

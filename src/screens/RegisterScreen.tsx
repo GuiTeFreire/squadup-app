@@ -51,8 +51,8 @@ export default function RegisterScreen() {
       setEmailError("");
     }
 
-    if (password.length < 6) {
-      setPasswordError("A senha deve ter pelo menos 6 caracteres");
+    if (password.length < 8) {
+      setPasswordError("A senha deve ter pelo menos 8 caracteres");
       valid = false;
     } else {
       setPasswordError("");
@@ -131,7 +131,7 @@ export default function RegisterScreen() {
             value={password}
             onChangeText={setPassword}
             error={passwordError}
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Mínimo 8 caracteres"
             secureTextEntry
             leftIcon="lock-outline"
           />

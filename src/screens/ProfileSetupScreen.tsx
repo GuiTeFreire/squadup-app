@@ -16,7 +16,7 @@ import Button from "../components/Button";
 import Chip from "../components/Chip";
 import Input from "../components/Input";
 import { useAuth } from "../contexts/AuthContext";
-import { ApiError } from "../services/api/client";
+import { ApiError, isNetworkError } from "../services/api/client";
 import { colors, LEVEL_META, SPORT_META } from "../theme";
 import type { ExperienceLevel, Sport } from "../types";
 
@@ -47,9 +47,13 @@ export default function ProfileSetupScreen() {
     } catch (err) {
       if (err instanceof ApiError) {
         setSubmitError(err.message);
+      } else if (isNetworkError(err)) {
+        // apiClient já tenta de novo sozinho antes de desistir (falha de conectividade
+        // passageira) — chegar aqui significa que continuou falhando mesmo assim.
+        setSubmitError("Sem conexão com o servidor. Verifique sua internet e tente novamente.");
       } else {
-        // Erro fora do formato { detail: { code, message } } da API (ex.: falha de rede) —
-        // mostra a mensagem crua em vez de um texto genérico, para não esconder a causa real.
+        // Erro inesperado fora do formato { detail: { code, message } } da API — mostra a
+        // mensagem crua em vez de um texto genérico, para não esconder a causa real.
         const detail = err instanceof Error ? err.message : String(err);
         setSubmitError(`Não foi possível concluir o cadastro (${detail}). Tente novamente.`);
       }
