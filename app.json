@@ -41,7 +41,8 @@
         {
           "locationWhenInUsePermission": "O SquadUp usa sua localização para mostrar partidas próximas de você."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {
