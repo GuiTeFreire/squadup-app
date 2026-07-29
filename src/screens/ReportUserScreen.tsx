@@ -99,7 +99,7 @@ export default function ReportUserScreen() {
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-secondary-50"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <Header title="Denunciar usuário" onBack={() => navigation.goBack()} />
 

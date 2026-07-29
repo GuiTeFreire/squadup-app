@@ -51,7 +51,7 @@ export default function MatchChatScreen() {
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-secondary-50"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={0}
     >
       <Header

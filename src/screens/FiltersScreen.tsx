@@ -124,7 +124,7 @@ export default function FiltersScreen() {
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-white"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       {/* Handle bar */}
       <View className="items-center pt-3 pb-1">

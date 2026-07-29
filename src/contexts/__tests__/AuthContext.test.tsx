@@ -145,7 +145,11 @@ describe("AuthContext", () => {
     expect(SecureStore.setItemAsync).toHaveBeenCalledWith("squadup.accessToken", "acc-1");
   });
 
-  it("completeProfile propaga ApiError quando o e-mail já está cadastrado (sem autenticar)", async () => {
+  it("completeProfile segue para o login quando o registro falha por e-mail já cadastrado (retry após falha parcial)", async () => {
+    // Cenário real: uma tentativa anterior já criou a conta (ex.: caiu a rede no login ou no
+    // PATCH seguinte), então o registro falha com EMAIL_ALREADY_REGISTERED — mas como as
+    // credenciais são as mesmas, o login abaixo deve funcionar normalmente em vez de travar
+    // o usuário sem conseguir prosseguir com o mesmo e-mail.
     mockNoSavedSession();
     const { result } = renderHook(() => useAuth(), { wrapper });
     await waitForBootToFinish(result);
@@ -161,6 +165,48 @@ describe("AuthContext", () => {
           detail: { code: "EMAIL_ALREADY_REGISTERED", message: "Este e-mail já está cadastrado." },
         },
       },
+      {
+        status: 200,
+        body: { access_token: "acc-1", refresh_token: "ref-1", token_type: "bearer" },
+      },
+      { status: 200, body: { ...MY_PROFILE_BODY, level: "beginner" } },
+    ]);
+
+    await act(async () => {
+      await result.current.completeProfile({
+        favoriteSports: [],
+        level: "beginner",
+        location: "São Paulo, SP",
+      });
+    });
+
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.user?.email).toBe("ana@email.com");
+  });
+
+  it("completeProfile propaga o erro do login quando o e-mail já cadastrado é de outra conta", async () => {
+    // Mesmo ponto de partida (409 no registro), mas agora o login também falha (senha não
+    // bate com a conta existente) — o erro real do login deve chegar ao chamador, não o
+    // EMAIL_ALREADY_REGISTERED do registro (que seria enganoso nesse caso).
+    mockNoSavedSession();
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitForBootToFinish(result);
+
+    act(() => {
+      result.current.register("Ana Souza", "ana@email.com", "senha123", 28);
+    });
+
+    mockFetchSequence([
+      {
+        status: 409,
+        body: {
+          detail: { code: "EMAIL_ALREADY_REGISTERED", message: "Este e-mail já está cadastrado." },
+        },
+      },
+      {
+        status: 401,
+        body: { detail: { code: "INVALID_CREDENTIALS", message: "E-mail ou senha inválidos." } },
+      },
     ]);
 
     await expect(
@@ -169,7 +215,7 @@ describe("AuthContext", () => {
         level: "beginner",
         location: "São Paulo, SP",
       })
-    ).rejects.toMatchObject({ code: "EMAIL_ALREADY_REGISTERED" });
+    ).rejects.toMatchObject({ code: "INVALID_CREDENTIALS" });
 
     expect(result.current.isAuthenticated).toBe(false);
   });

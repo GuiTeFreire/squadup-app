@@ -45,11 +45,14 @@ export default function ProfileSetupScreen() {
     try {
       await completeProfile(data);
     } catch (err) {
-      setSubmitError(
-        err instanceof ApiError
-          ? err.message
-          : "Não foi possível concluir o cadastro. Tente novamente."
-      );
+      if (err instanceof ApiError) {
+        setSubmitError(err.message);
+      } else {
+        // Erro fora do formato { detail: { code, message } } da API (ex.: falha de rede) —
+        // mostra a mensagem crua em vez de um texto genérico, para não esconder a causa real.
+        const detail = err instanceof Error ? err.message : String(err);
+        setSubmitError(`Não foi possível concluir o cadastro (${detail}). Tente novamente.`);
+      }
     } finally {
       setLoading(false);
     }
@@ -76,7 +79,7 @@ export default function ProfileSetupScreen() {
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-white"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
         className="flex-1"

@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNotificationRegistration } from "../hooks/useNotificationRegistration";
 import { toMyProfile } from "../services/adapters/user";
 import { loginRequest, logoutRequest, refreshRequest, registerRequest } from "../services/api/auth";
-import { setUnauthorizedHandler } from "../services/api/client";
+import { ApiError, setUnauthorizedHandler } from "../services/api/client";
 import { fetchMyProfile, updateMyProfile } from "../services/api/users";
 import {
   clearTokens,
@@ -122,14 +122,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const completeProfile = async (data: ProfileData) => {
-    await registerRequest({
-      name: pendingName,
-      email: pendingEmail,
-      password: pendingPassword,
-      age: pendingAge,
-      location: data.location,
-      favorite_sports: data.favoriteSports,
-    });
+    try {
+      await registerRequest({
+        name: pendingName,
+        email: pendingEmail,
+        password: pendingPassword,
+        age: pendingAge,
+        location: data.location,
+        favorite_sports: data.favoriteSports,
+      });
+    } catch (err) {
+      // Se uma tentativa anterior já criou a conta (ex.: falha de rede no passo seguinte,
+      // login/PATCH), o e-mail já existe — segue para o login em vez de travar o usuário
+      // com "e-mail já cadastrado" sem conseguir prosseguir. Se o e-mail já existia por
+      // outro motivo, o login abaixo falha normalmente com uma mensagem própria.
+      const alreadyRegisteredByUs =
+        err instanceof ApiError && err.code === "EMAIL_ALREADY_REGISTERED";
+      if (!alreadyRegisteredByUs) throw err;
+    }
 
     const tokens = await loginRequest(pendingEmail, pendingPassword);
     await saveTokens(tokens);

@@ -197,7 +197,7 @@ export default function CreateMatchScreen() {
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-secondary-50"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <Header variant="large" title="Criar Partida" subtitle="Organize o jogo e chame a galera" />
 
