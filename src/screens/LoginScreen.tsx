@@ -10,12 +10,9 @@ import Input from "../components/Input";
 import { useAuth } from "../contexts/AuthContext";
 import type { AuthStackParamList } from "../navigation/types";
 import { ApiError } from "../services/api/client";
+import { validateEmail } from "../utils/validation";
 
 type LoginNavProp = NativeStackNavigationProp<AuthStackParamList, "Login">;
-
-function validateEmail(email: string) {
-  return email.length > 0 && email.includes("@");
-}
 
 export default function LoginScreen() {
   const navigation = useNavigation<LoginNavProp>();

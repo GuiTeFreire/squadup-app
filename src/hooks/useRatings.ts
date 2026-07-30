@@ -60,7 +60,7 @@ export interface UseSubmitRatingResult {
     ratedUserId: string,
     criteria: RatingCriteria,
     comment?: string,
-    callbacks?: { onSuccess?: () => void; onError?: () => void }
+    callbacks?: { onSuccess?: () => void; onError?: (error: unknown) => void }
   ) => void;
   isSubmitting: boolean;
 }
@@ -91,7 +91,7 @@ export function useSubmitRating(): UseSubmitRatingResult {
             void queryClient.invalidateQueries({ queryKey: queryKeys.userRatings(ratedUserId) });
             callbacks?.onSuccess?.();
           },
-          onError: () => callbacks?.onError?.(),
+          onError: (error) => callbacks?.onError?.(error),
         }
       ),
     isSubmitting: isPending,

@@ -10,14 +10,11 @@ import Input from "../components/Input";
 import { useAuth } from "../contexts/AuthContext";
 import type { AuthStackParamList } from "../navigation/types";
 import { calculateAge, formatDateInput, parseBirthDate } from "../utils/date";
+import { validateEmail } from "../utils/validation";
 
 const MINIMUM_AGE = 18;
 
 type RegisterNavProp = NativeStackNavigationProp<AuthStackParamList, "Register">;
-
-function validateEmail(email: string) {
-  return email.length > 0 && email.includes("@");
-}
 
 export default function RegisterScreen() {
   const navigation = useNavigation<RegisterNavProp>();

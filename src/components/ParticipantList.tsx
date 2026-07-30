@@ -35,7 +35,12 @@ function ParticipantList({ participants, onPress, onApprove }: ParticipantListPr
                 {user.name}
               </Text>
               {user.isVerified && (
-                <MaterialCommunityIcons name="check-decagram" size={14} color="#2563EB" />
+                <MaterialCommunityIcons
+                  name="check-decagram"
+                  size={14}
+                  color="#2563EB"
+                  accessibilityLabel="Verificado"
+                />
               )}
             </View>
             <RatingStars rating={user.averageRating} size="sm" showValue={false} />

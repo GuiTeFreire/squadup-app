@@ -41,7 +41,12 @@ function ParticipantRow({
             {user.name}
           </Text>
           {user.isVerified && (
-            <MaterialCommunityIcons name="check-decagram" size={14} color={colors.primary[500]} />
+            <MaterialCommunityIcons
+              name="check-decagram"
+              size={14}
+              color={colors.primary[500]}
+              accessibilityLabel="Verificado"
+            />
           )}
         </View>
         <Text className="text-xs text-neutral-500">{LEVEL_META[user.level].label}</Text>

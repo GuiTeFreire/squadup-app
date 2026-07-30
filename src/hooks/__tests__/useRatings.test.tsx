@@ -204,6 +204,34 @@ describe("useSubmitRating", () => {
 
     await waitFor(() => expect(onError).toHaveBeenCalled());
   });
+
+  it("repassa o ApiError (com code) para o callback onError (D24)", async () => {
+    mockLoggedInSession();
+    mockFetchByRoute({
+      "/users/me": { status: 200, body: RATER },
+      "/matches/match-1/ratings/user-rated": {
+        status: 403,
+        body: { detail: { code: "NOT_MATCH_PARTICIPANT", message: "not a participant" } },
+      },
+    });
+
+    const { result } = renderHook(() => useSubmitRating(), { wrapper: createWrapper() });
+    const onError = jest.fn();
+
+    act(() => {
+      result.current.submitRating(
+        "match-1",
+        "user-rated",
+        { punctuality: 5, respect: 5, behavior: 5, presence: 5, overall: 5 },
+        undefined,
+        { onError }
+      );
+    });
+
+    await waitFor(() => expect(onError).toHaveBeenCalled());
+    const receivedError = onError.mock.calls[0][0];
+    expect(receivedError).toMatchObject({ code: "NOT_MATCH_PARTICIPANT" });
+  });
 });
 
 describe("useHasRatedMap", () => {

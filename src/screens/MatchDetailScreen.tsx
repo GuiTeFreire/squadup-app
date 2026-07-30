@@ -250,6 +250,7 @@ export default function MatchDetailScreen() {
                       name="check-decagram"
                       size={15}
                       color={colors.primary[500]}
+                      accessibilityLabel="Verificado"
                     />
                   )}
                 </View>
