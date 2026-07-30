@@ -1984,3 +1984,72 @@ qualidade do CLAUDE.md §5 mesmo sob pressão de tempo.
   ainda não testados (criar partida, chat, geo, push) revelem algo novo.
 - Nenhum bug pendente do lado do código — tudo que foi encontrado foi corrigido e validado. A
   única pendência é a confirmação do usuário testando a build mais recente.
+
+---
+
+## Sessão 35 — 2026-07-30
+
+### Limpeza de dívidas técnicas de baixa prioridade
+
+A pedido do usuário ("quero tratar as dívidas técnicas uma a uma"), enquanto o item 8 da Fase 14
+segue aguardando teste do usuário na build `fa25bd21`. Das dívidas abertas em `queue.md`
+(D2, D3, D7, D10, D11, D22, D23, D25, D27, D24, D26, D34, mais D4/D13 que já existiam desde as
+sessões 1/17), só as acionáveis por código nesta sessão — sem depender de upgrade de dependência,
+endpoint novo no backend ou decisão de escopo da demo — foram resolvidas: **D4, D13, D24, D26,
+D34**. As demais (D2, D3, D7, D10, D11, D22, D23, D25, D27) permanecem em aberto por desenho —
+são notas de observação, não bugs pendentes.
+
+| Dívida | Correção |
+|---|---|
+| **D4** — CRLF vs LF | Novo `.editorconfig` na raiz (`end_of_line = lf`, `insert_final_newline`, `trim_trailing_whitespace`, `indent_size = 2`, exceção para `*.md`) — solução definitiva que a entrada original já apontava, substitui o hábito manual de `npm run lint:fix` ao fim de cada sessão. |
+| **D13** — selo de verificado sem `accessibilityLabel` | `accessibilityLabel="Verificado"` adicionado ao ícone `check-decagram` nos 6 arquivos citados na dívida original: `ParticipantList.tsx`, `MatchDetailScreen.tsx`, `PublicProfileScreen.tsx`, `MyProfileScreen.tsx`, `RateUserScreen.tsx`, `PostMatchRatingScreen.tsx`. `TrustBadges.tsx` (usa o mesmo ícone) não precisou de mudança — já tem o texto "Verificado" visível ao lado, então já era acessível. |
+| **D26** — `CreateMatchScreen` sem feedback quando a localização falha | Novo estado `locationChecked` em `CreateMatchScreen`, setado quando a promise de `requestLocation()` (chamada no mount) resolve — evita o texto piscar antes da primeira tentativa. `showLocationWarning = locationChecked && !isLocationLoading && !deviceLocation` controla um aviso discreto ("Localização não disponível — partida será criada sem coordenadas") logo abaixo do campo Local. Não bloqueia a criação da partida, mantendo o princípio de D-Geo-3 (geolocalização estritamente aditiva). |
+| **D34** — `validateEmail` mais permissiva que o `EmailStr` do backend | Função duplicada em `RegisterScreen.tsx`/`LoginScreen.tsx` (`email.length > 0 && email.includes("@")`) extraída para `src/utils/validation.ts`, com regex `^[^\s@]+@[^\s@]+\.[^\s@]+$` que exige domínio com TLD — mesma classe de exigência do `EmailStr` (Pydantic) do backend. Casos como `"a@b"`, antes aceitos pelo front e só rejeitados pelo backend com `422`, agora são barrados já na validação local. |
+| **D24** — erro `NOT_MATCH_PARTICIPANT` sem mensagem clara | `useSubmitRating` (`src/hooks/useRatings.ts`) parou de descartar o `error` do `onError` do `useMutation` — agora repassa (`onError: (error) => callbacks?.onError?.(error)`) para quem chama. `RateUserScreen.handleSubmit` passou a checar `error instanceof ApiError && error.code === "NOT_MATCH_PARTICIPANT"` e mostrar uma mensagem específica ("Você e este participante precisam ter entrado na partida...") em vez do fallback genérico "Não foi possível enviar a avaliação". `PostMatchRatingScreen` não precisou de mudança — só lista participantes e navega para `RateUserScreen`, não envia avaliação diretamente. |
+
+### Decisões não óbvias
+
+- **Não tocamos nas dívidas informativas** (D2, D3, D7, D10, D11, D22, D23, D25, D27) — todas
+  descrevem um estado esperado que só muda com um evento externo (upgrade do NativeWind, upgrade
+  do React, endpoint novo no backend, decisão consciente de trade-off para a demo). "Resolver" seria
+  só apagar a entrada sem mudar comportamento nenhum, o que apagaria contexto útil para quando esse
+  evento externo acontecer.
+- **`showLocationWarning` usa um estado dedicado (`locationChecked`) em vez de inferir "terminou"
+  só de `!isLoading`** — no primeiro render, antes do `useEffect` disparar `requestLocation()`,
+  `isLoading` já começa `false` (estado inicial do hook), o que faria o aviso piscar por um frame
+  antes da checagem real começar. Um `Promise.finally` dedicado evita esse falso positivo.
+- **Teste de `CreateMatchScreen` precisou de ajuste**: o mock de `useDeviceLocation` no arquivo de
+  teste declarava `requestLocation: jest.fn()` sem `mockResolvedValue`, o que quebrou ao introduzir
+  `.finally()` na chamada real (`Cannot read properties of undefined (reading 'finally')`) — o mock
+  nunca precisou respeitar o contrato `Promise<void>` do hook real até agora. Corrigido no
+  `beforeEach` do teste (`mockRequestLocation.mockResolvedValue(undefined)`), alinhando o mock ao
+  hook de verdade em vez de mudar a implementação da tela para acomodar um mock incompleto.
+
+### Validação
+
+`npx tsc --noEmit` zero erros · `npm run lint` zero erros (1 ajuste automático via
+`npm run lint:fix` em `CreateMatchScreen.tsx`, quebra de linha de destructuring) · `npm run test`
+foi de **302 → 309 testes**, todos passando (7 novos: 4 em `src/utils/__tests__/validation.test.ts`,
+1 em `useRatings.test.tsx` confirmando o passthrough do `code` do `ApiError`, 2 em
+`CreateMatchScreen.test.tsx` cobrindo o aviso de localização visível/ausente) · `npx expo export
+--platform web` gera o bundle sem erros.
+
+### Estado do repositório ao final da sessão 35
+
+- Nova branch `chore/tech-debt-cleanup`, criada a partir de `dev` (que estava com working tree
+  limpo, no commit `2693487` — fechamento da sessão 34).
+- Commit `941f001`: as 5 correções de código + testes (16 arquivos).
+- Um segundo commit fecha esta sessão com a sincronização de `.status/` (este arquivo,
+  `queue.md`, `roadmap.md`, `README.md`) — ver hash no commit `docs: fecha sessão 35` em
+  `git log`.
+- Branch **não mergeada nem enviada ao remoto** — aguardando revisão/decisão do usuário.
+- Nenhum requisito novo ou dívida técnica nova surgiu durante o trabalho desta sessão.
+- Fase 14 inalterada (segue 7/8) — esta sessão não tocou no item 8 (hardening em dispositivo).
+  A build EAS `fa25bd21` (commit `3dcd0dd`, já em `dev`) **não inclui** as correções desta sessão
+  (são mudanças de UI/validação em JS, sem dependência nativa nova — não obrigam build EAS nova
+  por si só, mas os ajustes só aparecerão num dispositivo depois que esta branch for mergeada e
+  uma build nova for gerada).
+- **Próxima tarefa concreta:** (1) revisar e decidir sobre o merge de `chore/tech-debt-cleanup`
+  em `dev`; (2) retomar o teste de ponta a ponta da build `fa25bd21` (cadastro → criar partida →
+  chat → filtro de proximidade → push) para finalmente fechar o item 8 da Fase 14 — continua sendo
+  o único bloqueador real do projeto, sem nenhum bug de código pendente do lado do front.

@@ -218,6 +218,6 @@ backend.
 | 13 | Integração com o backend real | 🟢 **Concluída (16/16)** — fundação, Auth real, Matches reais, Mensagens reais, Avaliações reais, Denúncias reais e hardening/teste ponta a ponta; backend já deployado em `https://squadup-api.up.railway.app` |
 | 14 | Geolocalização real e notificações push | 🟡 **Em andamento (7/8)** — backend concluído (PR #50); front concluído: geolocalização (`useDeviceLocation`, filtro por proximidade) e push (`useNotificationRegistration`, navegação por notificação) ✅; hardening em dispositivo físico em andamento (item 8) — várias rodadas de teste real já corrigiram bugs de boot, teclado e cadastro (D28–D34) |
 
-302 testes passando · lint zerado · tsc zerado · 85/86 tarefas do protótipo+integração concluídas (99%) · Fase 14: 7/8
+309 testes passando · lint zerado · tsc zerado · 85/86 tarefas do protótipo+integração concluídas (99%) · Fase 14: 7/8
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.
