@@ -547,13 +547,71 @@ O pilar de saúde está relacionado ao incentivo à prática recorrente de ativi
 
 \subsection{Atores do sistema}
 
-Foram identificados dois atores principais para o sistema: Usuário e Administrador. O Usuário representa a pessoa que utiliza o aplicativo para buscar partidas, criar eventos esportivos, visualizar detalhes de partidas, participar de atividades, consultar perfis de outros usuários e realizar denúncias. O Administrador representa o papel responsável por acompanhar denúncias e executar ações de moderação quando necessário.
+Foram identificados dois atores principais para o sistema: Usuário e Administrador. O Usuário representa a pessoa que utiliza o aplicativo para se cadastrar e autenticar-se, buscar partidas, criar eventos esportivos, visualizar detalhes de partidas, participar de atividades, conversar com demais participantes, consultar perfis de outros usuários, avaliar participantes após uma partida e realizar denúncias. Quando organiza uma partida, o próprio Usuário assume também as responsabilidades de organizador, podendo aprovar participantes pendentes e encerrar a partida. O Administrador representa o papel responsável por acompanhar denúncias e executar ações de moderação quando necessário.
 
 Essa divisão permite separar as funcionalidades de uso cotidiano da aplicação das funcionalidades voltadas à segurança e manutenção da comunidade.
 
 \subsection{Casos de uso}
 
-Os casos de uso descrevem as principais interações entre os atores e o SquadUp. Para esta etapa do trabalho, foram priorizados os fluxos diretamente associados às telas principais da aplicação: busca de partidas, criação de partida, visualização de detalhes, participação, visualização de perfil e denúncia de usuário.
+Os casos de uso descrevem as principais interações entre os atores e o SquadUp. São contemplados os fluxos associados à autenticação, às telas principais da aplicação (busca de partidas, criação de partida, visualização de detalhes, participação, visualização de perfil), às ações complementares de organização de partidas (cancelamento de participação, aprovação de participantes e encerramento de partida), à comunicação entre participantes, à construção de reputação por meio de avaliações e aos mecanismos de segurança da comunidade (denúncia e moderação).
+
+\subsubsection{Cadastrar-se e autenticar-se}
+
+Este caso de uso permite que o usuário crie uma conta no sistema ou acesse uma conta já existente, condição necessária para utilizar as demais funcionalidades do SquadUp.
+
+\textbf{Ator primário:} Usuário.
+
+\textbf{Pré-condições:} para o cadastro, o usuário não deve possuir conta associada ao e-mail informado; para o login, o usuário deve possuir uma conta previamente cadastrada.
+
+\textbf{Pós-condições:} o usuário passa a estar autenticado no sistema e é direcionado à tela inicial da aplicação.
+
+\textbf{Fluxo principal (cadastro):}
+
+\begin{enumerate}
+    \item O usuário acessa a opção de cadastro a partir da tela de boas-vindas;
+    \item O sistema apresenta um formulário solicitando nome, e-mail, senha e data de nascimento;
+    \item O usuário informa os dados solicitados;
+    \item O sistema calcula a idade do usuário a partir da data de nascimento informada;
+    \item O usuário é direcionado à configuração inicial de perfil, informando esportes de interesse, nível de experiência e localização aproximada;
+    \item O sistema cria a conta e autentica o usuário automaticamente.
+\end{enumerate}
+
+\textbf{Fluxo principal (login):}
+
+\begin{enumerate}
+    \item O usuário acessa a opção de login a partir da tela de boas-vindas;
+    \item O usuário informa e-mail e senha cadastrados;
+    \item O sistema valida as credenciais informadas;
+    \item O sistema autentica o usuário e o direciona à tela inicial.
+\end{enumerate}
+
+\textbf{Fluxos alternativos:}
+
+\begin{itemize}
+    \item Caso o e-mail informado no cadastro já esteja associado a uma conta, o sistema informa o usuário e sugere realizar o login;
+    \item Caso a idade calculada a partir da data de nascimento seja inferior a 18 anos, o sistema impede a conclusão do cadastro;
+    \item Caso as credenciais informadas no login sejam inválidas, o sistema informa o erro sem indicar especificamente qual campo está incorreto, por motivo de segurança;
+    \item Em acessos futuros, o sistema pode restaurar automaticamente a sessão do usuário a partir de uma sessão previamente autenticada, sem exigir um novo login.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \fcolorbox{gray}{white}{
+        \includegraphics[width=0.32\textwidth]{assets/app/login.png}
+    }
+    \caption{Tela de login do SquadUp}
+    \label{fig:app_login}
+\end{figure}
+
+% Quando o screenshot da tela de cadastro estiver disponível, descomente e ajuste o caminho abaixo.
+% \begin{figure}[H]
+%     \centering
+%     \fcolorbox{gray}{white}{
+%         \includegraphics[width=0.32\textwidth]{assets/app/cadastro.png}
+%     }
+%     \caption{Tela de cadastro do SquadUp}
+%     \label{fig:app_cadastro}
+% \end{figure}
 
 \subsubsection{Buscar partidas}
 
@@ -705,6 +763,124 @@ Este caso de uso permite que o usuário confirme sua participação em uma parti
     \item Caso a participação dependa de aprovação, o sistema registra a solicitação como pendente.
 \end{itemize}
 
+\subsubsection{Cancelar participação}
+
+Este caso de uso permite que o usuário desista de uma partida da qual já confirmou participação ou para a qual solicitou entrada.
+
+\textbf{Ator primário:} Usuário.
+
+\textbf{Pré-condições:} o usuário deve estar participando da partida, de forma confirmada ou pendente de aprovação.
+
+\textbf{Pós-condições:} o usuário deixa de constar como participante da partida, e a vaga correspondente volta a ficar disponível.
+
+\textbf{Fluxo principal:}
+
+\begin{enumerate}
+    \item O usuário acessa os detalhes de uma partida da qual participa;
+    \item O sistema exibe a opção de cancelar participação;
+    \item O usuário seleciona a opção de cancelamento;
+    \item O sistema solicita confirmação da ação;
+    \item O sistema remove o usuário da lista de participantes da partida;
+    \item A partida volta a apresentar a vaga como disponível.
+\end{enumerate}
+
+\textbf{Fluxos alternativos:}
+
+\begin{itemize}
+    \item Caso o usuário decida não confirmar a ação, o cancelamento é interrompido e a participação é mantida;
+    \item Caso a partida já tenha sido encerrada, o sistema não permite o cancelamento.
+\end{itemize}
+
+\subsubsection{Aprovar participante pendente}
+
+Este caso de uso permite que o organizador de uma partida analise e aprove solicitações de participação, aplicável a partidas configuradas para exigir aprovação manual.
+
+\textbf{Ator primário:} Usuário (na qualidade de organizador da partida).
+
+\textbf{Pré-condições:} o usuário deve ser o organizador da partida e deve existir ao menos uma solicitação de participação pendente.
+
+\textbf{Pós-condições:} o participante aprovado passa a constar como confirmado na partida.
+
+\textbf{Fluxo principal:}
+
+\begin{enumerate}
+    \item O organizador acessa os detalhes da partida que criou;
+    \item O sistema exibe a lista de participantes com solicitações pendentes;
+    \item O organizador seleciona a opção de aprovar um participante;
+    \item O sistema verifica a disponibilidade de vagas na partida;
+    \item O sistema altera o status do participante para confirmado.
+\end{enumerate}
+
+\textbf{Fluxos alternativos:}
+
+\begin{itemize}
+    \item Caso as vagas da partida já tenham sido preenchidas, o sistema impede a aprovação de novos participantes;
+    \item Caso o usuário autenticado não seja o organizador da partida, o sistema não disponibiliza essa ação.
+\end{itemize}
+
+\subsubsection{Encerrar partida}
+
+Este caso de uso permite que o organizador finalize uma partida, sinalizando que o evento já ocorreu e habilitando a avaliação entre os participantes.
+
+\textbf{Ator primário:} Usuário (na qualidade de organizador da partida).
+
+\textbf{Pré-condições:} o usuário deve ser o organizador da partida, e a partida não deve estar previamente encerrada.
+
+\textbf{Pós-condições:} a partida passa a ter status encerrado, deixando de aceitar novas participações e habilitando a avaliação dos participantes.
+
+\textbf{Fluxo principal:}
+
+\begin{enumerate}
+    \item O organizador acessa os detalhes da partida que criou;
+    \item O sistema exibe a opção de encerrar a partida;
+    \item O organizador seleciona a opção de encerramento;
+    \item O sistema altera o status da partida para encerrado;
+    \item A partida passa a habilitar a avaliação dos participantes confirmados.
+\end{enumerate}
+
+\textbf{Fluxos alternativos:}
+
+\begin{itemize}
+    \item Caso o usuário autenticado não seja o organizador da partida, o sistema não disponibiliza essa ação;
+    \item Caso a partida já esteja encerrada, o sistema não permite um novo encerramento.
+\end{itemize}
+
+\subsubsection{Conversar no chat da partida}
+
+Este caso de uso permite que participantes de uma partida troquem mensagens entre si, fortalecendo a comunicação e a coordenação antes do encontro presencial.
+
+\textbf{Ator primário:} Usuário.
+
+\textbf{Pré-condições:} o usuário deve ser o organizador da partida ou um participante com participação confirmada.
+
+\textbf{Pós-condições:} a mensagem enviada passa a ficar disponível para os demais participantes da partida.
+
+\textbf{Fluxo principal:}
+
+\begin{enumerate}
+    \item O usuário acessa o chat de uma partida da qual participa;
+    \item O sistema exibe o histórico de mensagens trocadas entre os participantes;
+    \item O usuário redige e envia uma nova mensagem;
+    \item O sistema registra a mensagem e a distribui aos demais participantes;
+    \item Os demais participantes confirmados recebem uma notificação sobre a nova mensagem.
+\end{enumerate}
+
+\textbf{Fluxos alternativos:}
+
+\begin{itemize}
+    \item Caso o usuário não seja organizador nem participante confirmado da partida, o sistema não permite o acesso ao chat;
+    \item Caso o usuário negue a permissão de notificações, o recebimento de novas mensagens continua ocorrendo normalmente, sem o aviso do sistema operacional.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \fcolorbox{gray}{white}{
+        \includegraphics[width=0.32\textwidth]{assets/app/chat-partida.png}
+    }
+    \caption{Tela de chat da partida no SquadUp}
+    \label{fig:app_chat_partida}
+\end{figure}
+
 \subsubsection{Visualizar perfil do usuário}
 
 Este caso de uso permite que um usuário consulte informações públicas de outro participante, contribuindo para a percepção de confiança antes da interação presencial.
@@ -739,6 +915,45 @@ Este caso de uso permite que um usuário consulte informações públicas de out
     \caption{Tela de perfil de usuário no SquadUp}
     \label{fig:app_perfil_usuario}
 \end{figure}
+
+\subsubsection{Avaliar usuário pós-partida}
+
+Este caso de uso permite que participantes avaliem uns aos outros após o encerramento de uma partida, contribuindo para a construção da reputação dos usuários dentro da comunidade.
+
+\textbf{Ator primário:} Usuário.
+
+\textbf{Pré-condições:} a partida deve estar encerrada, e tanto o avaliador quanto o usuário avaliado devem ter participação confirmada nessa partida.
+
+\textbf{Pós-condições:} a avaliação é registrada e passa a compor a nota média do usuário avaliado.
+
+\textbf{Fluxo principal:}
+
+\begin{enumerate}
+    \item Após o encerramento de uma partida, o usuário acessa a lista de participantes disponíveis para avaliação;
+    \item O usuário seleciona um participante a ser avaliado;
+    \item O sistema apresenta um formulário com critérios de avaliação: pontualidade, respeito, comportamento, presença e experiência geral;
+    \item O usuário atribui uma nota a cada critério e, opcionalmente, escreve um comentário;
+    \item O usuário confirma o envio da avaliação;
+    \item O sistema registra a avaliação e atualiza a reputação do usuário avaliado.
+\end{enumerate}
+
+\textbf{Fluxos alternativos:}
+
+\begin{itemize}
+    \item Caso algum critério de avaliação não seja preenchido, o sistema impede o envio da avaliação;
+    \item Caso o usuário já tenha avaliado determinado participante naquela partida, o sistema indica que a avaliação já foi realizada;
+    \item Caso o avaliador ou o avaliado não tenham participação confirmada na partida, o sistema não permite a avaliação.
+\end{itemize}
+
+% Quando o screenshot da tela de avaliação estiver disponível, descomente e ajuste o caminho abaixo.
+% \begin{figure}[H]
+%     \centering
+%     \fcolorbox{gray}{white}{
+%         \includegraphics[width=0.32\textwidth]{assets/app/avaliacao.png}
+%     }
+%     \caption{Tela de avaliação pós-partida no SquadUp}
+%     \label{fig:app_avaliacao}
+% \end{figure}
 
 \subsubsection{Denunciar usuário}
 
@@ -777,11 +992,48 @@ Este caso de uso permite que usuários reportem comportamentos inadequados, cont
     \label{fig:app_denunciar_usuario}
 \end{figure}
 
+\subsubsection{Moderar denúncias}
+
+Este caso de uso permite que um administrador analise as denúncias registradas pelos usuários e execute ações de moderação sobre a conta denunciada.
+
+\textbf{Ator primário:} Administrador.
+
+\textbf{Pré-condições:} o usuário autenticado deve possuir permissão de administrador, e deve existir ao menos uma denúncia pendente de análise.
+
+\textbf{Pós-condições:} a denúncia passa a ter um status de resolução, e a ação de moderação correspondente é registrada.
+
+\textbf{Fluxo principal:}
+
+\begin{enumerate}
+    \item O administrador acessa o painel administrativo;
+    \item O sistema exibe a lista de denúncias pendentes de análise;
+    \item O administrador seleciona uma denúncia para consultar seus detalhes, como motivo, descrição e usuário denunciado;
+    \item O administrador escolhe uma ação de moderação: arquivar, advertir ou banir o usuário denunciado;
+    \item O sistema registra a ação escolhida e atualiza o status da denúncia.
+\end{enumerate}
+
+\textbf{Fluxos alternativos:}
+
+\begin{itemize}
+    \item Caso o usuário autenticado não possua permissão de administrador, o sistema não disponibiliza o acesso ao painel administrativo;
+    \item Caso a denúncia já tenha sido previamente resolvida, o sistema não permite uma nova ação de moderação sobre ela.
+\end{itemize}
+
+% Quando o screenshot da tela do painel administrativo estiver disponível, descomente e ajuste o caminho abaixo.
+% \begin{figure}[H]
+%     \centering
+%     \fcolorbox{gray}{white}{
+%         \includegraphics[width=0.32\textwidth]{assets/app/moderacao.png}
+%     }
+%     \caption{Painel administrativo de moderação de denúncias no SquadUp}
+%     \label{fig:app_moderacao}
+% \end{figure}
+
 \subsection{Telas e fluxos da aplicação}
 
-As telas apresentadas nesta seção foram definidas a partir dos casos de uso priorizados e representam os principais pontos de interação do usuário com o SquadUp. O fluxo geral da aplicação permite que o usuário encontre uma partida na tela inicial, consulte seus detalhes, confirme participação, visualize informações de outros participantes, crie novas partidas e utilize mecanismos de denúncia quando necessário.
+As telas apresentadas nesta seção foram definidas a partir dos casos de uso priorizados e representam os principais pontos de interação do usuário com o SquadUp. O fluxo geral da aplicação permite que o usuário se autentique, encontre uma partida na tela inicial, consulte seus detalhes, confirme participação, converse com os demais participantes, visualize informações de outros participantes, avalie-os após a partida, crie novas partidas e utilize mecanismos de denúncia quando necessário.
 
-A tela inicial concentra a descoberta de partidas disponíveis. A tela de criação permite que usuários organizem novas atividades esportivas. As telas de detalhes apresentam as informações necessárias para a decisão de participação. A tela de perfil fortalece o pilar social da aplicação ao permitir que usuários conheçam melhor outros participantes. Por fim, a tela de denúncia representa um mecanismo de segurança, contribuindo para a moderação da comunidade.
+A tela de login concentra o acesso à aplicação, seja por um usuário já cadastrado, seja por um usuário recém-criado a partir do fluxo de cadastro. A tela inicial concentra a descoberta de partidas disponíveis. A tela de criação permite que usuários organizem novas atividades esportivas. As telas de detalhes apresentam as informações necessárias para a decisão de participação, incluindo, para o organizador, as ações de aprovação de participantes e encerramento da partida. A tela de chat fortalece a comunicação entre participantes confirmados antes do encontro presencial. A tela de perfil fortalece o pilar social da aplicação ao permitir que usuários conheçam melhor outros participantes, enquanto a avaliação pós-partida consolida a reputação construída a partir de partidas concluídas. Por fim, as telas de denúncia e o painel administrativo de moderação representam os mecanismos de segurança da aplicação, contribuindo para a manutenção da comunidade.
 
 \begin{figure}[H]
     \centering
@@ -847,7 +1099,7 @@ A tela inicial concentra a descoberta de partidas disponíveis. A tela de criaç
 
 \subsection{Considerações finais}
 
-O desenvolvimento funcional apresentado nesta seção consolida os principais fluxos do SquadUp. A definição dos pilares do sistema, dos atores, dos casos de uso e das telas permite demonstrar como a aplicação busca reduzir barreiras sociais e logísticas para a prática de esportes coletivos. As telas apresentadas evidenciam o fluxo central do sistema, desde a descoberta de partidas até os mecanismos de confiança e segurança entre usuários.
+O desenvolvimento funcional apresentado nesta seção consolida os principais fluxos do SquadUp. A definição dos pilares do sistema, dos atores, dos casos de uso e das telas permite demonstrar como a aplicação busca reduzir barreiras sociais e logísticas para a prática de esportes coletivos. Os casos de uso descritos cobrem o ciclo completo de uso da aplicação: autenticação, descoberta e criação de partidas, participação (incluindo seu cancelamento e a aprovação de solicitações pelo organizador), comunicação entre participantes, construção de reputação por meio de avaliações e os mecanismos de segurança da comunidade, materializados na denúncia de usuários e na moderação administrativa. As telas apresentadas evidenciam o fluxo central do sistema, desde a descoberta de partidas até os mecanismos de confiança e segurança entre usuários.
 
 \clearpage
 
@@ -911,7 +1163,13 @@ Geolocalização é o processo de identificação da posição geográfica de um
 
 Essa tecnologia permite que aplicações identifiquem locais próximos ao usuário e ofereçam funcionalidades baseadas em proximidade geográfica.
 
-No SquadUp, a geolocalização foi utilizada para facilitar a descoberta de partidas esportivas próximas ao usuário.
+No SquadUp, a geolocalização foi utilizada para facilitar a descoberta de partidas esportivas próximas ao usuário. As coordenadas são obtidas a partir do GPS do próprio dispositivo, tanto no momento da criação de uma partida quanto no momento da busca, quando o usuário opta por filtrar partidas por proximidade e define um raio de busca. A distância entre o usuário e cada partida é calculada no servidor e exibida diretamente na listagem. A funcionalidade é aditiva: o campo textual de local permanece sempre obrigatório, e a recusa da permissão de localização pelo usuário não impede a criação de partidas nem a realização de buscas, apenas remove o filtro por proximidade.
+
+\subsubsection{Notificações push}
+
+Notificações \textit{push} são mensagens enviadas por um servidor e exibidas diretamente pelo sistema operacional do dispositivo, mesmo quando o aplicativo não está em primeiro plano. Esse recurso permite que o usuário seja avisado de eventos relevantes sem a necessidade de manter a aplicação aberta.
+
+No SquadUp, notificações \textit{push} são utilizadas para avisar o usuário sobre três eventos considerados essenciais para os pilares social e logístico do sistema: o recebimento de uma nova mensagem em uma partida da qual participa, a aprovação de uma solicitação de participação pendente e o encerramento de uma partida pelo organizador. Ao tocar em uma notificação, o usuário é encaminhado diretamente para a tela correspondente ao evento. Assim como a geolocalização, o recurso é aditivo: a recusa da permissão de notificações pelo usuário não compromete nenhum fluxo funcional da aplicação, apenas deixa de emitir o aviso do sistema operacional.
 
 \subsubsection{Arquitetura cliente-servidor}
 
@@ -969,6 +1227,7 @@ Com base nos casos de uso, foram identificadas as seguintes entidades principais
     \item \textbf{Usuário}: representa a pessoa cadastrada no sistema, incluindo dados de identificação, autenticação, informações esportivas, preferências e reputação;
     \item \textbf{Partida}: representa um evento esportivo criado por um usuário, contendo modalidade, local, data, horário, vagas e descrição;
     \item \textbf{Participação}: registra o vínculo entre usuários e partidas, incluindo status de confirmação ou solicitação pendente;
+    \item \textbf{Mensagem}: registra as mensagens trocadas entre os participantes de uma partida em seu chat;
     \item \textbf{Avaliação}: registra avaliações realizadas entre participantes após uma partida;
     \item \textbf{Denúncia}: registra relatos de comportamento inadequado para análise administrativa;
     \item \textbf{Local}: representa informações sobre o espaço onde a partida será realizada.
@@ -978,9 +1237,17 @@ Com base nos casos de uso, foram identificadas as seguintes entidades principais
 
 A separação de responsabilidades entre as camadas busca reduzir acoplamento e facilitar a evolução do sistema. O aplicativo \textit{mobile} é responsável pela experiência do usuário e pela apresentação dos dados. A API é responsável por validar regras de negócio, processar requisições e garantir consistência das operações. O banco de dados é responsável pela persistência e integridade das informações.
 
+\subsection{Segurança e privacidade}
+
+A segurança da informação é um requisito relevante para o SquadUp, uma vez que o sistema lida com dados pessoais e viabiliza a interação entre usuários que, muitas vezes, não se conhecem previamente. Assim, a arquitetura do sistema incorpora um conjunto de práticas voltadas à proteção dos dados e ao controle de acesso.
+
+A autenticação do usuário é realizada por meio de tokens \textit{JWT} (\textit{JSON Web Token}), com um mecanismo de renovação (\textit{refresh token}) que permite manter a sessão do usuário ativa sem exigir um novo login a cada acesso, ao mesmo tempo em que limita o tempo de validade de cada token individual. As senhas dos usuários nunca são armazenadas em texto plano: são processadas por meio de uma função de \textit{hash} unidirecional antes de serem persistidas no banco de dados, de modo que, mesmo em caso de acesso indevido à base de dados, as senhas originais não fiquem expostas.
+
+O sistema também implementa controle de acesso baseado em papéis (\textit{RBAC}, \textit{Role-Based Access Control}), distinguindo usuários comuns de administradores. Ações sensíveis, como a moderação de denúncias, ficam restritas ao papel de administrador. Por fim, sessões e tokens de acesso expirados ou revogados são removidos periodicamente pelo sistema, reduzindo a superfície de dados sensíveis mantida em memória e em banco ao longo do tempo.
+
 \subsection{Considerações finais}
 
-A arquitetura tecnológica proposta organiza o SquadUp em camadas bem definidas, separando interface, regras de negócio e persistência de dados. Essa estrutura favorece a manutenção do sistema, facilita a evolução independente entre frontend e backend e permite representar de forma adequada as entidades centrais da aplicação.
+A arquitetura tecnológica proposta organiza o SquadUp em camadas bem definidas, separando interface, regras de negócio e persistência de dados. Essa estrutura favorece a manutenção do sistema, facilita a evolução independente entre frontend e backend e permite representar de forma adequada as entidades centrais da aplicação. As práticas de segurança adotadas, combinadas com os mecanismos de confiança apresentados no Capítulo 3, reforçam o compromisso do SquadUp com uma experiência de conexão entre usuários desconhecidos que seja, ao mesmo tempo, simples e segura.
 
 \clearpage
 
