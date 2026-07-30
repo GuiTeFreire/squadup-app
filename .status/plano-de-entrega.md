@@ -77,7 +77,7 @@
 | **A — Deploy do backend** | Executar o deploy real no Railway | Nada — **✅ URL de produção já ativa** (`squadup-api.up.railway.app`) | Concluída (falta só a decisão de seed, §2) |
 | **B — Integração front↔back** | Fase 13 do front (trocar mocks por API real) | Trilha A (precisa de uma URL real para apontar, mas pode começar contra `localhost` antes disso) | Concluída (16/16, sessão 28) |
 | **C — Build e demo do app** | EAS Build / Expo Go para teste e apresentação | Trilha B razoavelmente avançada | Em andamento — build rodado várias vezes (sessão 34), instalado em Android real; falta confirmar teste ponta a ponta da build mais recente (`fa25bd21`) e decidir se gera build nova com os ajustes da sessão 35 |
-| **D — Assets do TCC** | Estrutura de pastas, prints, bibliografia, diagramas | Nada (screenshots podem ser tirados com os mocks atuais) | Em andamento — 8/13 screenshots do app automatizadas (sessão 28); faltam 5 (cadastro, avaliação, denúncia, moderação — manuais, D11 — e detalhes-partida-2, automatizável) |
+| **D — Assets do TCC** | Estrutura de pastas, prints, bibliografia, diagramas | Nada (screenshots podem ser tirados com os mocks atuais) | Screenshots do app: ✅ **13/13 automatizadas** (sessão 36 — os 5 que "precisavam de captura manual" por causa do D11 na verdade só tinham `Alert.alert` no *sucesso do envio*, não para abrir a tela; deu pra automatizar todos). Falta só: prints de concorrentes (✅ já feito), diagrama ER/arquitetura (§5.3) e `catalog.pdf` (ação externa, biblioteca) |
 | **E — Escrita da monografia** | Capítulos novos/atualizados do TCC.tex | Parcialmente nada (casos de uso extras e arquitetura já documentável), parcialmente B/C (capítulo de resultados) | Em andamento — §6.1 (casos de uso extras, geo/push, segurança) ✅ concluído sessão 36; §6.2 (capítulo de Implementação/Testes, cronograma atualizado, Considerações Finais retrospectivas) segue aguardando o fechamento de T1 |
 | **F — Geolocalização real + push** | Fase 14 do front (`roadmap.md` §20) + Fase 13 do backend (`../squadup-back/.status/roadmap.md` §19) | Trilha B concluída (pré-requisito satisfeito em 2026-07-16) | Em andamento — **backend concluído** (4/4 tarefas, PR #50, 2026-07-28); front geo e push concluídos (etapas 5–7, sessões 31–33); falta só a etapa 8 (hardening) — ver §9 |
 
@@ -177,26 +177,38 @@ front/
 
 Ajustar os `\includegraphics{assets/...}` do `.tex` para `\includegraphics{assets/app/...}` etc. já é o padrão que o próprio documento já usa (a maioria já está organizada assim) — só falta mover os arquivos físicos para bater com os caminhos.
 
-### 5.1 — Screenshots do próprio app — 8/13 automatizadas (sessão 28; total revisado sessão 36)
+### 5.1 — Screenshots do próprio app — ✅ 13/13 automatizadas (sessão 28; concluído sessão 36)
 
 `@playwright/test` instalado e `scripts/capture-tcc-screenshots.ts` +
 `scripts/playwright.config.ts` (viewport 393×852) criados. O script faz login **real** (contra a
 API, não mais mockado — a Trilha B terminou antes desta etapa) com um usuário de teste e navega a
-UI de verdade via `npm run web`. Já geradas em `tcc/assets/app/`: `welcome`, `login`,
-`feed-principal`, `filtros`, `detalhes-partida`, `chat-partida`, `criar-partida`, `perfil`.
+UI de verdade via `npm run web`. Geradas em `tcc/assets/app/`: `welcome`, `login`, `cadastro`,
+`feed-principal`, `filtros`, `detalhes-partida`, `detalhes-partida-2`, `chat-partida`,
+`criar-partida`, `perfil`, `avaliacao`, `denunciar`, `moderacao`.
 
-Ainda faltam (confirmada a ressalva prevista abaixo): `cadastro`, `avaliacao`, `denunciar`,
-`moderacao` — telas cujo fluxo depende de `Alert.alert`, que não renderiza em `react-native-web`
-(D11), então exigem um screenshot manual via Expo Go/emulador em vez do script.
+**Sessão 36 (2026-07-30) — a suposição de que 4 delas exigiam captura manual estava errada.**
+Reexaminando o código, `Alert.alert` em `RateUserScreen`/`ReportUserScreen` só dispara no
+**sucesso do envio** (não para abrir a tela), e `RegisterScreen`/`AdminDashboardScreen` não usam
+`Alert.alert` em nenhum ponto — bastava parar antes de submeter o formulário. As 5 pendentes
+(as 4 + `detalhes-partida-2`, achado nesta sessão como referenciado no `.tex` mas nunca gerado)
+foram todas automatizadas:
 
-**Achado na sessão 36 (2026-07-30):** `detalhes-partida-2.png` também está referenciado em
-`TCC.tex` (segunda tela de detalhes da partida, "Informações complementares") mas **nunca foi
-gerado nem pelo script nem manualmente** — não é bloqueado por `Alert.alert` (é só uma segunda
-rolagem/seção da mesma tela de detalhes), então pode ser adicionado ao script de captura
-automatizada em vez de exigir captura manual. Cinco imagens pendentes agora, não quatro.
+- `avaliacao`/`denunciar`: usam `match-13` do seed ("Pelada de maio — encerrada"), já fechada,
+  organizada pelo usuário de teste, com participantes ainda não avaliados por ele.
+- `moderacao`: exigiu promover o usuário de teste a `role=ADMIN` via SQL direto no banco local
+  (revertido para `USER` depois da captura) — mesmo "único caso que exige acesso direto ao banco"
+  já citado em §2/D-Deploy-1.
+- `detalhes-partida-2`: segunda seção (scroll) da tela de detalhes, mostrando organizador e
+  início da lista de participantes.
 
-Para rodar de novo (ex.: após uma mudança de design): `npm run web` de pé, um usuário de teste
-cadastrado no backend apontado pelo `.env`, e `TCC_SCREENSHOT_PASSWORD="senha" npx playwright test
+Achado de processo: `react-native-web` não desmonta telas anteriores do stack de navegação dentro
+da mesma sessão SPA (nem em `goBack()`), então o mesmo texto pode aparecer duplicado em telas
+empilhadas, quebrando seletores do Playwright por texto — corrigido usando reload completo
+(`page.goto`) entre sub-fluxos independentes em vez de navegar de volta na mesma sessão.
+
+Para rodar de novo (ex.: após uma mudança de design): `npm run web` + backend local de pé, um
+usuário de teste cadastrado (`python -m app.seed` gera `guilherme.freire@squadup.dev` /
+`changeme123`), e `TCC_SCREENSHOT_EMAIL="..." TCC_SCREENSHOT_PASSWORD="..." npx playwright test
 --config=scripts/playwright.config.ts`.
 
 ### 5.2 — Screenshots de concorrentes: manuais, ação do usuário
