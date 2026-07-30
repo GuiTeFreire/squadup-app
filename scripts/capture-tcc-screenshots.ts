@@ -21,8 +21,36 @@ if (!TEST_PASSWORD) {
   );
 }
 
+/**
+ * O dev client do Metro/Expo web injeta, de forma intermitente (não em todo carregamento —
+ * não é o LogBox, que no react-native-web é um stub vazio), um badge flutuante quadrado no
+ * canto inferior esquerdo. Não é parte da UI do SquadUp e não aparece na build de produção/EAS
+ * — só polui o screenshot do TCC. Heurística: elemento fixed/absolute, colado no canto
+ * inferior esquerdo, pequeno e aproximadamente quadrado. Exclui explicitamente a aba "Início"
+ * da tab bar real (fica na mesma região, mas é bem mais larga que alta).
+ */
+async function hideDevOverlay(page: import("@playwright/test").Page) {
+  await page.evaluate(() => {
+    const vh = window.innerHeight;
+    document.querySelectorAll("body *").forEach((el) => {
+      const cs = window.getComputedStyle(el);
+      if (cs.position !== "fixed" && cs.position !== "absolute") return;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      const isBottomLeft = rect.left < 30 && rect.bottom > vh - 20 && rect.bottom <= vh + 5;
+      const ratio = rect.width / rect.height;
+      const isSmallSquare = rect.width < 90 && rect.height < 90 && ratio > 0.5 && ratio < 2;
+      const isNavTab = el.closest('a[href^="/AppTabs"], [role="tab"], [role="tablist"]');
+      if (isBottomLeft && isSmallSquare && !isNavTab) {
+        (el as HTMLElement).style.setProperty("display", "none", "important");
+      }
+    });
+  });
+}
+
 async function shot(page: import("@playwright/test").Page, name: string) {
   await page.waitForTimeout(400);
+  await hideDevOverlay(page);
   await page.screenshot({ path: `${OUT_DIR}/${name}.png` });
 }
 
