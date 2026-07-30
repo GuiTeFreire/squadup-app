@@ -77,8 +77,8 @@
 | **A — Deploy do backend** | Executar o deploy real no Railway | Nada — **✅ URL de produção já ativa** (`squadup-api.up.railway.app`) | Concluída (falta só a decisão de seed, §2) |
 | **B — Integração front↔back** | Fase 13 do front (trocar mocks por API real) | Trilha A (precisa de uma URL real para apontar, mas pode começar contra `localhost` antes disso) | Concluída (16/16, sessão 28) |
 | **C — Build e demo do app** | EAS Build / Expo Go para teste e apresentação | Trilha B razoavelmente avançada | Em andamento — build rodado várias vezes (sessão 34), instalado em Android real; falta confirmar teste ponta a ponta da build mais recente (`fa25bd21`) e decidir se gera build nova com os ajustes da sessão 35 |
-| **D — Assets do TCC** | Estrutura de pastas, prints, bibliografia, diagramas | Nada (screenshots podem ser tirados com os mocks atuais) | Em andamento — 8/~11 screenshots do app automatizadas (sessão 28) |
-| **E — Escrita da monografia** | Capítulos novos/atualizados do TCC.tex | Parcialmente nada (casos de uso extras e arquitetura já documentável), parcialmente B/C (capítulo de resultados) | **Agora** para as partes que não dependem de resultado final |
+| **D — Assets do TCC** | Estrutura de pastas, prints, bibliografia, diagramas | Nada (screenshots podem ser tirados com os mocks atuais) | Em andamento — 8/13 screenshots do app automatizadas (sessão 28); faltam 5 (cadastro, avaliação, denúncia, moderação — manuais, D11 — e detalhes-partida-2, automatizável) |
+| **E — Escrita da monografia** | Capítulos novos/atualizados do TCC.tex | Parcialmente nada (casos de uso extras e arquitetura já documentável), parcialmente B/C (capítulo de resultados) | Em andamento — §6.1 (casos de uso extras, geo/push, segurança) ✅ concluído sessão 36; §6.2 (capítulo de Implementação/Testes, cronograma atualizado, Considerações Finais retrospectivas) segue aguardando o fechamento de T1 |
 | **F — Geolocalização real + push** | Fase 14 do front (`roadmap.md` §20) + Fase 13 do backend (`../squadup-back/.status/roadmap.md` §19) | Trilha B concluída (pré-requisito satisfeito em 2026-07-16) | Em andamento — **backend concluído** (4/4 tarefas, PR #50, 2026-07-28); front geo e push concluídos (etapas 5–7, sessões 31–33); falta só a etapa 8 (hardening) — ver §9 |
 
 Nenhuma trilha bloqueia totalmente as outras — dá para avançar em 3–4 frentes ao mesmo tempo.
@@ -177,7 +177,7 @@ front/
 
 Ajustar os `\includegraphics{assets/...}` do `.tex` para `\includegraphics{assets/app/...}` etc. já é o padrão que o próprio documento já usa (a maioria já está organizada assim) — só falta mover os arquivos físicos para bater com os caminhos.
 
-### 5.1 — Screenshots do próprio app — 8/~11 automatizadas (sessão 28)
+### 5.1 — Screenshots do próprio app — 8/13 automatizadas (sessão 28; total revisado sessão 36)
 
 `@playwright/test` instalado e `scripts/capture-tcc-screenshots.ts` +
 `scripts/playwright.config.ts` (viewport 393×852) criados. O script faz login **real** (contra a
@@ -188,6 +188,12 @@ UI de verdade via `npm run web`. Já geradas em `tcc/assets/app/`: `welcome`, `l
 Ainda faltam (confirmada a ressalva prevista abaixo): `cadastro`, `avaliacao`, `denunciar`,
 `moderacao` — telas cujo fluxo depende de `Alert.alert`, que não renderiza em `react-native-web`
 (D11), então exigem um screenshot manual via Expo Go/emulador em vez do script.
+
+**Achado na sessão 36 (2026-07-30):** `detalhes-partida-2.png` também está referenciado em
+`TCC.tex` (segunda tela de detalhes da partida, "Informações complementares") mas **nunca foi
+gerado nem pelo script nem manualmente** — não é bloqueado por `Alert.alert` (é só uma segunda
+rolagem/seção da mesma tela de detalhes), então pode ser adicionado ao script de captura
+automatizada em vez de exigir captura manual. Cinco imagens pendentes agora, não quatro.
 
 Para rodar de novo (ex.: após uma mudança de design): `npm run web` de pé, um usuário de teste
 cadastrado no backend apontado pelo `.env`, e `TCC_SCREENSHOT_PASSWORD="senha" npx playwright test
@@ -211,10 +217,31 @@ O `.tex` já tem um placeholder comentado para um diagrama de arquitetura (linha
 
 `TCC.tex` hoje é um anteprojeto (Capítulos 1–6, tempo futuro, sem capítulo de resultados). Para virar a monografia final, mapeei os gaps de conteúdo:
 
-### 6.1 — Pode ser escrito **agora**, sem esperar nada
-- **Casos de uso faltantes** (Capítulo 3): hoje só 6 estão documentados (buscar partidas, criar, detalhes, participar, perfil, denunciar), mas o front já tem telas e o back já tem endpoints para pelo menos mais 7: **cadastro/login** (autenticação), **cancelar participação**, **aprovar participante pendente** (organizador), **encerrar partida** (organizador), **conversar no chat da partida**, **avaliar usuário pós-partida**, **moderar denúncias** (admin: arquivar/advertir/banir). Cada um segue o mesmo template já usado (ator, pré/pós-condições, fluxo principal, fluxos alternativos, screenshot).
-- **Correção da seção 4.6.5 "Geolocalização" e 4.7 "Local"** (decisão D-A já registrada em `.status/backend-contract.md` §5): ajustar o tempo verbal — hoje o texto afirma que geolocalização "foi utilizada" quando na verdade `location` é só uma string livre nos dois lados, sem lat/long. Mover para "trabalhos futuros" em vez de apagar — é uma limitação honesta, não um erro a esconder.
-- **Seção de segurança/LGPD** (novo, Capítulo 4): JWT com rotação de refresh token, hash de senha via bcrypt, RBAC (admin vs. usuário), purge automático de tokens expirados — tudo já implementado e testado no back, só falta descrever.
+### 6.1 — Pode ser escrito **agora**, sem esperar nada — ✅ concluído em 2026-07-30
+
+- ✅ **Casos de uso faltantes** (Capítulo 3): os 7 que faltavam foram escritos — **cadastrar-se e
+  autenticar-se**, **cancelar participação**, **aprovar participante pendente** (organizador),
+  **encerrar partida** (organizador), **conversar no chat da partida**, **avaliar usuário
+  pós-partida**, **moderar denúncias** (admin). Cada um segue o template já usado (ator,
+  pré/pós-condições, fluxo principal, fluxos alternativos); os que já têm screenshot capturado
+  (login, chat) ganharam figura, os que ainda não têm (cadastro, avaliação, moderação) ganharam
+  um placeholder comentado, mesmo padrão já usado para `assets/arquitetura.png`. Parágrafos de
+  atores/telas/considerações do Capítulo 3 atualizados para refletir o conjunto ampliado.
+- ✅ **Seção 4.6.5 "Geolocalização" — não precisou de correção, ao contrário do previsto aqui.**
+  Esta entrada foi escrita antes da Fase 14 terminar, quando geolocalização ainda era só texto
+  livre — a essa altura, a frase "geolocalização foi utilizada" já é **verdadeira** (GPS real via
+  `expo-location`, Fase 14 concluída do lado do front e do backend). Em vez de mover para
+  "trabalhos futuros", a seção foi **enriquecida** com os detalhes reais da implementação (GPS do
+  dispositivo, raio de busca configurável, comportamento aditivo). Nova seção-irmã
+  "Notificações push" também adicionada, pelo mesmo motivo (também implementada de verdade).
+- ✅ **Seção de segurança/LGPD** (novo, Capítulo 4, `\subsection{Segurança e privacidade}`): JWT
+  com refresh token, hash de senha, RBAC, purge de tokens expirados — descritos.
+
+Detalhe completo desta sessão em `progress.md`. **Gap pré-existente encontrado ao validar as
+imagens referenciadas no `.tex`** (não introduzido nesta sessão): `denunciar.png` (já sabido
+pendente, §5.1) e **`detalhes-partida-2.png` (achado novo, não constava em nenhuma lista de
+pendências até agora)** são referenciados no `.tex` mas não existem em `tcc/assets/app/` —
+`detalhes-partida-2` adicionado à lista de pendências da Trilha D (§5.1).
 
 ### 6.2 — Precisa da Trilha A/B avançarem primeiro
 - **Capítulo novo "Implementação, Testes e Validação"** (entre Arquitetura e Cronograma): stack final por camada, cobertura de testes automatizados (back: 113 testes/99% via `pytest-cov`; front: quantidade real de testes Jest), pipeline de CI (GitHub Actions — lint, type-check, testes, gate de cobertura, CodeQL, gitleaks, bandit, pip-audit), decisão de hospedagem (Railway) e por quê, teste manual ponta a ponta (depende da Trilha B estar concluída).
