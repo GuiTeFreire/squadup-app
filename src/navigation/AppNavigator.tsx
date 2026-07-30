@@ -51,41 +51,54 @@ function AppTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        tabBarShowLabel: false,
         tabBarActiveTintColor: "#3B82F6",
         tabBarInactiveTintColor: "#64748B",
         tabBarStyle: {
           backgroundColor: "#0F172A",
           borderTopWidth: 0,
           elevation: 0,
-          height: 62 + insets.bottom,
+          height: 52 + insets.bottom,
           paddingTop: 8,
           paddingBottom: insets.bottom + 8,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: "600",
         },
       }}
     >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ tabBarLabel: "Início", tabBarIcon: HomeIcon }}
+        options={{
+          tabBarLabel: "Início",
+          tabBarIcon: HomeIcon,
+          tabBarAccessibilityLabel: "Início",
+        }}
       />
       <Tab.Screen
         name="Search"
         component={SearchScreen}
-        options={{ tabBarLabel: "Busca", tabBarIcon: SearchIcon }}
+        options={{
+          tabBarLabel: "Busca",
+          tabBarIcon: SearchIcon,
+          tabBarAccessibilityLabel: "Busca",
+        }}
       />
       <Tab.Screen
         name="CreateMatch"
         component={CreateMatchScreen}
-        options={{ tabBarLabel: "Criar", tabBarIcon: CreateIcon }}
+        options={{
+          tabBarLabel: "Criar",
+          tabBarIcon: CreateIcon,
+          tabBarAccessibilityLabel: "Criar partida",
+        }}
       />
       <Tab.Screen
         name="Profile"
         component={MyProfileScreen}
-        options={{ tabBarLabel: "Perfil", tabBarIcon: ProfileIcon }}
+        options={{
+          tabBarLabel: "Perfil",
+          tabBarIcon: ProfileIcon,
+          tabBarAccessibilityLabel: "Perfil",
+        }}
       />
     </Tab.Navigator>
   );

@@ -64,11 +64,11 @@ test("captura telas principais do app", async ({ page }) => {
   await page.goto(BASE_URL);
   await expect(page.getByText("Partidas próximas")).toBeVisible({ timeout: 20000 });
 
-  await page.getByText("Criar", { exact: true }).click();
+  await page.getByRole("tab", { name: "Criar partida" }).click();
   await expect(page.getByText("Criar Partida", { exact: true })).toBeVisible({ timeout: 10000 });
   await shot(page, "criar-partida");
 
-  await page.getByText("Perfil", { exact: true }).click();
+  await page.getByRole("tab", { name: "Perfil" }).click();
   await page.waitForTimeout(800);
   await shot(page, "perfil");
 });
