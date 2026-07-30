@@ -81,12 +81,19 @@ function ToggleRow({
 export default function CreateMatchScreen() {
   const navigation = useNavigation<Nav>();
   const invalidateMatches = useInvalidateMatches();
-  const { location: deviceLocation, requestLocation } = useDeviceLocation();
+  const {
+    location: deviceLocation,
+    isLoading: isLocationLoading,
+    requestLocation,
+  } = useDeviceLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [locationChecked, setLocationChecked] = useState(false);
 
   useEffect(() => {
-    void requestLocation();
+    void requestLocation().finally(() => setLocationChecked(true));
   }, [requestLocation]);
+
+  const showLocationWarning = locationChecked && !isLocationLoading && !deviceLocation;
 
   const [sport, setSport] = useState<Sport | null>(null);
   const [title, setTitle] = useState("");
@@ -253,6 +260,18 @@ export default function CreateMatchScreen() {
             autoCapitalize="words"
             leftIcon="map-marker-outline"
           />
+          {showLocationWarning ? (
+            <View className="-mt-4 flex-row items-center gap-1">
+              <MaterialCommunityIcons
+                name="map-marker-off-outline"
+                size={14}
+                color={colors.neutral[400]}
+              />
+              <Text className="text-xs text-neutral-500">
+                Localização não disponível — partida será criada sem coordenadas
+              </Text>
+            </View>
+          ) : null}
 
           {/* Date + Time */}
           <View className="flex-row gap-3">

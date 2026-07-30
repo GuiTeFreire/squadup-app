@@ -58,6 +58,7 @@ export default function MyProfileScreen() {
                   name="check-decagram"
                   size={18}
                   color={colors.primary[400]}
+                  accessibilityLabel="Verificado"
                 />
               )}
             </View>

@@ -40,6 +40,7 @@ jest.spyOn(Alert, "alert");
 beforeEach(() => {
   jest.clearAllMocks();
   mockCreateMatch.mockResolvedValue({ id: "match-new" });
+  mockRequestLocation.mockResolvedValue(undefined);
   mockDeviceLocation = null;
 });
 
@@ -317,5 +318,21 @@ describe("CreateMatchScreen — geolocalização", () => {
     const payload = mockCreateMatch.mock.calls[0][0];
     expect(payload.latitude).toBeUndefined();
     expect(payload.longitude).toBeUndefined();
+  });
+
+  it("mostra aviso discreto quando a localização não pôde ser capturada (D26)", async () => {
+    render(<CreateMatchScreen />);
+    expect(
+      await screen.findByText("Localização não disponível — partida será criada sem coordenadas")
+    ).toBeTruthy();
+  });
+
+  it("não mostra aviso de localização quando as coordenadas estão disponíveis", async () => {
+    mockDeviceLocation = { latitude: -22.9, longitude: -43.2 };
+    render(<CreateMatchScreen />);
+    await waitFor(() => expect(mockRequestLocation).toHaveBeenCalledTimes(1));
+    expect(
+      screen.queryByText("Localização não disponível — partida será criada sem coordenadas")
+    ).toBeNull();
   });
 });

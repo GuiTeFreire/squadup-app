@@ -16,8 +16,12 @@ import StarRatingInput from "../components/StarRatingInput";
 import { useMatchDetail } from "../hooks/useMatchDetail";
 import { useSubmitRating } from "../hooks/useRatings";
 import type { AppRootStackParamList } from "../navigation/types";
+import { ApiError } from "../services/api/client";
 import { colors, LEVEL_META, shadows } from "../theme";
 import type { RatingCriteria } from "../types";
+
+const NOT_MATCH_PARTICIPANT_MESSAGE =
+  "Você e este participante precisam ter entrado na partida (não só organizado) para avaliar ou ser avaliado.";
 
 type Nav = NativeStackNavigationProp<AppRootStackParamList>;
 type Route = RouteProp<AppRootStackParamList, "RateUser">;
@@ -80,7 +84,13 @@ export default function RateUserScreen() {
           [{ text: "OK", onPress: () => navigation.goBack() }]
         );
       },
-      onError: () => setError("Não foi possível enviar a avaliação. Tente novamente."),
+      onError: (submitError) => {
+        if (submitError instanceof ApiError && submitError.code === "NOT_MATCH_PARTICIPANT") {
+          setError(NOT_MATCH_PARTICIPANT_MESSAGE);
+        } else {
+          setError("Não foi possível enviar a avaliação. Tente novamente.");
+        }
+      },
     });
   }
 
@@ -110,6 +120,7 @@ export default function RateUserScreen() {
                       name="check-decagram"
                       size={16}
                       color={colors.primary[500]}
+                      accessibilityLabel="Verificado"
                     />
                   )}
                 </View>
