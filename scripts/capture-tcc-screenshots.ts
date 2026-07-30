@@ -33,6 +33,17 @@ test("captura telas principais do app", async ({ page }) => {
   await expect(page.getByText("Conecte-se. Jogue. Repita.")).toBeVisible({ timeout: 20000 });
   await shot(page, "welcome");
 
+  // react-native-web nunca desmonta telas anteriores do stack dentro da mesma sessão SPA
+  // (cada navegação forward acumula instâncias no DOM) — por isso o cadastro é capturado
+  // direto do Welcome, seguido de um reload completo (page.goto) antes de seguir para o
+  // login, em vez de navegar Login → Register → Login de volta na mesma sessão.
+  await page.getByRole("button", { name: "Criar conta" }).click();
+  await expect(page.getByText("Crie sua conta")).toBeVisible({ timeout: 10000 });
+  await shot(page, "cadastro");
+
+  await page.goto(BASE_URL);
+  await expect(page.getByText("Conecte-se. Jogue. Repita.")).toBeVisible({ timeout: 20000 });
+
   await page.getByRole("button", { name: "Já tenho conta" }).click();
   await expect(page.getByText("Bem-vindo de volta")).toBeVisible({ timeout: 10000 });
   await shot(page, "login");
@@ -54,6 +65,13 @@ test("captura telas principais do app", async ({ page }) => {
   await expect(page.getByText("Detalhes da partida")).toBeVisible({ timeout: 10000 });
   await shot(page, "detalhes-partida");
 
+  // scrollIntoViewIfNeeded só garante visibilidade mínima na borda — a barra de ações fixa
+  // no rodapé cobre esse trecho; scrollamos mais um pouco pra deixar a seção de
+  // organizador/participantes de fato visível acima dela.
+  await page.getByText("Organizador", { exact: true }).scrollIntoViewIfNeeded();
+  await page.mouse.wheel(0, 250);
+  await shot(page, "detalhes-partida-2");
+
   const chatButton = page.getByRole("button", { name: "Chat da partida" });
   if (await chatButton.isVisible().catch(() => false)) {
     await chatButton.click();
@@ -71,4 +89,61 @@ test("captura telas principais do app", async ({ page }) => {
   await page.getByRole("tab", { name: "Perfil" }).click();
   await page.waitForTimeout(800);
   await shot(page, "perfil");
+
+  // Avaliação pós-partida e denúncia: usam a partida já encerrada do seed (match-13,
+  // "Pelada de maio — encerrada"), organizada pelo usuário de teste, com participantes
+  // ainda não avaliados por ele (Thiago Ferreira / Beatriz Rocha). Cada uma navega a partir
+  // de um reload completo (goto) + busca, em vez de goBack() dentro da mesma sessão SPA —
+  // goBack() não desmonta as telas anteriores do stack neste alvo (react-native-web),
+  // causando o mesmo problema de texto duplicado do trecho de cadastro acima.
+  async function openClosedMatch() {
+    await page.goto(BASE_URL);
+    await expect(page.getByText("Partidas próximas")).toBeVisible({ timeout: 20000 });
+    await page.getByPlaceholder("Buscar partidas...").fill("encerrada");
+    const closedMatchCard = page
+      .locator('[role="button"]')
+      .filter({ hasText: "Pelada de maio" })
+      .first();
+    await expect(closedMatchCard).toBeVisible({ timeout: 10000 });
+    await closedMatchCard.click();
+    await expect(page.getByText("Detalhes da partida")).toBeVisible({ timeout: 10000 });
+  }
+
+  await openClosedMatch();
+  await page.getByText("Avaliar participantes", { exact: true }).click();
+  await expect(page.getByText(/Avalie os participantes desta partida/)).toBeVisible({
+    timeout: 10000,
+  });
+  await page.getByLabel("Avaliar Thiago Ferreira").click();
+  await expect(page.getByText("Avaliar participante", { exact: true })).toBeVisible({
+    timeout: 10000,
+  });
+  await shot(page, "avaliacao");
+
+  await openClosedMatch();
+  await page.getByLabel("Ver perfil de Beatriz Rocha").click();
+  // PublicProfileScreen tem dois botões com o mesmo aria-label (ícone no header + botão
+  // de texto no corpo) — .first() pega o ícone do header, ambos levam ao mesmo lugar.
+  const reportButton = page.getByRole("button", { name: "Denunciar usuário" }).first();
+  await expect(reportButton).toBeVisible({ timeout: 10000 });
+  await reportButton.click();
+  await expect(page.getByText("Motivo da denúncia", { exact: false })).toBeVisible({
+    timeout: 10000,
+  });
+  await shot(page, "denunciar");
+
+  // Painel administrativo: exige role "admin" no usuário de teste (promovido manualmente
+  // no banco antes de rodar este script — ver .status/plano-de-entrega.md §2, "único caso
+  // que exige acesso direto ao banco").
+  await page.goto(BASE_URL);
+  await expect(page.getByText("Partidas próximas")).toBeVisible({ timeout: 20000 });
+  await page.getByRole("tab", { name: "Perfil" }).click();
+  await page.waitForTimeout(500);
+  const adminButton = page.getByText("Painel administrativo", { exact: true });
+  if (await adminButton.isVisible().catch(() => false)) {
+    await adminButton.click();
+    await expect(page.getByText(/denúncia.*pendente/i)).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(600);
+    await shot(page, "moderacao");
+  }
 });
