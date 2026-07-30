@@ -48,6 +48,25 @@
 > (hardening ponta a ponta em dispositivo físico, única pendência de toda a Trilha F). Achado
 > relevante: push remoto não funciona mais no Expo Go desde o SDK 53 — a etapa 8 precisa de um
 > development/preview build via EAS, não só de Expo Go.
+>
+> **Atualização (2026-07-30, sessões 34–35 do front + Fase 15 do backend):** Trilha C avançou
+> além do que este documento registrava — `eas build --platform android --profile preview` **já
+> rodou várias vezes** (sessão 34), cada rodada corrigindo um bug achado testando de verdade num
+> Android físico pela primeira vez (D28 dados mockados residuais, D29 crash de boot por
+> dependência nativa faltando, D30/D31 teclado + falha parcial de cadastro, D32 retry de rede,
+> D33/D34 mismatches de validação senha/e-mail vs. contrato real do backend — nenhum desses dois
+> últimos era bug do backend, confirmado). **Build mais recente, `fa25bd21` (commit `3dcd0dd`),
+> ainda sem confirmação de teste ponta a ponta pelo usuário** — continua sendo o único item
+> bloqueante de toda a Trilha F (etapa 8) e, na prática, da entrega toda. Depois dela, a sessão 35
+> limpou 5 dívidas de baixa prioridade (D4/D13/D24/D26/D34) e mergeou via PR #14 — mudanças só de
+> JS, não exigem build nova por si só, mas **não estão incluídas** na build `fa25bd21` (anterior
+> ao merge). Do lado do backend, uma **Fase 15 fora do escopo original deste plano** foi
+> implementada e mergeada (`squadup-back` PR #54): push token por dispositivo, **chat em tempo
+> real via WebSocket** e **upload real de avatar** (as duas últimas citadas como "fora do escopo"
+> em `../squadup-back/.status/vision.md` até esta sessão), mais observabilidade e um gate de
+> qualidade no CI. **O front não consome nenhuma das três capacidades novas ainda** — não é uma
+> pendência do plano (chat via REST/poll e avatar por URL sempre bastaram para o protótipo), é
+> capacidade extra disponível só se sobrar tempo. Detalhe completo em §1/§4/§9 abaixo.
 
 ---
 
@@ -57,7 +76,7 @@
 |---|---|---|---|
 | **A — Deploy do backend** | Executar o deploy real no Railway | Nada — **✅ URL de produção já ativa** (`squadup-api.up.railway.app`) | Concluída (falta só a decisão de seed, §2) |
 | **B — Integração front↔back** | Fase 13 do front (trocar mocks por API real) | Trilha A (precisa de uma URL real para apontar, mas pode começar contra `localhost` antes disso) | Concluída (16/16, sessão 28) |
-| **C — Build e demo do app** | EAS Build / Expo Go para teste e apresentação | Trilha B razoavelmente avançada | Em andamento — `eas.json` pronto, `projectId` gerado (sessão 33); falta rodar o build de fato |
+| **C — Build e demo do app** | EAS Build / Expo Go para teste e apresentação | Trilha B razoavelmente avançada | Em andamento — build rodado várias vezes (sessão 34), instalado em Android real; falta confirmar teste ponta a ponta da build mais recente (`fa25bd21`) e decidir se gera build nova com os ajustes da sessão 35 |
 | **D — Assets do TCC** | Estrutura de pastas, prints, bibliografia, diagramas | Nada (screenshots podem ser tirados com os mocks atuais) | Em andamento — 8/~11 screenshots do app automatizadas (sessão 28) |
 | **E — Escrita da monografia** | Capítulos novos/atualizados do TCC.tex | Parcialmente nada (casos de uso extras e arquitetura já documentável), parcialmente B/C (capítulo de resultados) | **Agora** para as partes que não dependem de resultado final |
 | **F — Geolocalização real + push** | Fase 14 do front (`roadmap.md` §20) + Fase 13 do backend (`../squadup-back/.status/roadmap.md` §19) | Trilha B concluída (pré-requisito satisfeito em 2026-07-16) | Em andamento — **backend concluído** (4/4 tarefas, PR #50, 2026-07-28); front geo e push concluídos (etapas 5–7, sessões 31–33); falta só a etapa 8 (hardening) — ver §9 |
@@ -111,8 +130,8 @@ de depender de Expo Go + rede durante a apresentação (menos pontos de falha ao
 
 1. ~~`npx eas build:configure` (gera `eas.json`)~~ — ✅ feito manualmente (sessão 28), sem passar pelo comando interativo.
 2. ~~`npx eas login` + `eas build:configure` de fato (gera `projectId`)~~ — ✅ **feito pelo usuário na sessão 33**: projeto `@guilhermefreire7/squadup` criado no EAS, `projectId` `0032bb63-f809-42d2-baba-6d62bc2b61b0` gravado em `app.json`. Também destravou o `useNotificationRegistration` (Fase 14, etapa 7), que depende desse `projectId` para obter o `ExpoPushToken`.
-3. **Falta:** `npx eas build --platform android --profile preview` (o build em si, ainda não rodado).
-4. Instalar o APK gerado num dispositivo Android para o dia da defesa (ou usar um emulador local como plano B) — esse mesmo dispositivo pode servir para a etapa 8 da Fase 14 (hardening de geo + push), já que push remoto não funciona mais no Expo Go desde o SDK 53.
+3. ~~`npx eas build --platform android --profile preview`~~ — ✅ **rodado repetidamente na sessão 34** (5 builds ao longo da sessão, cada uma corrigindo um bug achado no teste real). Build mais recente: `fa25bd21` (commit `3dcd0dd`), perfil `preview`, apontando para produção.
+4. ~~Instalar o APK gerado num dispositivo Android~~ — ✅ feito (sessão 34) — mesmo dispositivo usado para achar/validar D28–D34. **Falta:** confirmar que a build `fa25bd21` completa o fluxo ponta a ponta (cadastro → criar partida → chat → filtro de proximidade → push) numa passada só — é o item T1/etapa 8 que bloqueia o fechamento da Trilha F. A build `fa25bd21` **não inclui** os ajustes da sessão 35 (`chore/tech-debt-cleanup`, PR #14) nem a Fase 15 do backend (não consumida pelo front ainda) — se quiser tudo isso refletido antes da defesa, uma build nova precisa ser gerada depois de confirmar o teste ponta a ponta atual.
 5. iOS: opcional — exige conta Apple Developer paga; só perseguir se for um requisito da banca (normalmente não é).
 
 **Decisão a fechar:** Android-only é suficiente para a defesa, ou a banca/orientador exige demonstrar iOS também?
