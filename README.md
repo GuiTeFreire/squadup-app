@@ -214,10 +214,10 @@ backend.
 | 9 | Avaliação pós-partida | ✅ Concluída |
 | 10 | Denúncia e segurança | ✅ Concluída |
 | 11 | Moderação (opcional) | ✅ Concluída |
-| 12 | Revisão e polimento final | 🟡 **Em andamento** (6/8 — resta apenas testar em Expo Go/dispositivo; `projectId` do EAS já gerado, falta rodar o build de apresentação de fato) |
+| 12 | Revisão e polimento final | 🟡 **Em andamento** (6/8 — `projectId` do EAS gerado, várias builds de apresentação já geradas e testadas em dispositivo real; resta o teste formal em Expo Go) |
 | 13 | Integração com o backend real | 🟢 **Concluída (16/16)** — fundação, Auth real, Matches reais, Mensagens reais, Avaliações reais, Denúncias reais e hardening/teste ponta a ponta; backend já deployado em `https://squadup-api.up.railway.app` |
-| 14 | Geolocalização real e notificações push | 🟡 **Em andamento (7/8)** — backend concluído (PR #50); front concluído: geolocalização (`useDeviceLocation`, filtro por proximidade) e push (`useNotificationRegistration`, navegação por notificação) ✅; falta só o hardening ponta a ponta em dispositivo físico |
+| 14 | Geolocalização real e notificações push | 🟡 **Em andamento (7/8)** — backend concluído (PR #50); front concluído: geolocalização (`useDeviceLocation`, filtro por proximidade) e push (`useNotificationRegistration`, navegação por notificação) ✅; hardening em dispositivo físico em andamento (item 8) — várias rodadas de teste real já corrigiram bugs de boot, teclado e cadastro (D28–D34) |
 
-289 testes passando · lint zerado · tsc zerado · 85/86 tarefas do protótipo+integração concluídas (99%) · Fase 14: 7/8
+302 testes passando · lint zerado · tsc zerado · 85/86 tarefas do protótipo+integração concluídas (99%) · Fase 14: 7/8
 
 Ver [`.status/queue.md`](.status/queue.md) para a fila de tarefas e [`.status/progress.md`](.status/progress.md) para o histórico detalhado por sessão.

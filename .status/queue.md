@@ -136,6 +136,7 @@ cada uma só depende do respectivo contrato de backend estar mergeado.
 | D31 | `KeyboardAvoidingView` com `behavior="height"` no Android não resolvia o teclado cobrindo o campo, mesmo depois do D30; cadastro também ficava irrecuperável após uma falha parcial em `completeProfile` | ~~Alta~~ **Resolvida (sessão 34)** | Dois problemas relatados juntos pelo usuário na mesma rodada de teste: **(1)** o D30 não resolveu o teclado — causa raiz pesquisada (não seria seguro adivinhar de novo, cada build EAS leva de 15min a 2h30): `edgeToEdgeEnabled: true` (já ativo no projeto) muda como o Android lida com o teclado a partir do SDK 54/RN 0.81, e a recomendação oficial da própria Expo é usar `behavior={undefined}` no Android (deixar o SO redimensionar a janela via `windowSoftInputMode`), não `"height"` — ver [docs.expo.dev/guides/keyboard-handling](https://docs.expo.dev/guides/keyboard-handling/). Corrigido: `behavior={Platform.OS === "ios" ? "padding" : undefined}` nas 9 telas (as 8 do D30 + `MatchChatScreen`, que já tinha o mesmo `"height"` problemático antes desta sessão); `app.json` ganhou `android.softwareKeyboardLayoutMode: "resize"` para garantir o redimensionamento automático da janela. **(2)** `completeProfile` (`AuthContext.tsx`) não sobrevivia a uma falha parcial: se `POST /auth/register` desse certo mas o passo seguinte (`POST /auth/login` ou `PATCH /users/me`) falhasse (ex.: instabilidade de rede real, exatamente o que aconteceu no teste), a conta já tinha sido criada no backend, mas o usuário via um erro genérico e, ao tentar de novo com os mesmos dados, `POST /auth/register` falhava com `EMAIL_ALREADY_REGISTERED` — sem forma de prosseguir sem trocar de e-mail. Corrigido: `completeProfile` agora captura especificamente `EMAIL_ALREADY_REGISTERED` e segue para o login em vez de propagar o erro (login com credenciais erradas — e-mail de outra conta — continua falhando normalmente, com o erro real do login). Também: `ProfileSetupScreen` agora mostra a mensagem crua do erro quando não é um `ApiError` (antes escondia atrás de um texto genérico, dificultando diagnosticar a causa real da primeira falha). 2 testes novos em `AuthContext.test.tsx` cobrindo os dois cenários (retry bem-sucedido e e-mail de outra conta). **Exige gerar uma build EAS nova** (mesma exigência do D29/D30 — os três foram corrigidos na mesma sessão, uma única build cobre tudo). |
 | D32 | `apiClient` não tinha nenhuma tolerância a falha de rede — uma queda momentânea de conectividade (ex.: mobile data instável) derrubava qualquer chamada de uma vez, sem tentar de novo | ~~Média~~ **Resolvida (sessão 34)** | Mesmo depois do D31, o cadastro voltou a falhar em teste real com "Network request failed" — confirmado pelos logs reais do Railway (`GET /health`, `POST /auth/register/login`, tudo respondendo normalmente por perto do horário do teste) que **não era bug determinístico**: o backend e o fluxo funcionam (o log mostra dois cadastros completos com sucesso), foi uma queda pontual de rede do dispositivo. O usuário apontou, corretamente, que o app deveria absorver isso sozinho em vez de exigir que o usuário perceba o erro e tente de novo manualmente. Corrigido: `fetchWithNetworkRetry` (novo, dentro de `src/services/api/client.ts`) tenta de novo até 2 vezes (600ms de espera entre tentativas) **só quando o próprio `fetch()` lança antes de qualquer resposta chegar** (`TypeError`, sem internet/DNS/conexão recusada) — nunca em cima de uma resposta HTTP já recebida (4xx/5xx são erros de negócio reais; repeti-los às cegas arriscaria efeito colateral duplicado, ex. duas denúncias iguais). Nova função exportada `isNetworkError(err)` também usada em `ProfileSetupScreen` para mostrar "Sem conexão com o servidor..." em vez do texto cru do erro nativo quando as 3 tentativas se esgotam. Benefício sistêmico: como o retry vive dentro de `apiClient`, toda chamada da API (não só cadastro) passa a tolerar blips de rede automaticamente, sem mudança em cada tela. 6 testes novos (`client.test.ts`): retry com sucesso na 2ª tentativa, esgotar as tentativas e propagar o erro original, e confirmar que respostas HTTP de erro nunca são repetidas. **Exige gerar uma build EAS nova.** |
 | D33 | Mismatch de contrato: senha exige mínimo 8 caracteres no backend (`RegisterRequest.password`), front só validava 6; erros de validação automática do FastAPI (`422`, `detail` em lista) caíam no fallback genérico e escondiam a causa real | ~~Alta~~ **Resolvida (sessão 34)** | O usuário testou com um e-mail novo (evitando o caso de conflito do D31) e o cadastro falhou do mesmo jeito — pediu pra validar o fluxo e o contrato com o backend em vez de assumir rede de novo. Comparando `RegisterScreen`/`services/api/auth.ts` contra `app/schemas/auth.py` (`RegisterRequest`) linha a linha: `password: str = Field(..., min_length=8)` no backend vs `password.length < 6` no front — uma senha de 6–7 caracteres passa na validação do app e é rejeitada pelo backend com `422`. Como o FastAPI usa um formato de erro diferente do nosso (`detail` vem como lista de `{loc, msg, type}`, não `{code, message}`), esse `422` caía direto no fallback `UNKNOWN_ERROR`/"Erro inesperado ao comunicar com o servidor." — escondendo a causa real tanto do usuário quanto de quem for depurar. Corrigido: `RegisterScreen` agora exige 8+ caracteres (mensagem e placeholder atualizados); `parseErrorPayload` (`client.ts`) ganhou `fromValidationErrors`, que reconhece o formato de lista do FastAPI e monta uma mensagem legível (`"password: String should have at least 8 characters"`) em vez do genérico. Restante do contrato (`name`/`age`/`location`/`favorite_sports`/enums) conferido e sem mismatch — `Sport`/`ExperienceLevel` batem exatamente entre front e back. `LoginScreen` mantido em 6 (login não tem `min_length` no backend, não é contrato quebrado). 1 teste novo em `client.test.ts` para o parser de validação. **Exige gerar uma build EAS nova.** |
+| D34 | `validateEmail` (`RegisterScreen`/`LoginScreen`) é bem mais permissiva que o `EmailStr` do backend | Baixa | Descoberta ao auditar o contrato de registro por causa do D33 — front só checa `email.length > 0 && email.includes("@")`, enquanto o backend (`RegisterRequest.email: EmailStr`) faz validação real de formato (exige domínio com TLD, entre outras regras do Pydantic). Algo como `"a@b"` passa no front e é rejeitado com `422` no backend — mesma classe de bug do D33 (mismatch de validação), mas **não foi corrigida nesta sessão** porque não há evidência de que seja a causa de nenhum teste real até agora (o usuário usa e-mails válidos) — registrada para não esquecer, não para bloquear. Se resolver: usar a mesma regex/validação em `RegisterScreen` e `LoginScreen` (hoje duplicada nos dois arquivos — vale extrair para `src/utils/` junto da correção). Com D33 já resolvida, qualquer `422` de e-mail que aparecer no futuro vai mostrar a mensagem real do Pydantic (`fromValidationErrors`), não mais o fallback genérico — então o impacto prático de deixar isso em aberto é baixo. |
 
 ---
 
@@ -171,40 +172,35 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 > auditoria) vive em [`progress.md`](progress.md) — esta seção só guarda a observação mais
 > recente, para servir de ponto de retomada rápido no início da próxima sessão.
 
-- **Checkpointer — Sessão 33 (2026-07-28, branch `feat/push-notifications`, a partir de
-  `feat/match-distance-filter`):** item 7 da tabela da Fase 14 concluído (🟢) —
-  `useNotificationRegistration` (permissão + `ExpoPushToken` + `POST /users/me/push-token`),
-  chamado uma vez quando `isAuthenticated` vira `true` em `AuthContext`; listener de navegação
-  (`navigationRef.ts` + `RootNavigator`) mapeando `new_message`→`MatchChat`,
-  `match_closed`/`participation_approved`→`MatchDetail`. `eas build:configure` rodado pelo
-  usuário nesta sessão (`projectId` gerado: `0032bb63-f809-42d2-baba-6d62bc2b61b0`) — corrigido
-  um efeito colateral dele em `app.json` que adicionava `ACCESS_FINE_LOCATION`, contrariando
-  D-Geo-4. Detalhe completo em [`progress.md`](progress.md), sessão 33. **289/289 testes**,
-  `tsc`/`lint` zerados, build web (`npx expo export`) validada.
-  - **Próxima tarefa concreta (item 8, última da Fase 14):** hardening ponta a ponta em
-    dispositivo físico — testar geolocalização real (GPS) e push real (Expo) num Android
-    físico/Expo Go (push remoto **não funciona em Expo Go desde o SDK 53** — precisa de
-    development build via `eas build --profile development`, ou `--profile preview` para um
-    APK completo), confirmar navegação ao tocar a notificação nos 3 eventos, e então ajustar o
-    texto do TCC (decisão D-A) de "trabalho futuro" para "implementado". Ação do usuário —
-    mesma limitação de sandbox já registrada para 12.3.
+- **Checkpointer — Sessão 34 (2026-07-28, branch `dev`, fechamento):** sessão inteira de
+  hardening real em dispositivo físico (item 8 da Fase 14) — primeira vez que o app rodou fora
+  do sandbox. Cada rodada de teste do usuário achou um bug novo; cada um foi corrigido, validado
+  (`tsc`/`lint`/`test`/`expo export`) e seguido de uma build EAS nova. Ordem: **D28** (7 telas
+  ainda liam `CURRENT_USER`/`MOCK_USERS` em vez do usuário real — `PublicProfileScreen`/
+  `ReportUserScreen` chegavam a mostrar "Usuário não encontrado" pra qualquer participante real)
+  → **D29** (crash instantâneo no boot fora do Expo Go — `expo-font`, peer dependency de
+  `@expo/vector-icons`, nunca instalada; achado no log da própria build, fase `RUN_EXPO_DOCTOR`)
+  → **D30/D31** (teclado cobrindo campo de senha/data — causa raiz pesquisada via `WebSearch`
+  antes de tentar de novo: `edgeToEdgeEnabled` exige `behavior={undefined}` no Android, não
+  `"height"`; `completeProfile` também passou a tolerar falha parcial pós-registro) → **D32**
+  (retry automático de rede em `apiClient`, só para falha de `fetch()` pura, nunca em cima de
+  resposta HTTP) → **D33** (mismatch de contrato real: senha exige 8+ no backend, front validava
+  6 — achado comparando `RegisterRequest` linha a linha a pedido do usuário, não assumindo rede
+  de novo; `parseErrorPayload` passou a entender o formato de lista de erro do FastAPI). D34
+  registrada (gap de validação de e-mail, baixa prioridade, não corrigida). Detalhe completo
+  arquivo-por-arquivo em [`progress.md`](progress.md), sessão 34. **302/302 testes**, `tsc`/
+  `lint` zerados, 3 builds EAS geradas ao longo da sessão.
+  - **Estado da build mais recente:** `fa25bd21` (commit `3dcd0dd`, finalizada
+    2026-07-29 20:02 UTC) — **ainda não testada pelo usuário**. APK:
+    https://expo.dev/artifacts/eas/a3RYDwbUazx-A6C9VQQvn39-lgGsUzSPg8Mk1hxEkuY.apk
+  - **Próxima tarefa concreta:** usuário testar essa build **do início ao fim** (cadastro → criar
+    partida → chat → filtro de proximidade → push), não só cadastro isoladamente — é a única
+    forma de saber se o item 8 da Fase 14 pode fechar ou se hoje ainda tem mais algum bug de
+    dispositivo real esperando. Se o cadastro completar de ponta a ponta, o próximo bloco de
+    testes é geo (GPS real) e push (2 contas, verificar notificação + navegação ao tocar).
   - Migration do backend já rodou em produção (Railway, confirmado sessão 30) — a Fase 14 pode
-    ser testada tanto contra o backend local quanto contra `https://squadup-api.up.railway.app`.
-
-- **Checkpointer — Sessão 34 (2026-07-28, branch `fix/real-user-profile-data`, a partir de
-  `feat/push-notifications`/`dev` já mergeada):** achado e corrigido D28 — 7 telas
-  (`HomeScreen`, `MatchChatScreen`, `MatchDetailScreen`, `MyProfileScreen`, `EditProfileScreen`,
-  `PublicProfileScreen`, `ReportUserScreen`) ainda liam `CURRENT_USER`/`MOCK_USERS`/
-  `MOCK_RATINGS` em vez do usuário real — resquício da Fase 13. Efeito mais grave: perfil público
-  de qualquer participante real mostrava "Usuário não encontrado" (quebrava também "denunciar
-  usuário"). Corrigido com `useAuth().user`, novo hook `usePublicProfile` (`GET /users/{id}`) e
-  novo método `AuthContext.updateProfile` (agora `EditProfileScreen` salva de verdade via
-  `PATCH /users/me`). Detalhe completo em [`progress.md`](progress.md), sessão 34. **289/289
-  testes**, `tsc`/`lint` zerados, build web validada.
-  - **Próxima tarefa concreta:** nenhuma de código pendente. Revisar/mergear
-    `fix/real-user-profile-data` em `dev`; depois só resta o item 8 da Fase 14 (hardening em
-    dispositivo físico) e as pendências não-técnicas (screenshots do TCC, decisões
-    D-Deploy-1/D-Deploy-2/D-TCC-1/D-TCC-2 do `plano-de-entrega.md`).
+    ser testada tanto contra o backend local quanto contra `https://squadup-api.up.railway.app`
+    (a build atual usa produção, perfil `preview`).
 
 ---
 
@@ -212,5 +208,5 @@ no backend (D16); único contrato genuinamente quebrado é a ação de moderaç�
 
 **Total de tarefas:** 86 (70 do protótipo + 16 da fila de integração, Fase 13)
 **Concluídas:** 85 (69 do protótipo + refinamento visual transversal + 16/16 da Fase 13 — sessões 20–28)
-**Em andamento:** 1 (Fase 12: 12.8 — `eas.json` pronto, falta login/build real do usuário)
-**A fazer:** 1 (Fase 12: 12.3 requer dispositivo/emulador do usuário)
+**Em andamento:** 1 (Fase 12: 12.8 — `projectId` gerado, 3 builds EAS via `--profile preview` geradas e instaladas em dispositivo real na sessão 34; falta só decidir se uma delas é a "final" pra apresentação ou se ainda vai mudar mais)
+**A fazer:** 1 (Fase 12: 12.3 — dispositivo físico já em uso desde a sessão 34 pra testar a Fase 14, mas o teste formal "Expo Go em iOS e Android" ainda não foi feito à parte — Expo Go não serve mais para validar push, sessão 33)

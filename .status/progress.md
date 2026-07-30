@@ -1885,7 +1885,102 @@ mocks para `createQueryWrapper` + fetch mockado por URL, já que os dados agora 
 - Fase 14 segue em 7/8 — este bug não fazia parte do escopo da Fase 14, foi achado ao validar se
   o app "fica funcional com conta nova" antes da apresentação.
 - Uma dívida técnica nova, D28, já **resolvida** no mesmo commit desta sessão.
-- Próxima tarefa: nenhuma de código — resta revisar/mergear `fix/real-user-profile-data`, e as
-  pendências não-técnicas de sempre (screenshots do TCC, decisões D-Deploy-1/D-Deploy-2/D-TCC-1/
-  D-TCC-2 do `plano-de-entrega.md`, e o hardening em dispositivo físico — item 8 da Fase 14).
-- Nenhum bug pendente — parada é limpa.
+- ~~Próxima tarefa: nenhuma de código — resta revisar/mergear `fix/real-user-profile-data`~~ —
+  mergeada pelo usuário via PR #13 ainda na mesma sessão (ver continuação abaixo).
+
+### Continuação — hardening real em dispositivo físico (item 8 da Fase 14, sessão 34)
+
+A sessão continuou com o usuário instalando builds sucessivas do APK (`eas build --platform
+android --profile preview`) num Android real — a primeira validação de ponta a ponta em
+dispositivo físico de todo o projeto. Cada rodada de teste encontrou um bug novo, corrigido e
+seguido de uma nova build (fila do EAS variou de ~15min a ~2h30 por rodada — **nunca alterar
+código e pedir pro usuário testar sem antes rodar `tsc`/`lint`/`test`/`expo export` localmente**,
+o custo de uma rodada errada é alto). Ordem cronológica:
+
+**1. App abria e fechava sozinho (crash instantâneo) — D29.** Causa encontrada sem
+adivinhação: no próprio log da build EAS (fase `RUN_EXPO_DOCTOR`), `expo-font` (peer dependency
+de `@expo/vector-icons`, usado em quase toda tela) nunca tinha sido instalado como dependência
+direta — só existia de forma transitiva, em duas versões conflitantes. `npx expo install
+expo-font` + `npx expo install --fix` (também realinhou `expo`/`babel-preset-expo`/`@types/jest`
+às versões esperadas pelo SDK 54) — `npx expo-doctor` foi de 15/18 para **18/18 checks**.
+
+**2. Teclado cobria os campos de senha/data; teclado numérico não tinha "/" — D30, corrigida
+de fato só em D31.** Primeira passada (D30): `formatDateInput` (`src/utils/date.ts`) insere as
+barras automaticamente; `KeyboardAvoidingView` adicionado em 8 telas com `behavior="height"` no
+Android. **Não resolveu** — usuário testou de novo e o teclado continuou cobrindo o campo.
+Segunda passada (D31), desta vez pesquisando a causa raiz antes de tentar de novo (via
+`WebSearch`/`WebFetch`, não adivinhação): `edgeToEdgeEnabled: true` (já ativo no projeto) muda
+como o Android lida com teclado a partir do SDK 54/RN 0.81, e a recomendação oficial da Expo é
+`behavior={undefined}` no Android, não `"height"` (docs.expo.dev/guides/keyboard-handling).
+Corrigido nas 9 telas (as 8 do D30 + `MatchChatScreen`, que já tinha o mesmo problema antes desta
+sessão); `app.json` ganhou `android.softwareKeyboardLayoutMode: "resize"`.
+
+**3. Cadastro ficava irrecuperável após falha parcial — D31 (junto com o item acima).**
+`completeProfile` não sobrevivia a uma falha entre `POST /auth/register` (sucesso) e o passo
+seguinte (login/PATCH) falhando por instabilidade real de rede — a conta já existia no backend,
+mas o usuário via um erro genérico e a nova tentativa batia em `EMAIL_ALREADY_REGISTERED` sem
+conseguir prosseguir. Corrigido: captura esse código específico e segue para o login em vez de
+propagar o erro.
+
+**4. "Network Request Failed" no cadastro — D32.** Antes de mudar qualquer código, os logs reais
+do Railway foram checados (a pedido, `GET /health`/`POST /auth/register`/`/login` respondendo
+normalmente perto do horário do teste) — confirmou que **não era bug determinístico**, era queda
+pontual de rede do dispositivo. O usuário apontou corretamente que o app deveria absorver isso
+sozinho: `fetchWithNetworkRetry` (novo, `client.ts`) tenta de novo até 2x (600ms de espera) só
+quando o `fetch()` falha antes de qualquer resposta chegar — nunca em cima de uma resposta HTTP
+já recebida. Benefício sistêmico: vale para toda chamada da API, não só cadastro.
+
+**5. Mesma falha com e-mail novo — D33.** O usuário suspeitou (corretamente, em espírito) que o
+problema fosse o payload/contrato, não rede, e pediu pra validar o fluxo contra o backend.
+Comparando `RegisterScreen`/`services/api/auth.ts` linha a linha contra `app/schemas/auth.py`
+(`RegisterRequest`): **a senha exige mínimo 8 caracteres no backend, o front só validava 6** —
+uma senha de 6–7 caracteres passava no app e era rejeitada com `422` pelo backend. Como o FastAPI
+usa um formato de erro diferente do nosso (`detail` em lista de `{loc, msg, type}`, não
+`{code, message}`), esse `422` caía no fallback genérico `UNKNOWN_ERROR` — escondendo a causa
+real. Corrigido: `RegisterScreen` exige 8+ agora; `parseErrorPayload` ganhou
+`fromValidationErrors`, que reconhece o formato de lista do FastAPI e monta uma mensagem legível
+(ex.: `"password: String should have at least 8 characters"`). Resto do contrato de registro
+(`name`/`age`/`location`/`favorite_sports`/enums `Sport`/`ExperienceLevel`) conferido sem
+mismatch.
+
+**6. Auditoria de dívidas técnicas a pedido do usuário.** Antes de decidir sobre mais uma build,
+o usuário pediu pra avaliar se valia a pena resolver as dívidas técnicas abertas primeiro.
+Reauditadas `D1`–`D33`: todas as abertas são **Baixa** prioridade (nenhuma é candidata a bug
+bloqueante) — duas entradas (`D8`, `D16`) estavam marcadas "Média" mas já tinham sido resolvidas
+há sessões, só nunca marcadas como tal; corrigido o texto. Recomendação dada: o risco real não
+está na lista de dívidas conhecidas, está nos trechos do app ainda não testados de verdade num
+dispositivo (criar partida, chat, geo, push) — resolver dívidas de baixa prioridade não reduz
+esse risco.
+
+### Builds EAS geradas nesta sessão (ordem cronológica)
+
+| # | Commit | Resultado no dispositivo |
+|---|--------|---------------------------|
+| 1 | `068d440` (antes do D29) | App abria e fechava sozinho — crash de boot (D29) |
+| 2 | `3558689` (D29) | Não testado isoladamente — próxima rodada já incluía D30 |
+| 3 | `fd3b98d` (D29+D30) | Data digitável, mas teclado ainda cobria os campos |
+| 4 | `9630991` (D29+D30+D31) | Cadastro com "Network Request Failed" (D32) |
+| 5 | `3dcd0dd` (D29+D30+D31+D32+D33) | Build finalizada ao fim desta sessão — **ainda não testada no dispositivo** |
+
+### Validação (cada correção, sessão 34 completa)
+
+Todas as 5 correções (D29–D33) passaram por `npx tsc --noEmit` zero erros, `npm run lint` zero
+erros, `npm run test` (foi de 289 → **302 testes**, todos passando) e `npx expo export
+--platform web` sem erros antes de cada build ser disparada — nenhuma rodada pulou o gate de
+qualidade do CLAUDE.md §5 mesmo sob pressão de tempo.
+
+### Estado ao final da sessão 34 (fechamento)
+
+- Branch `dev`, working tree limpo, todos os commits desta sessão já em `dev` (sem PR — commitado
+  direto, dado o caráter de hotfix urgente e sequencial dessas correções).
+- **Build EAS mais recente (`fa25bd21`, commit `3dcd0dd`) finalizada, aguardando teste do usuário
+  no dispositivo físico** — ainda não confirmado se o cadastro completa de ponta a ponta.
+- Fase 14 seguirá em 7/8 até o item 8 (hardening) ser confirmado como concluído — o que exige o
+  usuário completar um teste real de: cadastro → criar partida → chat → filtro de proximidade →
+  push, tudo numa passada, com a build `fa25bd21`.
+- Um item novo para acompanhar (não é dívida técnica de código, é observação de processo): cada
+  bug encontrado em dispositivo físico custou uma rodada de build (15min–2h30 de fila) — vale
+  reservar tempo de sobra antes da apresentação para absorver mais 1–2 rodadas, caso os fluxos
+  ainda não testados (criar partida, chat, geo, push) revelem algo novo.
+- Nenhum bug pendente do lado do código — tudo que foi encontrado foi corrigido e validado. A
+  única pendência é a confirmação do usuário testando a build mais recente.

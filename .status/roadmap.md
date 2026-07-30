@@ -19,9 +19,9 @@
 | — | Redesign visual premium (theme module, elevação, cor por esporte) | 🟢 Concluído (transversal — sessão 16) |
 | Fase 12 | Revisão e polimento final | 🟡 Em andamento (6/8 — 12.1, 12.2, 12.4–12.7 concluídas, sessão 17; 12.8 em andamento, sessão 28) |
 | Fase 13 | Integração com o backend real | 🟢 **Concluída (16/16)** — 13.1 sessão 20; 13.2/13.3 sessão 21; 13.4 sessões 22–23; 13.5 sessão 24; 13.6 sessão 25; 13.7 sessão 26; 13.8 sessão 27; 13.9 sessão 28 |
-| Fase 14 | Geolocalização real e notificações push | 🟡 Em andamento (7/8 — backend 1–4 concluídas; front 14.1 (itens 5–6) e 14.2 (item 7) concluídos sessões 31–33) |
+| Fase 14 | Geolocalização real e notificações push | 🟡 Em andamento (7/8 — backend 1–4 concluídas; front 14.1 (itens 5–6) e 14.2 (item 7) concluídos sessões 31–33; item 8 em andamento, sessão 34 — hardening real em dispositivo achou e corrigiu D28–D34) |
 
-**Progresso geral:** 85/86 tarefas do protótipo+integração concluídas (99%) · Fase 14: 7/8 · 289 testes passando · lint zerado · tsc zerado
+**Progresso geral:** 85/86 tarefas do protótipo+integração concluídas (99%) · Fase 14: 7/8 · 302 testes passando · lint zerado · tsc zerado
 
 Stack confirmada: React Native 0.81.5 · Expo SDK 54 · TypeScript · NativeWind v4 · React Navigation v6 · @expo/vector-icons (MaterialCommunityIcons) · @tanstack/react-query v5 · expo-secure-store (sessão 21) · @playwright/test como dev tooling para screenshots do TCC (sessão 28)
 
@@ -701,6 +701,16 @@ partida), sem quebrar nenhum fluxo hoje funcional — as duas features são estr
   inteira do `@react-navigation/native` não funcionou de forma confiável no ambiente de teste).
 
 ### 14.3 — Hardening e fechamento
+
+> **Em andamento (sessão 34, 2026-07-28/29):** primeira rodada real de testes em dispositivo
+> físico via build `preview` do EAS. Cada teste do usuário achou um bug de boot/UX/contrato
+> novo — todos corrigidos e documentados como D28–D34 em `queue.md` (crash no boot fora do
+> Expo Go, teclado cobrindo campo em telas de formulário, `completeProfile` não sobrevivendo a
+> falha parcial, falta de retry em queda de rede, mismatch de validação de senha). 3 builds EAS
+> geradas ao longo da sessão; a mais recente (`fa25bd21`, commit `3dcd0dd`) ainda não foi testada
+> pelo usuário até o fechamento desta sessão — **item 8 segue em aberto** até um teste de ponta a
+> ponta (cadastro → criar partida → chat → geo → push) confirmar que não há mais bugs de
+> dispositivo real pendentes.
 
 - Teste manual ponta a ponta em **dispositivo físico via development/preview build** — push
   remoto **não funciona mais no Expo Go desde o SDK 53** (aviso do próprio `expo-notifications`
